@@ -28,6 +28,7 @@ N * B_0(Pi)   = sum_e max(N * max(d_e - hF, 0) - 2 * (hS - hF), 0)
 ```
 
 The verifier checks `scaled_gap <= scaled_indexed_bound <= scaled_index_free_bound`.
+It reports positive equality cases (`scaled_gap = scaled_indexed_bound > 0`) separately from zero equality cases (`scaled_gap = scaled_indexed_bound = 0`) so that zero-loss cases are not counted as tight positive-loss examples.
 
 Results are written under:
 

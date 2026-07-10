@@ -23,12 +23,16 @@
   "total_scaled_indexed_bound": 4224168,
   "total_scaled_index_free_bound": 5983632,
   "max_scaled_bound_reduction": 12,
-  "equality_cases": 846547,
-  "start_time": 1783724803.9505696,
-  "end_time": 1783724913.7831624,
-  "runtime_seconds": 109.83259272575378,
+  "positive_equality_cases": 999,
+  "zero_equality_cases": 845548,
+  "start_time": 1783726955.1503475,
+  "end_time": 1783727064.7415442,
+  "runtime_seconds": 109.5911967754364,
   "max_gap_over_indexed_bound": "2/2",
   "max_gap_over_index_free_bound": "8/10",
+  "total_equality_cases": 846547,
+  "aggregate_indexed_bound_reduction": "1 - sum(B_idx)/sum(B_0)",
+  "aggregate_indexed_bound_reduction_fraction": "1759464/5983632",
   "config": {
     "L_values": [
       3

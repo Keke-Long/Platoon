@@ -68,7 +68,8 @@ class SearchStats:
     total_scaled_indexed_bound: int = 0
     total_scaled_index_free_bound: int = 0
     max_scaled_bound_reduction: int = 0
-    equality_cases: int = 0
+    positive_equality_cases: int = 0
+    zero_equality_cases: int = 0
     start_time: float = field(default_factory=time.time)
     end_time: float | None = None
 
@@ -86,8 +87,10 @@ class SearchStats:
             self.max_scaled_bound_reduction,
             scaled_index_free - scaled_indexed,
         )
-        if indexed_excess == 0:
-            self.equality_cases += 1
+        if indexed_excess == 0 and scaled_gap > 0:
+            self.positive_equality_cases += 1
+        if indexed_excess == 0 and scaled_gap == 0:
+            self.zero_equality_cases += 1
         if self.min_indexed_bound_excess_scaled is None or indexed_excess < self.min_indexed_bound_excess_scaled:
             self.min_indexed_bound_excess_scaled = indexed_excess
         if self.max_indexed_bound_excess_scaled is None or indexed_excess > self.max_indexed_bound_excess_scaled:
@@ -132,6 +135,18 @@ class SearchStats:
             if self.index_free_positive_bound_cases
             else None
         )
+        data["total_equality_cases"] = self.positive_equality_cases + self.zero_equality_cases
+        if self.total_scaled_index_free_bound:
+            data["aggregate_indexed_bound_reduction"] = (
+                "1 - sum(B_idx)/sum(B_0)"
+            )
+            data["aggregate_indexed_bound_reduction_fraction"] = (
+                f"{self.total_scaled_index_free_bound - self.total_scaled_indexed_bound}/"
+                f"{self.total_scaled_index_free_bound}"
+            )
+        else:
+            data["aggregate_indexed_bound_reduction"] = None
+            data["aggregate_indexed_bound_reduction_fraction"] = None
         data["config"] = asdict(config)
         data["platform"] = {
             "python": platform.python_version(),
@@ -281,7 +296,7 @@ def write_summary_files(
     summary["local_repair_violation_found"] = local_violation is not None
     (output_dir / "indexed_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     with (output_dir / "indexed_summary.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(["metric", "value"])
         for key, value in summary.items():
             if isinstance(value, (dict, list)):

@@ -64,7 +64,8 @@ class RandomStats:
     total_scaled_indexed_bound: int = 0
     total_scaled_index_free_bound: int = 0
     max_scaled_bound_reduction: int = 0
-    equality_cases: int = 0
+    positive_equality_cases: int = 0
+    zero_equality_cases: int = 0
     start_time: float = field(default_factory=time.time)
     end_time: float | None = None
 
@@ -80,8 +81,10 @@ class RandomStats:
             self.max_scaled_bound_reduction,
             scaled_index_free - scaled_indexed,
         )
-        if scaled_gap == scaled_indexed:
-            self.equality_cases += 1
+        if scaled_gap == scaled_indexed and scaled_gap > 0:
+            self.positive_equality_cases += 1
+        if scaled_gap == scaled_indexed and scaled_gap == 0:
+            self.zero_equality_cases += 1
         if scaled_indexed == 0:
             self.indexed_zero_bound_cases += 1
         else:
@@ -116,6 +119,18 @@ class RandomStats:
             if self.index_free_positive_bound_cases
             else None
         )
+        data["total_equality_cases"] = self.positive_equality_cases + self.zero_equality_cases
+        if self.total_scaled_index_free_bound:
+            data["aggregate_indexed_bound_reduction"] = (
+                "1 - sum(B_idx)/sum(B_0)"
+            )
+            data["aggregate_indexed_bound_reduction_fraction"] = (
+                f"{self.total_scaled_index_free_bound - self.total_scaled_indexed_bound}/"
+                f"{self.total_scaled_index_free_bound}"
+            )
+        else:
+            data["aggregate_indexed_bound_reduction"] = None
+            data["aggregate_indexed_bound_reduction_fraction"] = None
         data["config"] = asdict(config)
         return data
 
@@ -337,4 +352,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

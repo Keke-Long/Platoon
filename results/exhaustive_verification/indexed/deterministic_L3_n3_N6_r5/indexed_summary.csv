@@ -23,12 +23,16 @@ max_index_free_bound_excess_scaled,52
 total_scaled_indexed_bound,4224168
 total_scaled_index_free_bound,5983632
 max_scaled_bound_reduction,12
-equality_cases,846547
-start_time,1783724803.9505696
-end_time,1783724913.7831624
-runtime_seconds,109.83259272575378
+positive_equality_cases,999
+zero_equality_cases,845548
+start_time,1783726955.1503475
+end_time,1783727064.7415442
+runtime_seconds,109.5911967754364
 max_gap_over_indexed_bound,2/2
 max_gap_over_index_free_bound,8/10
+total_equality_cases,846547
+aggregate_indexed_bound_reduction,1 - sum(B_idx)/sum(B_0)
+aggregate_indexed_bound_reduction_fraction,1759464/5983632
 config,"{""L_values"": [3], ""check_repair"": true, ""hF"": 1, ""hS_values"": [2, 3, 4], ""keep_all_optima"": true, ""max_n"": 3, ""max_release"": 5, ""max_total_vehicles"": 6, ""stop_on_counterexample"": true}"
 platform,"{""machine"": ""x86_64"", ""processor"": ""x86_64"", ""python"": ""3.12.9"", ""release"": ""6.8.0-52-generic"", ""system"": ""Linux""}"
 indexed_counterexample_found,False
