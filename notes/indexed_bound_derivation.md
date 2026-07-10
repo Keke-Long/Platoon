@@ -72,7 +72,7 @@ After taking a positive part, dividing by \(N\), and applying \(M_e\le N-i_e\),
 \frac{1}{N}[M_ex_e-2\Delta_h]_+
 \le
 \left[
-\frac{N-i_e}{N}x_e-rac{2\Delta_h}{N}
+\frac{N-i_e}{N}x_e-\frac{2\Delta_h}{N}
 \right]_+.
 \]
 

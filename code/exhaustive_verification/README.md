@@ -1,6 +1,6 @@
 # Exhaustive Verification
 
-This package checks the candidate platoon-induced scheduling loss bound using exact integer arithmetic on small instances.
+This package contains the archived exact verifier for the index-free platoon-induced scheduling loss bound. The manuscript now states the sharper FIFO-indexed bound; this verifier has not yet been updated for that refinement.
 
 Run commands from this directory:
 
@@ -11,7 +11,7 @@ python verify_bound.py --L 2 --max-n 3 --max-total-vehicles 6 --max-release 4 --
 python random_verify.py --seed 20260710 --samples 1000 --max-n 5 --max-total-vehicles 10 --max-release 8 --partitions-per-instance 16
 ```
 
-The scaled comparison is:
+The archived scaled comparison is:
 
 ```text
 J*_Pi - J* <= N * B(Pi)
