@@ -1,0 +1,35 @@
+metric,value
+traffic_instances,28322
+partitions,318402
+vehicle_sequence_evaluations,397684
+platoon_sequence_evaluations,1898260
+repair_traces_checked,318402
+repair_steps_checked,45920
+local_repair_violations,0
+indexed_bound_violations,0
+bound_dominance_violations,0
+indexed_zero_bound_cases,223030
+index_free_zero_bound_cases,220751
+indexed_positive_bound_cases,95372
+index_free_positive_bound_cases,97651
+max_gap_over_indexed_bound_num,2
+max_gap_over_indexed_bound_den,2
+max_gap_over_index_free_bound_num,10
+max_gap_over_index_free_bound_den,13
+min_indexed_bound_excess_scaled,0
+max_indexed_bound_excess_scaled,26
+min_index_free_bound_excess_scaled,0
+max_index_free_bound_excess_scaled,42
+total_scaled_indexed_bound,574644
+total_scaled_index_free_bound,890232
+max_scaled_bound_reduction,16
+equality_cases,228686
+start_time,1783725500.226348
+end_time,1783725510.1654003
+runtime_seconds,9.93905234336853
+max_gap_over_indexed_bound,2/2
+max_gap_over_index_free_bound,10/13
+config,"{""L_values"": [2], ""check_repair"": true, ""hF"": 2, ""hS_values"": [3, 5], ""keep_all_optima"": true, ""max_n"": 3, ""max_release"": 6, ""max_total_vehicles"": 6, ""stop_on_counterexample"": true}"
+platform,"{""machine"": ""x86_64"", ""processor"": ""x86_64"", ""python"": ""3.12.9"", ""release"": ""6.8.0-52-generic"", ""system"": ""Linux""}"
+indexed_counterexample_found,False
+local_repair_violation_found,False

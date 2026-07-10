@@ -1,4 +1,4 @@
-"""Staged exact verification of the candidate platoon bound."""
+"""Staged exact verification of the FIFO-indexed platoon bound."""
 
 from __future__ import annotations
 
@@ -14,19 +14,16 @@ from typing import Iterator
 
 from enumerate_partitions import enumerate_partitions
 from enumerate_sequences import enumerate_fifo_sequences, enumerate_platoon_sequences
-from local_repair import (
-    LocalRepairViolation,
-    check_local_repair_sequence,
-    local_repairs_for_sequence,
-)
+from global_repair import RepairResult, repair_sequence_to_partition, validate_repair_result
 from model import (
     Instance,
+    Optimum,
     Partition,
     SequenceT,
-    Optimum,
     optimum_for_sequences,
     partition_label,
-    scaled_candidate_bound,
+    scaled_index_free_bound,
+    scaled_indexed_bound,
     sequence_label,
     total_delay,
 )
@@ -42,7 +39,7 @@ class SearchConfig:
     hS_values: tuple[int, ...]
     keep_all_optima: bool
     stop_on_counterexample: bool
-    check_local: bool
+    check_repair: bool
 
 
 @dataclass
@@ -51,15 +48,27 @@ class SearchStats:
     partitions: int = 0
     vehicle_sequence_evaluations: int = 0
     platoon_sequence_evaluations: int = 0
-    local_repairs_checked: int = 0
+    repair_traces_checked: int = 0
+    repair_steps_checked: int = 0
     local_repair_violations: int = 0
-    zero_bound_cases: int = 0
-    positive_bound_cases: int = 0
-    violations: int = 0
-    max_gap_over_bound_num: int = 0
-    max_gap_over_bound_den: int = 1
-    min_bound_excess_scaled: int | None = None
-    max_bound_excess_scaled: int | None = None
+    indexed_bound_violations: int = 0
+    bound_dominance_violations: int = 0
+    indexed_zero_bound_cases: int = 0
+    index_free_zero_bound_cases: int = 0
+    indexed_positive_bound_cases: int = 0
+    index_free_positive_bound_cases: int = 0
+    max_gap_over_indexed_bound_num: int = 0
+    max_gap_over_indexed_bound_den: int = 1
+    max_gap_over_index_free_bound_num: int = 0
+    max_gap_over_index_free_bound_den: int = 1
+    min_indexed_bound_excess_scaled: int | None = None
+    max_indexed_bound_excess_scaled: int | None = None
+    min_index_free_bound_excess_scaled: int | None = None
+    max_index_free_bound_excess_scaled: int | None = None
+    total_scaled_indexed_bound: int = 0
+    total_scaled_index_free_bound: int = 0
+    max_scaled_bound_reduction: int = 0
+    equality_cases: int = 0
     start_time: float = field(default_factory=time.time)
     end_time: float | None = None
 
@@ -68,26 +77,59 @@ class SearchStats:
         end = self.end_time if self.end_time is not None else time.time()
         return end - self.start_time
 
-    def record_case(self, scaled_gap: int, scaled_bound: int) -> None:
-        excess = scaled_bound - scaled_gap
-        if self.min_bound_excess_scaled is None or excess < self.min_bound_excess_scaled:
-            self.min_bound_excess_scaled = excess
-        if self.max_bound_excess_scaled is None or excess > self.max_bound_excess_scaled:
-            self.max_bound_excess_scaled = excess
-        if scaled_bound == 0:
-            self.zero_bound_cases += 1
-            return
-        self.positive_bound_cases += 1
-        if scaled_gap * self.max_gap_over_bound_den > self.max_gap_over_bound_num * scaled_bound:
-            self.max_gap_over_bound_num = scaled_gap
-            self.max_gap_over_bound_den = scaled_bound
+    def record_case(self, scaled_gap: int, scaled_indexed: int, scaled_index_free: int) -> None:
+        indexed_excess = scaled_indexed - scaled_gap
+        index_free_excess = scaled_index_free - scaled_gap
+        self.total_scaled_indexed_bound += scaled_indexed
+        self.total_scaled_index_free_bound += scaled_index_free
+        self.max_scaled_bound_reduction = max(
+            self.max_scaled_bound_reduction,
+            scaled_index_free - scaled_indexed,
+        )
+        if indexed_excess == 0:
+            self.equality_cases += 1
+        if self.min_indexed_bound_excess_scaled is None or indexed_excess < self.min_indexed_bound_excess_scaled:
+            self.min_indexed_bound_excess_scaled = indexed_excess
+        if self.max_indexed_bound_excess_scaled is None or indexed_excess > self.max_indexed_bound_excess_scaled:
+            self.max_indexed_bound_excess_scaled = indexed_excess
+        if self.min_index_free_bound_excess_scaled is None or index_free_excess < self.min_index_free_bound_excess_scaled:
+            self.min_index_free_bound_excess_scaled = index_free_excess
+        if self.max_index_free_bound_excess_scaled is None or index_free_excess > self.max_index_free_bound_excess_scaled:
+            self.max_index_free_bound_excess_scaled = index_free_excess
+
+        if scaled_indexed == 0:
+            self.indexed_zero_bound_cases += 1
+        else:
+            self.indexed_positive_bound_cases += 1
+            if (
+                scaled_gap * self.max_gap_over_indexed_bound_den
+                > self.max_gap_over_indexed_bound_num * scaled_indexed
+            ):
+                self.max_gap_over_indexed_bound_num = scaled_gap
+                self.max_gap_over_indexed_bound_den = scaled_indexed
+
+        if scaled_index_free == 0:
+            self.index_free_zero_bound_cases += 1
+        else:
+            self.index_free_positive_bound_cases += 1
+            if (
+                scaled_gap * self.max_gap_over_index_free_bound_den
+                > self.max_gap_over_index_free_bound_num * scaled_index_free
+            ):
+                self.max_gap_over_index_free_bound_num = scaled_gap
+                self.max_gap_over_index_free_bound_den = scaled_index_free
 
     def to_json(self, config: SearchConfig) -> dict[str, object]:
         data = asdict(self)
         data["runtime_seconds"] = self.runtime_seconds
-        data["max_gap_over_bound"] = (
-            f"{self.max_gap_over_bound_num}/{self.max_gap_over_bound_den}"
-            if self.positive_bound_cases
+        data["max_gap_over_indexed_bound"] = (
+            f"{self.max_gap_over_indexed_bound_num}/{self.max_gap_over_indexed_bound_den}"
+            if self.indexed_positive_bound_cases
+            else None
+        )
+        data["max_gap_over_index_free_bound"] = (
+            f"{self.max_gap_over_index_free_bound_num}/{self.max_gap_over_index_free_bound_den}"
+            if self.index_free_positive_bound_cases
             else None
         )
         data["config"] = asdict(config)
@@ -108,11 +150,14 @@ class BoundCounterexample:
     unrestricted: Optimum
     platoon: Optimum
     scaled_gap: int
-    scaled_bound: int
+    scaled_indexed_bound: int
+    scaled_index_free_bound: int
+    repair_result: RepairResult | None = None
+    violation_type: str = "indexed_global_bound_violation"
 
     def to_json(self) -> dict[str, object]:
-        return {
-            "type": "global_bound_violation",
+        data: dict[str, object] = {
+            "type": self.violation_type,
             "L": self.instance.L,
             "N": self.instance.N,
             "counts": list(self.instance.counts),
@@ -123,9 +168,11 @@ class BoundCounterexample:
             "unrestricted_total_delay": self.unrestricted.total_delay,
             "platoon_total_delay": self.platoon.total_delay,
             "scaled_gap": self.scaled_gap,
-            "scaled_bound": self.scaled_bound,
+            "scaled_indexed_bound": self.scaled_indexed_bound,
+            "scaled_index_free_bound": self.scaled_index_free_bound,
             "average_gap": f"{self.scaled_gap}/{self.instance.N}",
-            "candidate_bound": f"{self.scaled_bound}/{self.instance.N}",
+            "indexed_bound": f"{self.scaled_indexed_bound}/{self.instance.N}",
+            "index_free_bound": f"{self.scaled_index_free_bound}/{self.instance.N}",
             "unrestricted_optimal_sequences": [
                 sequence_label(sequence) for sequence in self.unrestricted.sequences
             ],
@@ -133,6 +180,9 @@ class BoundCounterexample:
                 sequence_label(sequence) for sequence in self.platoon.sequences
             ],
         }
+        if self.repair_result is not None:
+            data["global_repair_trace"] = self.repair_result.to_json()
+        return data
 
 
 def parse_int_list(value: str) -> tuple[int, ...]:
@@ -185,7 +235,7 @@ def render_counterexample_markdown(counterexample: BoundCounterexample) -> str:
     data = counterexample.to_json()
     return "\n".join(
         [
-            "# Candidate Bound Counterexample",
+            "# FIFO-Indexed Bound Counterexample",
             "",
             f"- Type: {data['type']}",
             f"- L: {data['L']}",
@@ -198,7 +248,8 @@ def render_counterexample_markdown(counterexample: BoundCounterexample) -> str:
             f"- Unrestricted total delay: {data['unrestricted_total_delay']}",
             f"- Platoon total delay: {data['platoon_total_delay']}",
             f"- Average gap: {data['average_gap']}",
-            f"- Candidate bound: {data['candidate_bound']}",
+            f"- Indexed bound: {data['indexed_bound']}",
+            f"- Index-free bound: {data['index_free_bound']}",
             "",
             "## Unrestricted Optimal Sequences",
             "",
@@ -208,11 +259,9 @@ def render_counterexample_markdown(counterexample: BoundCounterexample) -> str:
             "",
             json.dumps(data["platoon_optimal_sequences"], indent=2),
             "",
-            "## Proof Step",
+            "## Global Repair Trace",
             "",
-            "The partition-specific global bound is contradicted by this instance. "
-            "Run the local-repair checker on this same instance to distinguish whether "
-            "the failure originates in the local inequality or in the global telescoping/repair-order argument.",
+            json.dumps(data.get("global_repair_trace"), indent=2),
             "",
         ]
     )
@@ -223,15 +272,15 @@ def write_summary_files(
     config: SearchConfig,
     stats: SearchStats,
     counterexample: BoundCounterexample | None,
-    local_violation: LocalRepairViolation | None,
+    local_violation: dict[str, object] | None,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     stats.end_time = time.time()
     summary = stats.to_json(config)
-    summary["counterexample_found"] = counterexample is not None
+    summary["indexed_counterexample_found"] = counterexample is not None
     summary["local_repair_violation_found"] = local_violation is not None
-    (output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    with (output_dir / "summary.csv").open("w", newline="", encoding="utf-8") as handle:
+    (output_dir / "indexed_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    with (output_dir / "indexed_summary.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(["metric", "value"])
         for key, value in summary.items():
@@ -239,25 +288,54 @@ def write_summary_files(
                 value = json.dumps(value, sort_keys=True)
             writer.writerow([key, value])
     if counterexample is not None:
-        (output_dir / "counterexample.json").write_text(
+        (output_dir / "indexed_counterexample.json").write_text(
             json.dumps(counterexample.to_json(), indent=2),
             encoding="utf-8",
         )
-        (output_dir / "counterexample.md").write_text(
+        (output_dir / "indexed_counterexample.md").write_text(
             render_counterexample_markdown(counterexample),
             encoding="utf-8",
         )
     if local_violation is not None:
-        (output_dir / "local_repair_violation.json").write_text(
-            json.dumps(local_violation.to_json(), indent=2),
+        (output_dir / "indexed_local_repair_violation.json").write_text(
+            json.dumps(local_violation, indent=2),
             encoding="utf-8",
         )
 
 
-def search(config: SearchConfig, output_dir: Path) -> tuple[SearchStats, BoundCounterexample | None, LocalRepairViolation | None]:
+def check_repair_trace(
+    instance: Instance,
+    partition: Partition,
+    unrestricted: Optimum,
+) -> tuple[RepairResult, dict[str, object] | None]:
+    repair_result = repair_sequence_to_partition(
+        instance,
+        unrestricted.sequences[0],
+        partition,
+    )
+    try:
+        validate_repair_result(instance, unrestricted.sequences[0], partition, repair_result)
+    except AssertionError as exc:
+        return repair_result, {
+            "type": "global_repair_invariant_violation",
+            "instance": {
+                "counts": list(instance.counts),
+                "releases": [list(row) for row in instance.releases],
+                "hF": instance.hF,
+                "hS": instance.hS,
+            },
+            "partition": partition_label(partition),
+            "initial_sequence": sequence_label(unrestricted.sequences[0]),
+            "repair_trace": repair_result.to_json(),
+            "error": str(exc),
+        }
+    return repair_result, None
+
+
+def search(config: SearchConfig, output_dir: Path) -> tuple[SearchStats, BoundCounterexample | None, dict[str, object] | None]:
     stats = SearchStats()
     first_counterexample: BoundCounterexample | None = None
-    first_local_violation: LocalRepairViolation | None = None
+    first_local_violation: dict[str, object] | None = None
 
     for instance in instances(config):
         stats.traffic_instances += 1
@@ -276,21 +354,23 @@ def search(config: SearchConfig, output_dir: Path) -> tuple[SearchStats, BoundCo
             keep_all=config.keep_all_optima,
         )
 
-        if config.check_local and first_local_violation is None:
-            for sequence in vehicle_sequences:
-                stats.local_repairs_checked += sum(
-                    1 for _ in local_repairs_for_sequence(sequence)
+        for partition in enumerate_partitions(instance.counts):
+            stats.partitions += 1
+            repair_result: RepairResult | None = None
+            if config.check_repair:
+                repair_result, first_local_violation = check_repair_trace(
+                    instance,
+                    partition,
+                    unrestricted,
                 )
-                repairs = list(check_local_repair_sequence(instance, sequence))
-                if repairs:
-                    stats.local_repair_violations += len(repairs)
-                    first_local_violation = repairs[0]
+                stats.repair_traces_checked += 1
+                stats.repair_steps_checked += len(repair_result.records)
+                if first_local_violation is not None:
+                    stats.local_repair_violations += 1
                     if config.stop_on_counterexample:
                         write_summary_files(output_dir, config, stats, None, first_local_violation)
                         return stats, None, first_local_violation
 
-        for partition in enumerate_partitions(instance.counts):
-            stats.partitions += 1
             platoon, evaluated = optimum_from_cached_delays(
                 enumerate_platoon_sequences(partition),
                 delay_cache,
@@ -298,21 +378,42 @@ def search(config: SearchConfig, output_dir: Path) -> tuple[SearchStats, BoundCo
             )
             stats.platoon_sequence_evaluations += evaluated
             scaled_gap = platoon.total_delay - unrestricted.total_delay
-            scaled_bound = scaled_candidate_bound(instance, partition)
-            stats.record_case(scaled_gap, scaled_bound)
-            if scaled_gap > scaled_bound:
-                stats.violations += 1
+            scaled_indexed = scaled_indexed_bound(instance, partition)
+            scaled_index_free = scaled_index_free_bound(instance, partition)
+            stats.record_case(scaled_gap, scaled_indexed, scaled_index_free)
+
+            if scaled_indexed > scaled_index_free:
+                stats.bound_dominance_violations += 1
                 first_counterexample = BoundCounterexample(
                     instance=instance,
                     partition=partition,
                     unrestricted=unrestricted,
                     platoon=platoon,
                     scaled_gap=scaled_gap,
-                    scaled_bound=scaled_bound,
+                    scaled_indexed_bound=scaled_indexed,
+                    scaled_index_free_bound=scaled_index_free,
+                    repair_result=repair_result,
+                    violation_type="indexed_bound_dominance_violation",
                 )
                 if config.stop_on_counterexample:
-                    write_summary_files(output_dir, config, stats, first_counterexample, first_local_violation)
-                    return stats, first_counterexample, first_local_violation
+                    write_summary_files(output_dir, config, stats, first_counterexample, None)
+                    return stats, first_counterexample, None
+
+            if scaled_gap > scaled_indexed:
+                stats.indexed_bound_violations += 1
+                first_counterexample = BoundCounterexample(
+                    instance=instance,
+                    partition=partition,
+                    unrestricted=unrestricted,
+                    platoon=platoon,
+                    scaled_gap=scaled_gap,
+                    scaled_indexed_bound=scaled_indexed,
+                    scaled_index_free_bound=scaled_index_free,
+                    repair_result=repair_result,
+                )
+                if config.stop_on_counterexample:
+                    write_summary_files(output_dir, config, stats, first_counterexample, None)
+                    return stats, first_counterexample, None
 
     write_summary_files(output_dir, config, stats, first_counterexample, first_local_violation)
     return stats, first_counterexample, first_local_violation
@@ -326,10 +427,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-release", type=int, default=4)
     parser.add_argument("--hF", type=int, default=1)
     parser.add_argument("--hS", default="2,3,4", help="comma-separated hS values")
-    parser.add_argument("--output-dir", default="../../results/exhaustive_verification")
+    parser.add_argument("--output-dir", default="../../results/exhaustive_verification/indexed")
     parser.add_argument("--keep-one-optimum", action="store_true")
     parser.add_argument("--continue-after-counterexample", action="store_true")
-    parser.add_argument("--skip-local", action="store_true")
+    parser.add_argument("--skip-repair", action="store_true")
     return parser
 
 
@@ -344,17 +445,17 @@ def main() -> int:
         hS_values=parse_int_list(args.hS),
         keep_all_optima=not args.keep_one_optimum,
         stop_on_counterexample=not args.continue_after_counterexample,
-        check_local=not args.skip_local,
+        check_repair=not args.skip_repair,
     )
     stats, counterexample, local_violation = search(config, Path(args.output_dir))
     print(json.dumps(stats.to_json(config), indent=2))
     if local_violation is not None:
-        print("LOCAL_REPAIR_VIOLATION_FOUND")
+        print("LOCAL_REPAIR_OR_GLOBAL_REPAIR_INVARIANT_VIOLATION_FOUND")
         return 2
     if counterexample is not None:
-        print("COUNTEREXAMPLE_FOUND")
+        print("INDEXED_COUNTEREXAMPLE_FOUND")
         return 1
-    print("NO_COUNTEREXAMPLE_FOUND_IN_TESTED_DOMAIN")
+    print("NO_COUNTEREXAMPLE_FOUND_IN_INDEXED_TESTED_DOMAIN")
     return 0
 
 

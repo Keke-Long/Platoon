@@ -1,0 +1,35 @@
+metric,value
+traffic_instances,392
+partitions,1152
+vehicle_sequence_evaluations,1744
+platoon_sequence_evaluations,3664
+repair_traces_checked,1152
+repair_steps_checked,100
+local_repair_violations,0
+indexed_bound_violations,0
+bound_dominance_violations,0
+indexed_zero_bound_cases,994
+index_free_zero_bound_cases,970
+indexed_positive_bound_cases,158
+index_free_positive_bound_cases,182
+max_gap_over_indexed_bound_num,2
+max_gap_over_indexed_bound_den,2
+max_gap_over_index_free_bound_num,4
+max_gap_over_index_free_bound_den,6
+min_indexed_bound_excess_scaled,0
+max_indexed_bound_excess_scaled,4
+min_index_free_bound_excess_scaled,0
+max_index_free_bound_excess_scaled,8
+total_scaled_indexed_bound,336
+total_scaled_index_free_bound,624
+max_scaled_bound_reduction,4
+equality_cases,1054
+start_time,1783724609.2982957
+end_time,1783724609.3266492
+runtime_seconds,0.028353452682495117
+max_gap_over_indexed_bound,2/2
+max_gap_over_index_free_bound,4/6
+config,"{""L_values"": [2], ""check_repair"": true, ""hF"": 1, ""hS_values"": [2, 3], ""keep_all_optima"": true, ""max_n"": 2, ""max_release"": 3, ""max_total_vehicles"": 4, ""stop_on_counterexample"": true}"
+platform,"{""machine"": ""x86_64"", ""processor"": ""x86_64"", ""python"": ""3.12.9"", ""release"": ""6.8.0-52-generic"", ""system"": ""Linux""}"
+indexed_counterexample_found,False
+local_repair_violation_found,False

@@ -1,0 +1,49 @@
+{
+  "sampled_instances": 3000,
+  "sampled_partitions": 21082,
+  "vehicle_sequence_evaluations": 1041566,
+  "platoon_sequence_evaluations": 934871,
+  "repair_traces_checked": 21082,
+  "repair_steps_checked": 11646,
+  "local_repair_violations": 0,
+  "indexed_bound_violations": 0,
+  "bound_dominance_violations": 0,
+  "indexed_zero_bound_cases": 5806,
+  "index_free_zero_bound_cases": 4861,
+  "indexed_positive_bound_cases": 15276,
+  "index_free_positive_bound_cases": 16221,
+  "max_gap_over_indexed_bound_num": 8,
+  "max_gap_over_indexed_bound_den": 8,
+  "max_gap_over_index_free_bound_num": 10,
+  "max_gap_over_index_free_bound_den": 12,
+  "total_scaled_indexed_bound": 334815,
+  "total_scaled_index_free_bound": 467576,
+  "max_scaled_bound_reduction": 43,
+  "equality_cases": 5997,
+  "start_time": 1783724927.2729344,
+  "end_time": 1783724934.7087834,
+  "runtime_seconds": 7.435848951339722,
+  "max_gap_over_indexed_bound": "8/8",
+  "max_gap_over_index_free_bound": "10/12",
+  "config": {
+    "seed": 314159,
+    "samples": 3000,
+    "L_values": [
+      2,
+      3
+    ],
+    "max_n": 5,
+    "max_total_vehicles": 10,
+    "max_release": 10,
+    "hF": 1,
+    "hS_values": [
+      2,
+      3,
+      4
+    ],
+    "partitions_per_instance": 8,
+    "check_repair": true
+  },
+  "indexed_counterexample_found": false,
+  "local_repair_violation_found": false
+}

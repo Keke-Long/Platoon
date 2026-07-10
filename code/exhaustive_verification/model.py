@@ -140,8 +140,8 @@ def internal_links(partition: Partition) -> tuple[tuple[Vehicle, Vehicle], ...]:
     return tuple(links)
 
 
-def scaled_candidate_bound(instance: Instance, partition: Partition) -> int:
-    """Return N * B(Pi), exactly, for integer data."""
+def scaled_index_free_bound(instance: Instance, partition: Partition) -> int:
+    """Return N times the archived index-free bound, exactly."""
 
     releases = instance.release_map
     scaled_bound = 0
@@ -151,6 +151,27 @@ def scaled_candidate_bound(instance: Instance, partition: Partition) -> int:
         same_approach_slack = max(release_gap - instance.hF, 0)
         scaled_bound += max(instance.N * same_approach_slack - switch_saving, 0)
     return scaled_bound
+
+
+def scaled_indexed_bound(instance: Instance, partition: Partition) -> int:
+    """Return N times the FIFO-indexed bound, exactly."""
+
+    releases = instance.release_map
+    scaled_bound = 0
+    switch_saving = 2 * (instance.hS - instance.hF)
+    for first, second in internal_links(partition):
+        release_gap = releases[second] - releases[first]
+        same_approach_slack = max(release_gap - instance.hF, 0)
+        predecessor_fifo_index = first[1]
+        scaled_bound += max(
+            (instance.N - predecessor_fifo_index) * same_approach_slack
+            - switch_saving,
+            0,
+        )
+    return scaled_bound
+
+
+scaled_candidate_bound = scaled_index_free_bound
 
 
 def partition_label(partition: Partition) -> list[list[int]]:
@@ -172,4 +193,3 @@ def is_fifo_sequence(sequence: Sequence[Vehicle], counts: Sequence[int]) -> bool
         expected[approach - 1] += 1
         seen[approach - 1] += 1
     return tuple(seen) == tuple(counts)
-

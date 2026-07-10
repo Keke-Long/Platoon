@@ -1,0 +1,58 @@
+{
+  "traffic_instances": 192423,
+  "partitions": 4499523,
+  "vehicle_sequence_evaluations": 4874226,
+  "platoon_sequence_evaluations": 36998430,
+  "repair_traces_checked": 4499523,
+  "repair_steps_checked": 1395323,
+  "local_repair_violations": 0,
+  "indexed_bound_violations": 0,
+  "bound_dominance_violations": 0,
+  "indexed_zero_bound_cases": 2052005,
+  "index_free_zero_bound_cases": 1687215,
+  "indexed_positive_bound_cases": 2447518,
+  "index_free_positive_bound_cases": 2812308,
+  "max_gap_over_indexed_bound_num": 2,
+  "max_gap_over_indexed_bound_den": 2,
+  "max_gap_over_index_free_bound_num": 8,
+  "max_gap_over_index_free_bound_den": 10,
+  "min_indexed_bound_excess_scaled": 0,
+  "max_indexed_bound_excess_scaled": 46,
+  "min_index_free_bound_excess_scaled": 0,
+  "max_index_free_bound_excess_scaled": 61,
+  "total_scaled_indexed_bound": 22822632,
+  "total_scaled_index_free_bound": 35126546,
+  "max_scaled_bound_reduction": 25,
+  "equality_cases": 2145471,
+  "start_time": 1783724621.9886384,
+  "end_time": 1783724795.296501,
+  "runtime_seconds": 173.3078625202179,
+  "max_gap_over_indexed_bound": "2/2",
+  "max_gap_over_index_free_bound": "8/10",
+  "config": {
+    "L_values": [
+      2
+    ],
+    "max_n": 4,
+    "max_total_vehicles": 7,
+    "max_release": 6,
+    "hF": 1,
+    "hS_values": [
+      2,
+      3,
+      4
+    ],
+    "keep_all_optima": true,
+    "stop_on_counterexample": true,
+    "check_repair": true
+  },
+  "platform": {
+    "python": "3.12.9",
+    "system": "Linux",
+    "release": "6.8.0-52-generic",
+    "machine": "x86_64",
+    "processor": "x86_64"
+  },
+  "indexed_counterexample_found": false,
+  "local_repair_violation_found": false
+}

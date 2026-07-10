@@ -1,4 +1,4 @@
-"""Reproducible random exact verification over sampled small instances."""
+"""Reproducible random-exact verification for sampled small instances."""
 
 from __future__ import annotations
 
@@ -11,18 +11,21 @@ from pathlib import Path
 
 from enumerate_partitions import enumerate_partitions
 from enumerate_sequences import enumerate_fifo_sequences, enumerate_platoon_sequences
-from local_repair import check_local_repair_sequence, local_repairs_for_sequence
 from model import (
     Instance,
-    Partition,
     Optimum,
+    Partition,
     optimum_for_sequences,
-    partition_label,
-    scaled_candidate_bound,
-    sequence_label,
+    scaled_index_free_bound,
+    scaled_indexed_bound,
     total_delay,
 )
-from verify_bound import BoundCounterexample, parse_int_list, render_counterexample_markdown
+from verify_bound import (
+    BoundCounterexample,
+    check_repair_trace,
+    parse_int_list,
+    render_counterexample_markdown,
+)
 
 
 @dataclass
@@ -36,7 +39,7 @@ class RandomConfig:
     hF: int
     hS_values: tuple[int, ...]
     partitions_per_instance: int
-    check_local: bool
+    check_repair: bool
 
 
 @dataclass
@@ -45,13 +48,23 @@ class RandomStats:
     sampled_partitions: int = 0
     vehicle_sequence_evaluations: int = 0
     platoon_sequence_evaluations: int = 0
-    local_repairs_checked: int = 0
+    repair_traces_checked: int = 0
+    repair_steps_checked: int = 0
     local_repair_violations: int = 0
-    global_bound_violations: int = 0
-    zero_bound_cases: int = 0
-    positive_bound_cases: int = 0
-    max_gap_over_bound_num: int = 0
-    max_gap_over_bound_den: int = 1
+    indexed_bound_violations: int = 0
+    bound_dominance_violations: int = 0
+    indexed_zero_bound_cases: int = 0
+    index_free_zero_bound_cases: int = 0
+    indexed_positive_bound_cases: int = 0
+    index_free_positive_bound_cases: int = 0
+    max_gap_over_indexed_bound_num: int = 0
+    max_gap_over_indexed_bound_den: int = 1
+    max_gap_over_index_free_bound_num: int = 0
+    max_gap_over_index_free_bound_den: int = 1
+    total_scaled_indexed_bound: int = 0
+    total_scaled_index_free_bound: int = 0
+    max_scaled_bound_reduction: int = 0
+    equality_cases: int = 0
     start_time: float = field(default_factory=time.time)
     end_time: float | None = None
 
@@ -60,21 +73,47 @@ class RandomStats:
         end = self.end_time if self.end_time is not None else time.time()
         return end - self.start_time
 
-    def record_case(self, scaled_gap: int, scaled_bound: int) -> None:
-        if scaled_bound == 0:
-            self.zero_bound_cases += 1
-            return
-        self.positive_bound_cases += 1
-        if scaled_gap * self.max_gap_over_bound_den > self.max_gap_over_bound_num * scaled_bound:
-            self.max_gap_over_bound_num = scaled_gap
-            self.max_gap_over_bound_den = scaled_bound
+    def record_case(self, scaled_gap: int, scaled_indexed: int, scaled_index_free: int) -> None:
+        self.total_scaled_indexed_bound += scaled_indexed
+        self.total_scaled_index_free_bound += scaled_index_free
+        self.max_scaled_bound_reduction = max(
+            self.max_scaled_bound_reduction,
+            scaled_index_free - scaled_indexed,
+        )
+        if scaled_gap == scaled_indexed:
+            self.equality_cases += 1
+        if scaled_indexed == 0:
+            self.indexed_zero_bound_cases += 1
+        else:
+            self.indexed_positive_bound_cases += 1
+            if (
+                scaled_gap * self.max_gap_over_indexed_bound_den
+                > self.max_gap_over_indexed_bound_num * scaled_indexed
+            ):
+                self.max_gap_over_indexed_bound_num = scaled_gap
+                self.max_gap_over_indexed_bound_den = scaled_indexed
+        if scaled_index_free == 0:
+            self.index_free_zero_bound_cases += 1
+        else:
+            self.index_free_positive_bound_cases += 1
+            if (
+                scaled_gap * self.max_gap_over_index_free_bound_den
+                > self.max_gap_over_index_free_bound_num * scaled_index_free
+            ):
+                self.max_gap_over_index_free_bound_num = scaled_gap
+                self.max_gap_over_index_free_bound_den = scaled_index_free
 
     def to_json(self, config: RandomConfig) -> dict[str, object]:
         data = asdict(self)
         data["runtime_seconds"] = self.runtime_seconds
-        data["max_gap_over_bound"] = (
-            f"{self.max_gap_over_bound_num}/{self.max_gap_over_bound_den}"
-            if self.positive_bound_cases
+        data["max_gap_over_indexed_bound"] = (
+            f"{self.max_gap_over_indexed_bound_num}/{self.max_gap_over_indexed_bound_den}"
+            if self.indexed_positive_bound_cases
+            else None
+        )
+        data["max_gap_over_index_free_bound"] = (
+            f"{self.max_gap_over_index_free_bound_num}/{self.max_gap_over_index_free_bound_den}"
+            if self.index_free_positive_bound_cases
             else None
         )
         data["config"] = asdict(config)
@@ -89,15 +128,15 @@ def random_counts(rng: random.Random, config: RandomConfig) -> tuple[int, ...]:
             return counts
 
 
-def random_releases(rng: random.Random, counts: tuple[int, ...], max_release: int) -> tuple[tuple[int, ...], ...]:
-    releases: list[tuple[int, ...]] = []
-    for count in counts:
-        releases.append(tuple(sorted(rng.randint(0, max_release) for _ in range(count))))
-    return tuple(releases)
-
-
-def random_partition(rng: random.Random, partitions: tuple[Partition, ...]) -> Partition:
-    return partitions[rng.randrange(len(partitions))]
+def random_releases(
+    rng: random.Random,
+    counts: tuple[int, ...],
+    max_release: int,
+) -> tuple[tuple[int, ...], ...]:
+    return tuple(
+        tuple(sorted(rng.randint(0, max_release) for _ in range(count)))
+        for count in counts
+    )
 
 
 def optimum_from_cache(
@@ -120,6 +159,17 @@ def optimum_from_cache(
     return Optimum(best_delay, tuple(best_sequences)), evaluated
 
 
+def selected_partitions(
+    rng: random.Random,
+    partitions: tuple[Partition, ...],
+    partitions_per_instance: int,
+) -> tuple[Partition, ...]:
+    if partitions_per_instance <= 0 or partitions_per_instance >= len(partitions):
+        return partitions
+    indices = rng.sample(range(len(partitions)), partitions_per_instance)
+    return tuple(partitions[index] for index in indices)
+
+
 def write_random_results(
     output_dir: Path,
     config: RandomConfig,
@@ -130,26 +180,32 @@ def write_random_results(
     output_dir.mkdir(parents=True, exist_ok=True)
     stats.end_time = time.time()
     summary = stats.to_json(config)
-    summary["counterexample_found"] = counterexample is not None
+    summary["indexed_counterexample_found"] = counterexample is not None
     summary["local_repair_violation_found"] = local_violation is not None
-    (output_dir / "random_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (output_dir / "indexed_random_summary.json").write_text(
+        json.dumps(summary, indent=2),
+        encoding="utf-8",
+    )
     if counterexample is not None:
-        (output_dir / "random_counterexample.json").write_text(
+        (output_dir / "indexed_random_counterexample.json").write_text(
             json.dumps(counterexample.to_json(), indent=2),
             encoding="utf-8",
         )
-        (output_dir / "random_counterexample.md").write_text(
+        (output_dir / "indexed_random_counterexample.md").write_text(
             render_counterexample_markdown(counterexample),
             encoding="utf-8",
         )
     if local_violation is not None:
-        (output_dir / "random_local_repair_violation.json").write_text(
+        (output_dir / "indexed_random_local_repair_violation.json").write_text(
             json.dumps(local_violation, indent=2),
             encoding="utf-8",
         )
 
 
-def run_random(config: RandomConfig, output_dir: Path) -> tuple[RandomStats, BoundCounterexample | None, dict[str, object] | None]:
+def run_random(
+    config: RandomConfig,
+    output_dir: Path,
+) -> tuple[RandomStats, BoundCounterexample | None, dict[str, object] | None]:
     rng = random.Random(config.seed)
     stats = RandomStats()
     first_counterexample: BoundCounterexample | None = None
@@ -178,40 +234,57 @@ def run_random(config: RandomConfig, output_dir: Path) -> tuple[RandomStats, Bou
             instance.hS,
         )
 
-        if config.check_local:
-            for sequence in vehicle_sequences:
-                stats.local_repairs_checked += sum(1 for _ in local_repairs_for_sequence(sequence))
-                local_violations = check_local_repair_sequence(instance, sequence)
-                if local_violations:
-                    stats.local_repair_violations += len(local_violations)
-                    first_local_violation = local_violations[0].to_json()
+        all_partitions = tuple(enumerate_partitions(instance.counts))
+        for partition in selected_partitions(rng, all_partitions, config.partitions_per_instance):
+            repair_result = None
+            if config.check_repair:
+                repair_result, first_local_violation = check_repair_trace(
+                    instance,
+                    partition,
+                    unrestricted,
+                )
+                stats.repair_traces_checked += 1
+                stats.repair_steps_checked += len(repair_result.records)
+                if first_local_violation is not None:
+                    stats.local_repair_violations += 1
                     write_random_results(output_dir, config, stats, None, first_local_violation)
                     return stats, None, first_local_violation
 
-        all_partitions = tuple(enumerate_partitions(instance.counts))
-        if config.partitions_per_instance <= 0 or config.partitions_per_instance >= len(all_partitions):
-            selected_partitions = all_partitions
-        else:
-            selected_partitions = tuple(
-                random_partition(rng, all_partitions)
-                for _ in range(config.partitions_per_instance)
-            )
-        for partition in selected_partitions:
             stats.sampled_partitions += 1
             platoon, evaluated = optimum_from_cache(partition, delay_cache)
             stats.platoon_sequence_evaluations += evaluated
             scaled_gap = platoon.total_delay - unrestricted.total_delay
-            scaled_bound = scaled_candidate_bound(instance, partition)
-            stats.record_case(scaled_gap, scaled_bound)
-            if scaled_gap > scaled_bound:
-                stats.global_bound_violations += 1
+            scaled_indexed = scaled_indexed_bound(instance, partition)
+            scaled_index_free = scaled_index_free_bound(instance, partition)
+            stats.record_case(scaled_gap, scaled_indexed, scaled_index_free)
+
+            if scaled_indexed > scaled_index_free:
+                stats.bound_dominance_violations += 1
                 first_counterexample = BoundCounterexample(
                     instance=instance,
                     partition=partition,
                     unrestricted=unrestricted,
                     platoon=platoon,
                     scaled_gap=scaled_gap,
-                    scaled_bound=scaled_bound,
+                    scaled_indexed_bound=scaled_indexed,
+                    scaled_index_free_bound=scaled_index_free,
+                    repair_result=repair_result,
+                    violation_type="indexed_bound_dominance_violation",
+                )
+                write_random_results(output_dir, config, stats, first_counterexample, None)
+                return stats, first_counterexample, None
+
+            if scaled_gap > scaled_indexed:
+                stats.indexed_bound_violations += 1
+                first_counterexample = BoundCounterexample(
+                    instance=instance,
+                    partition=partition,
+                    unrestricted=unrestricted,
+                    platoon=platoon,
+                    scaled_gap=scaled_gap,
+                    scaled_indexed_bound=scaled_indexed,
+                    scaled_index_free_bound=scaled_index_free,
+                    repair_result=repair_result,
                 )
                 write_random_results(output_dir, config, stats, first_counterexample, None)
                 return stats, first_counterexample, None
@@ -231,8 +304,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--hF", type=int, default=1)
     parser.add_argument("--hS", default="2,3,4")
     parser.add_argument("--partitions-per-instance", type=int, default=0)
-    parser.add_argument("--skip-local", action="store_true")
-    parser.add_argument("--output-dir", default="../../results/exhaustive_verification")
+    parser.add_argument("--skip-repair", action="store_true")
+    parser.add_argument("--output-dir", default="../../results/exhaustive_verification/indexed")
     return parser
 
 
@@ -248,17 +321,17 @@ def main() -> int:
         hF=args.hF,
         hS_values=parse_int_list(args.hS),
         partitions_per_instance=args.partitions_per_instance,
-        check_local=not args.skip_local,
+        check_repair=not args.skip_repair,
     )
     stats, counterexample, local_violation = run_random(config, Path(args.output_dir))
     print(json.dumps(stats.to_json(config), indent=2))
     if local_violation is not None:
-        print("LOCAL_REPAIR_VIOLATION_FOUND")
+        print("LOCAL_REPAIR_OR_GLOBAL_REPAIR_INVARIANT_VIOLATION_FOUND")
         return 2
     if counterexample is not None:
-        print("COUNTEREXAMPLE_FOUND")
+        print("INDEXED_COUNTEREXAMPLE_FOUND")
         return 1
-    print("NO_COUNTEREXAMPLE_FOUND_IN_RANDOM_TESTED_DOMAIN")
+    print("NO_COUNTEREXAMPLE_FOUND_IN_INDEXED_RANDOM_TESTED_DOMAIN")
     return 0
 
 
