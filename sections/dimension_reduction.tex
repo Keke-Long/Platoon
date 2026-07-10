@@ -21,7 +21,7 @@ This quantity is a deterministic measure of model size. Actual Gurobi runtime is
 Given an acceptable average-delay loss \(\varepsilon\), the central scheduler selects a partition by solving
 \begin{align}
 \min_{\Pi}\quad & C(\Pi)\\
-\text{s.t.}\quad & B(\Pi)\le\varepsilon,\\
+\text{s.t.}\quad & B_{\mathrm{idx}}(\Pi)\le\varepsilon,\\
 & \Pi\text{ is a contiguous partition},\\
 & |P_{l,j}|\le P_{\max},\quad \forall l,j.
 \label{eq:loss-budget-formulation}
@@ -32,7 +32,7 @@ The downstream scheduling MILP is then built using the selected platoons and sol
 
 Alternatively, if the scheduler can process at most \(\overline C\) pairwise ordering decisions, it solves
 \begin{align}
-\min_{\Pi}\quad & B(\Pi)\\
+\min_{\Pi}\quad & B_{\mathrm{idx}}(\Pi)\\
 \text{s.t.}\quad & C(\Pi)\le\overline C,\\
 & \Pi\text{ is a contiguous partition},\\
 & |P_{l,j}|\le P_{\max},\quad \forall l,j.
@@ -43,7 +43,7 @@ The two formulations generate a set of nondominated dimension--loss pairs
 \mathcal{F}
 =
 \left\{
-\big(C(\Pi),B(\Pi)\big):
+\big(C(\Pi),B_{\mathrm{idx}}(\Pi)\big):
 \Pi\text{ is feasible}
 \right\}.
 \end{equation}
