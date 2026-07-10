@@ -1,0 +1,29 @@
+\section*{Rejected or Superseded Results}
+
+This file prevents invalid arguments from returning to the manuscript.
+
+\subsection*{Local-gap superposition}
+
+\statusrejected
+
+The old analysis considered multiple vehicles on one approach and one specially positioned vehicle on another approach. It then multiplied or accumulated the resulting local delay gap across platoons. This is invalid because delay propagation, release-time slack, and switching decisions couple all vehicles in the complete passing sequence.
+
+\subsection*{Using \(\hS\) as a zero-loss threshold}
+
+\statusrejected
+
+The earlier manuscript claimed that vehicles with a release-time gap below \(\hS\) could be grouped without loss. The earlier proposition only addressed \(\hF\), and the stronger statement has counterexamples.
+
+For example, let \(\hF=1\), \(\hS=3\), let approach A have release times \(0\) and \(2\), and let approach B have ten vehicles with release times \(3,4,\ldots,12\). The unrestricted sequence \(AB^{10}A\) has total delay \(13\). Requiring the two A vehicles to be consecutive gives a minimum total delay of \(20\), so the average optimality gap is \(7/12>0\), even though the A-vehicle release gap is smaller than \(\hS\).
+
+\subsection*{Old worst-case formula}
+
+\statusrejected
+
+The previous formula based on one forced platoon and \(P-1\) specially constructed conflicting vehicles was not a worst-case theorem. It did not optimize over all arrival patterns, all alternative platoon orders, or all vehicles on the other approaches. It also used inconsistent following and switching headways for consecutive vehicles from the same approach.
+
+\subsection*{Theoretical runtime frontier}
+
+\statusrejected
+
+The number of ordering variables is a deterministic function of the partition. Gurobi runtime is not theoretically monotone in that number because it also depends on formulation strength, branching, symmetry, and the instance data. Runtime reduction must remain an empirical result.

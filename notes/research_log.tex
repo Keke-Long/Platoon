@@ -1,0 +1,41 @@
+\section*{Research Development Log}
+
+This file preserves the conceptual decisions reached during the July 2026 proof audit. It is not included in \texttt{main.tex}.
+
+\subsection*{Research object}
+
+The problem is a multi-queue, single-conflict-resource scheduling problem with sequence-dependent separation times. Each traffic approach is a FIFO queue. Vehicle-level scheduling allows arbitrary interleavings of the queues. Platooning aggregates contiguous vehicles from the same queue into indivisible scheduling units.
+
+The paper studies preprocessing and dimension reduction. It does not propose a new solver for the downstream MILP. Gurobi solves both the partition-selection model and the reduced scheduling model. The research contribution is the analytical loss guarantee that determines how aggressively the original problem may be aggregated.
+
+\subsection*{Problems identified in the previous manuscripts}
+
+\begin{enumerate}
+  \item The completion-time recursion used the preceding vehicle's release time rather than its actual passing time. This prevented delay propagation.
+  \item The original sequence set did not explicitly require FIFO order within each approach.
+  \item The old proof studied several vehicles on one approach and one specially placed vehicle on another approach, then assumed that the local delay losses could be added across multiple vehicles and platoons.
+  \item Delay effects are not independent because the completion recursion contains a maximum operator, downstream delay propagation, release-time slack, and changes in the number of approach switches.
+  \item The old worst-case construction did not prove worst-case optimality over all arrival patterns and passing sequences.
+  \item The expected-gap formula mixed per-platoon, per-vehicle, and system-level normalization.
+  \item The manuscript treated Gurobi runtime as a theoretically monotone function of platoon count. Only model dimension is deterministic; runtime must be evaluated empirically.
+\end{enumerate}
+
+\subsection*{Current paper positioning}
+
+The preferred positioning is:
+
+\begin{quote}
+This study develops a performance-guaranteed preprocessing framework that reduces the vehicle scheduling MILP dimension before optimization, allowing an off-the-shelf solver to obtain schedules under limited computation while controlling the loss relative to the vehicle-level optimum.
+\end{quote}
+
+The two principal contributions are a global loss bound and a budget-aware partition formulation. A specialized optimization algorithm is outside the intended scope.
+
+\subsection*{Status discipline}
+
+\begin{itemize}
+  \item The corrected model and feasible-space inclusion are established.
+  \item The global repair strategy is the selected proof architecture.
+  \item The refined upper bound is a candidate result, not yet a final theorem.
+  \item The old local-superposition propositions are rejected and should not be reused.
+  \item Exhaustive small-instance verification is the next required technical step.
+\end{itemize}

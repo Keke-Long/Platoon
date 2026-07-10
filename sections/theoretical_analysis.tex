@@ -1,0 +1,87 @@
+\section{Theoretical Analysis}
+\label{sec:theory}
+
+\subsection{Feasible-space restriction}
+
+\begin{proposition}
+For every contiguous platoon partition \(\Pi\), the platoon-constrained optimality gap is nonnegative:
+\begin{equation}
+G(\Pi)\ge 0.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Every sequence that satisfies the platoon-continuity constraints also satisfies the original FIFO constraints. Hence \(\pseqset\subseteq\seqset\). Minimization over a subset cannot produce an objective value smaller than minimization over the original set.
+\end{proof}
+
+\subsection{Global sequence repair}
+
+The analysis does not decompose the system into independent one-platoon examples. Instead, it starts from a complete vehicle sequence and repairs every violated platoon adjacency while retaining all interactions with other approaches.
+
+Consider two consecutive vehicles \(a\) and \(a'\) from the same approach and platoon. Suppose a current FIFO-feasible sequence has the form
+\begin{equation}
+s=[P,a,B,a',R],
+\end{equation}
+where \(B=(b_1,\ldots,b_m)\) is a nonempty sequence containing vehicles from any number of other approaches. The repaired sequence is
+\begin{equation}
+s'=[P,a,a',B,R].
+\end{equation}
+Let \(d=r_{a'}-r_a\), \(q=\max\{d,\hF\}\), and let \(M=m+|R|+1\) be the number of vehicles whose passing times may change.
+
+\begin{lemma}[Candidate local perturbation bound]
+\label{lem:local-repair}
+Under the assumptions in Section~\ref{sec:formulation}, the change in total delay caused by the repair satisfies
+\begin{equation}
+J(s')-J(s)
+\le
+M\pospart{d-\hF}-2(\hS-\hF),
+\label{eq:candidate-local-bound}
+\end{equation}
+where \(J(s)=ND(s)\).
+\end{lemma}
+
+\statuscandidate
+
+The complete draft proof, including every comparison used in the recursion, is contained in \texttt{notes/proof\_development.tex}. Equation~\eqref{eq:candidate-local-bound} must be exhaustively tested before submission.
+
+\subsection{Candidate global bounds}
+
+Starting from an original optimal sequence, repeatedly apply the repair operation until every platoon is contiguous. A telescoping argument gives the following candidate sequence-specific result:
+\begin{equation}
+G(\Pi)
+\le
+\frac{1}{N}
+\sum_{e\in\mathcal{Q}}
+\pospart{M_e\pospart{d_e-\hF}-2(\hS-\hF)},
+\label{eq:candidate-sequence-bound}
+\end{equation}
+where \(\mathcal{Q}\) is the set of internal links that require repair and \(M_e\) is evaluated at the corresponding repair step.
+
+Using \(M_e\le N\) produces the partition-specific candidate bound
+\begin{equation}
+B(\Pi)
+=
+\sum_{e\in\mathcal{E}_{\Pi}}
+\pospart{
+\pospart{d_e-\hF}
+-\frac{2(\hS-\hF)}{N}
+},
+\qquad
+G(\Pi)\le B(\Pi).
+\label{eq:candidate-partition-bound}
+\end{equation}
+
+If every platoon internal gap satisfies \(d_e\le\delta\), then
+\begin{equation}
+G(\Pi)
+\le
+(N-K)
+\pospart{
+\delta-\hF-\frac{2(\hS-\hF)}{N}
+}.
+\label{eq:candidate-parameter-bound}
+\end{equation}
+
+\statuscandidate
+
+Before these bounds are promoted to final theorems, the study will: (i) enumerate all FIFO sequences and contiguous partitions for small systems; (ii) search for counterexamples; (iii) measure the ratio \(G(\Pi)/B(\Pi)\); and (iv) identify the inequalities responsible for conservativeness.

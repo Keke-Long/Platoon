@@ -1,0 +1,100 @@
+\section*{Candidate Proof Development}
+
+This note records the full candidate proof separately from the formal manuscript. Symbols follow \texttt{preamble.tex}. The result must not be cited as established until exhaustive verification is complete.
+
+\subsection*{Local repair construction}
+
+Let \(a\) and \(a'\) be consecutive vehicles from the same approach and the same proposed platoon. Consider a FIFO-feasible sequence
+\begin{equation}
+s=[P,a,B,a',R],
+\end{equation}
+where \(B=(b_1,\ldots,b_m)\) is nonempty. Because \(a'\) is the immediate FIFO successor of \(a\), no vehicle in \(B\) belongs to their approach. Construct
+\begin{equation}
+s'=[P,a,a',B,R].
+\end{equation}
+Let \(T=C_a(s)=C_a(s')\), \(d=r_{a'}-r_a\), \(q=\max\{d,\hF\}\), \(r=|R|\), and \(M=m+r+1\).
+
+\subsection*{Passing time of the moved vehicle}
+
+Since \(T\ge r_a\),
+\begin{equation}
+r_{a'}=r_a+d\le T+d.
+\end{equation}
+Therefore,
+\begin{equation}
+C_{a'}(s')=\max\{r_{a'},T+\hF\}\le T+q.
+\end{equation}
+In the original sequence,
+\begin{equation}
+C_{b_m}(s)\ge T+\hS+(m-1)\hF
+\end{equation}
+because the transition from \(a\) to \(b_1\) requires \(\hS\), and every subsequent transition requires at least \(\hF\). Since \(b_m\) and \(a'\) belong to different approaches,
+\begin{equation}
+C_{a'}(s)\ge C_{b_m}(s)+\hS
+\ge T+2\hS+(m-1)\hF.
+\end{equation}
+Hence
+\begin{equation}
+C_{a'}(s')-C_{a'}(s)
+\le q-2\hS-(m-1)\hF.
+\label{eq:note-moved-change}
+\end{equation}
+
+\subsection*{Passing times of the intermediate block}
+
+For \(b_1\),
+\begin{align}
+C_{b_1}(s')
+&=\max\{r_{b_1},C_{a'}(s')+\hS\}\\
+&\le\max\{r_{b_1},T+q+\hS\}\\
+&\le C_{b_1}(s)+q.
+\end{align}
+The order and pairwise separation requirements inside \(B\) are unchanged. By induction,
+\begin{equation}
+C_{b_j}(s')\le C_{b_j}(s)+q,
+\qquad j=1,\ldots,m.
+\end{equation}
+Therefore,
+\begin{equation}
+\sum_{j=1}^{m}\left[C_{b_j}(s')-C_{b_j}(s)\right]\le mq.
+\label{eq:note-block-change}
+\end{equation}
+
+\subsection*{Passing times of the unchanged suffix}
+
+Let \(x\) be the first vehicle in \(R\), when \(R\) is nonempty. The new predecessor of \(x\) is \(b_m\), while its old predecessor is \(a'\). Using \(C_{b_m}(s')\le C_{b_m}(s)+q\),
+\begin{align}
+&C_{b_m}(s')+h(b_m,x)
+-\left[C_{a'}(s)+h(a',x)\right]\\
+&\le q-\hS+h(b_m,x)-h(a',x)\\
+&\le q-\hF.
+\end{align}
+The last inequality uses \(h(b_m,x)\le\hS\) and \(h(a',x)\ge\hF\). The suffix order is unchanged, so the positive delay perturbation cannot grow under the maximum recursion. Thus
+\begin{equation}
+\sum_{v\in R}\left[C_v(s')-C_v(s)\right]
+\le r(q-\hF).
+\label{eq:note-suffix-change}
+\end{equation}
+
+\subsection*{Candidate local bound}
+
+Adding Eqs.~\eqref{eq:note-moved-change}--\eqref{eq:note-suffix-change},
+\begin{align}
+J(s')-J(s)
+&\le q-2\hS-(m-1)\hF+mq+r(q-\hF)\\
+&=(m+r+1)(q-\hF)-2(\hS-\hF)\\
+&=M\pospart{d-\hF}-2(\hS-\hF).
+\end{align}
+
+Using the positive part provides a nonnegative per-repair bound. Repeating the repair across all platoon internal links and applying a telescoping sum yields the candidate sequence-specific bound in Eq.~\eqref{eq:candidate-sequence-bound}. Replacing every \(M_e\) with \(N\) yields Eq.~\eqref{eq:candidate-partition-bound}.
+
+\subsection*{Unresolved proof checks}
+
+\begin{enumerate}
+  \item Verify that the proposed repair ordering always preserves all previously established platoon adjacencies.
+  \item Verify the suffix inequality for every combination of the approaches of \(b_m\), \(a'\), and \(x\).
+  \item Determine whether taking a positive part separately for every repair causes avoidable looseness.
+  \item Search for cases in which a different repair direction produces a smaller bound.
+  \item Determine whether the refined parameter-based zero-loss condition is genuinely valid or only an artifact of the candidate bound.
+  \item Construct tight or near-tight instances and identify the limiting inequalities.
+\end{enumerate}

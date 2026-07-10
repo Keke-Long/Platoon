@@ -1,0 +1,51 @@
+\section{Performance-Guaranteed Dimension Reduction}
+\label{sec:dimension-reduction}
+
+The theoretical bound is used before the downstream scheduling MILP is constructed. The contribution is a guaranteed preprocessing framework rather than a new MILP solution algorithm.
+
+\subsection{Scheduling dimension}
+
+If the vehicle-level formulation introduces one precedence variable for each pair of vehicles from conflicting approaches, its pairwise ordering dimension is
+\begin{equation}
+C_0=\sum_{l<l'}n_ln_{l'}.
+\end{equation}
+After platooning, the corresponding dimension becomes
+\begin{equation}
+C(\Pi)=\sum_{l<l'}K_lK_{l'}.
+\label{eq:dimension-measure}
+\end{equation}
+This quantity is a deterministic measure of model size. Actual Gurobi runtime is evaluated empirically and is not assumed to be a strictly monotone function of \(C(\Pi)\).
+
+\subsection{Loss-budget formulation}
+
+Given an acceptable average-delay loss \(\varepsilon\), the central scheduler selects a partition by solving
+\begin{align}
+\min_{\Pi}\quad & C(\Pi)\\
+\text{s.t.}\quad & B(\Pi)\le\varepsilon,\\
+& \Pi\text{ is a contiguous partition},\\
+& |P_{l,j}|\le P_{\max},\quad \forall l,j.
+\label{eq:loss-budget-formulation}
+\end{align}
+The downstream scheduling MILP is then built using the selected platoons and solved with Gurobi.
+
+\subsection{Computation-size formulation}
+
+Alternatively, if the scheduler can process at most \(\overline C\) pairwise ordering decisions, it solves
+\begin{align}
+\min_{\Pi}\quad & B(\Pi)\\
+\text{s.t.}\quad & C(\Pi)\le\overline C,\\
+& \Pi\text{ is a contiguous partition},\\
+& |P_{l,j}|\le P_{\max},\quad \forall l,j.
+\label{eq:size-budget-formulation}
+\end{align}
+The two formulations generate a set of nondominated dimension--loss pairs
+\begin{equation}
+\mathcal{F}
+=
+\left\{
+\big(C(\Pi),B(\Pi)\big):
+\Pi\text{ is feasible}
+\right\}.
+\end{equation}
+
+No specialized solution algorithm is claimed. The partition model and downstream scheduling model are both solved by an off-the-shelf optimizer. The methodological contribution lies in the valid loss guarantee and its use in selecting the aggregation level.

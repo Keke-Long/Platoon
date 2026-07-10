@@ -1,0 +1,24 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Vehicle scheduling at a general conflict area determines the order in which vehicles from multiple approaches enter a mutually exclusive spatial resource. Applications include unsignalized intersections, merging roadways, work zones, and connected automated vehicle coordination. Vehicle-level formulations preserve substantial sequencing flexibility but may contain a large number of pairwise ordering decisions. This limits their use when a central scheduler must return a solution within a short computation window.
+
+Platooning provides a structural preprocessing mechanism. Consecutive vehicles from the same approach are aggregated into indivisible scheduling units before the downstream optimization problem is constructed. The aggregation reduces the number of control units and ordering variables, but it also removes passing sequences in which vehicles from another approach are inserted inside a platoon. Consequently, the reduced model can be solved more efficiently, but its optimal objective value can be worse than that of the original vehicle-level problem.
+
+This study focuses on the dimension-reduction step rather than developing a new solver for the downstream mixed-integer linear program. The central question is:
+
+\begin{quote}
+For arbitrary numbers of approaches, vehicles, and contiguous platoons, how much can the optimal scheduling objective deteriorate when each platoon is required to pass the conflict area without interruption?
+\end{quote}
+
+The derived loss bound is then used to support two complementary decisions. Given an acceptable scheduling loss, the scheduler can minimize the reduced problem dimension. Given a computational-size budget, the scheduler can select the partition with the smallest guaranteed loss. In both cases, the resulting scheduling model is solved by an off-the-shelf optimizer such as Gurobi.
+
+The intended contributions are:
+\begin{enumerate}[label=(\roman*)]
+  \item a general optimality-loss analysis for arbitrary traffic approaches and contiguous platoon partitions;
+  \item a performance-guaranteed dimension-reduction formulation that connects an acceptable delay loss to the size of the downstream scheduling model; and
+  \item computational validation of bound validity, conservativeness, dimensional reduction, and downstream solver performance.
+\end{enumerate}
+
+\paragraph{Current development status.}
+The problem formulation and paper positioning are stable. The refined global upper bound remains a candidate result and must be checked through exhaustive enumeration before it is treated as a final theorem. The complete derivation and audit record are preserved in \texttt{notes/proof\_development.tex}.

@@ -1,0 +1,55 @@
+\section{Numerical Experiments}
+\label{sec:experiments}
+
+The experiments will distinguish theorem verification, bound usefulness, dimensional reduction, and downstream solver behavior.
+
+\subsection{Exhaustive small-instance verification}
+
+Small systems will use \(L\in\{2,3,4\}\) and small \(n_l\). For every instance, the study will enumerate all FIFO-feasible sequences and all contiguous platoon partitions to compute
+\begin{equation}
+D^*,\qquad D^*_{\Pi},\qquad G(\Pi),\qquad B(\Pi).
+\end{equation}
+The required validity check is
+\begin{equation}
+0\le G(\Pi)\le B(\Pi).
+\end{equation}
+The tightness measures are
+\begin{align}
+\text{Tightness ratio}&=\frac{G(\Pi)}{B(\Pi)},\\
+\text{Bound excess}&=B(\Pi)-G(\Pi).
+\end{align}
+Cases with \(B(\Pi)=0\) will be reported separately.
+
+\subsection{Dimension-reduction comparisons}
+
+The following methods will be compared:
+\begin{enumerate}[label=(\roman*)]
+  \item vehicle-level scheduling without platooning;
+  \item critical-headway platooning;
+  \item fixed-threshold and fixed-size platooning; and
+  \item the proposed bound-aware partition.
+\end{enumerate}
+Comparisons will control either the theoretical loss budget or the downstream model dimension.
+
+\subsection{Scalability and traffic conditions}
+
+The large-instance experiments will vary:
+\begin{itemize}
+  \item the number of approaches and vehicles;
+  \item balanced and unbalanced approach demand;
+  \item Poisson, uniform, and bursty arrivals;
+  \item the ratio \(\hS/\hF\);
+  \item the maximum platoon size; and
+  \item downstream solver time limits.
+\end{itemize}
+
+Reported computational measures will include the number of platoons, number of ordering variables, Gurobi runtime, branch-and-bound node count, time to first feasible solution, and objective quality at fixed time limits.
+
+\subsection{Pending implementation decisions}
+
+\begin{itemize}
+  \item Exact MILP representation of the partition decision.
+  \item Discrete sets of acceptable loss budgets \(\varepsilon\) and size budgets \(\overline C\).
+  \item Number of Monte Carlo replications and confidence intervals.
+  \item Whether the original vehicle-level model can prove optimality within each time limit.
+\end{itemize}

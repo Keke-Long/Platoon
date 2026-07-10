@@ -1,0 +1,45 @@
+{
+  "traffic_instances": 37467,
+  "partitions": 2506752,
+  "vehicle_sequence_evaluations": 2417190,
+  "platoon_sequence_evaluations": 38059002,
+  "local_repairs_checked": 7526706,
+  "local_repair_violations": 0,
+  "zero_bound_cases": 1574531,
+  "positive_bound_cases": 932221,
+  "violations": 0,
+  "max_gap_over_bound_num": 8,
+  "max_gap_over_bound_den": 10,
+  "min_bound_excess_scaled": 0,
+  "max_bound_excess_scaled": 32,
+  "start_time": 1783714445.0325255,
+  "end_time": 1783714554.0702345,
+  "runtime_seconds": 109.03770899772644,
+  "max_gap_over_bound": "8/10",
+  "config": {
+    "L_values": [
+      2
+    ],
+    "max_n": 5,
+    "max_total_vehicles": 9,
+    "max_release": 3,
+    "hF": 1,
+    "hS_values": [
+      2,
+      3,
+      4
+    ],
+    "keep_all_optima": true,
+    "stop_on_counterexample": true,
+    "check_local": true
+  },
+  "platform": {
+    "python": "3.12.9",
+    "system": "Linux",
+    "release": "6.8.0-52-generic",
+    "machine": "x86_64",
+    "processor": "x86_64"
+  },
+  "counterexample_found": false,
+  "local_repair_violation_found": false
+}

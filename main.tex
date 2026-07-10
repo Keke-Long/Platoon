@@ -1,0 +1,63 @@
+\newif\ifelsevierclass
+\IfFileExists{elsarticle.cls}{
+  \elsevierclasstrue
+  \documentclass[preprint,12pt]{elsarticle}
+}{
+  \elsevierclassfalse
+  \documentclass[12pt]{article}
+}
+
+\input{preamble}
+
+\begin{document}
+
+\ifelsevierclass
+\journal{Transportation Research Part B: Methodological}
+\begin{frontmatter}
+
+\title{Performance-Guaranteed Dimension Reduction for Vehicle Scheduling at General Conflict Areas}
+
+\author[uw]{Keke Long}
+\author[uw]{Xiaopeng Li\corref{cor1}}
+\cortext[cor1]{Corresponding author.}
+\affiliation[uw]{organization={Department of Civil and Environmental Engineering, University of Wisconsin--Madison},
+  city={Madison},
+  state={WI},
+  country={USA}}
+
+\begin{abstract}
+Vehicle scheduling at intersections, merging areas, and other general conflict areas becomes computationally difficult as the number of vehicles increases. Platooning reduces the scheduling dimension by treating consecutive vehicles from the same approach as unified decision units, but it restricts the feasible sequence space and may increase delay. This paper develops a performance-guaranteed preprocessing framework for this dimension-reduction step. The framework seeks a platoon partition that reduces the downstream mixed-integer programming model while controlling the optimality loss through an analytical upper bound. The reduced scheduling problem is subsequently solved by an off-the-shelf optimizer. The theoretical results, partition formulations, and numerical findings will establish how a central scheduler can select an appropriate aggregation level according to its computational budget and acceptable efficiency loss.
+\end{abstract}
+
+\begin{keyword}
+Vehicle scheduling \sep Platooning \sep Dimension reduction \sep Optimality gap \sep Mixed-integer programming
+\end{keyword}
+
+\end{frontmatter}
+\else
+\title{Performance-Guaranteed Dimension Reduction for Vehicle Scheduling at General Conflict Areas}
+\author{Keke Long \and Xiaopeng Li\\
+Department of Civil and Environmental Engineering,\\
+University of Wisconsin--Madison}
+\date{}
+\maketitle
+\begin{abstract}
+Vehicle scheduling at intersections, merging areas, and other general conflict areas becomes computationally difficult as the number of vehicles increases. Platooning reduces the scheduling dimension by treating consecutive vehicles from the same approach as unified decision units, but it restricts the feasible sequence space and may increase delay. This paper develops a performance-guaranteed preprocessing framework for this dimension-reduction step. The framework seeks a platoon partition that reduces the downstream mixed-integer programming model while controlling the optimality loss through an analytical upper bound. The reduced scheduling problem is subsequently solved by an off-the-shelf optimizer.
+\end{abstract}
+\fi
+
+\input{sections/introduction}
+\input{sections/formulation}
+\input{sections/theoretical_analysis}
+\input{sections/dimension_reduction}
+\input{sections/experiments}
+\input{sections/conclusion}
+
+\ifelsevierclass
+\bibliographystyle{elsarticle-harv}
+\else
+\bibliographystyle{plain}
+\fi
+\bibliography{references}
+
+\end{document}

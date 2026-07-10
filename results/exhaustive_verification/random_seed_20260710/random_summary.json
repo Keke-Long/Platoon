@@ -1,0 +1,38 @@
+{
+  "sampled_instances": 1000,
+  "sampled_partitions": 12332,
+  "vehicle_sequence_evaluations": 361540,
+  "platoon_sequence_evaluations": 614194,
+  "local_repairs_checked": 1406125,
+  "local_repair_violations": 0,
+  "global_bound_violations": 0,
+  "zero_bound_cases": 3188,
+  "positive_bound_cases": 9144,
+  "max_gap_over_bound_num": 6,
+  "max_gap_over_bound_den": 7,
+  "start_time": 1783715338.1612663,
+  "end_time": 1783715346.8984506,
+  "runtime_seconds": 8.737184286117554,
+  "max_gap_over_bound": "6/7",
+  "config": {
+    "seed": 20260710,
+    "samples": 1000,
+    "L_values": [
+      2,
+      3
+    ],
+    "max_n": 5,
+    "max_total_vehicles": 10,
+    "max_release": 8,
+    "hF": 1,
+    "hS_values": [
+      2,
+      3,
+      4
+    ],
+    "partitions_per_instance": 16,
+    "check_local": true
+  },
+  "counterexample_found": false,
+  "local_repair_violation_found": false
+}

@@ -1,0 +1,22 @@
+metric,value
+traffic_instances,192423
+partitions,4499523
+vehicle_sequence_evaluations,4874226
+platoon_sequence_evaluations,36998430
+local_repairs_checked,10971492
+local_repair_violations,0
+zero_bound_cases,1687215
+positive_bound_cases,2812308
+violations,0
+max_gap_over_bound_num,8
+max_gap_over_bound_den,10
+min_bound_excess_scaled,0
+max_bound_excess_scaled,61
+start_time,1783715024.1252506
+end_time,1783715159.099318
+runtime_seconds,134.9740674495697
+max_gap_over_bound,8/10
+config,"{""L_values"": [2], ""check_local"": true, ""hF"": 1, ""hS_values"": [2, 3, 4], ""keep_all_optima"": true, ""max_n"": 4, ""max_release"": 6, ""max_total_vehicles"": 7, ""stop_on_counterexample"": true}"
+platform,"{""machine"": ""x86_64"", ""processor"": ""x86_64"", ""python"": ""3.12.9"", ""release"": ""6.8.0-52-generic"", ""system"": ""Linux""}"
+counterexample_found,False
+local_repair_violation_found,False

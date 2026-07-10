@@ -1,0 +1,33 @@
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\ifelsevierclass\else
+\usepackage[margin=1in]{geometry}
+\fi
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\hF}{h^{\mathrm{F}}}
+\newcommand{\hS}{h^{\mathrm{S}}}
+\newcommand{\approaches}{\mathcal{L}}
+\newcommand{\vehicles}{\mathcal{I}}
+\newcommand{\seqset}{\mathcal{S}}
+\newcommand{\pseqset}{\mathcal{S}_{\Pi}}
+\newcommand{\partitionP}{\Pi}
+\newcommand{\gap}{G(\Pi)}
+\newcommand{\pospart}[1]{\left[#1\right]_{+}}
+
+\newcommand{\statusproved}{\textcolor{green!50!black}{\textbf{Status: established under stated assumptions.}}}
+\newcommand{\statuscandidate}{\textcolor{orange!80!black}{\textbf{Status: candidate result requiring exhaustive verification.}}}
+\newcommand{\statusrejected}{\textcolor{red!70!black}{\textbf{Status: rejected after counterexample or proof audit.}}}

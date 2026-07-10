@@ -1,0 +1,122 @@
+[
+  {
+    "name": "L2_n2_N4_release3",
+    "config": {
+      "L": [2],
+      "max_n": 2,
+      "max_total_vehicles": 4,
+      "max_release": 3,
+      "hF": 1,
+      "hS": [2, 3, 4]
+    },
+    "traffic_instances": 588,
+    "partitions": 1728,
+    "vehicle_sequence_evaluations": 2616,
+    "platoon_sequence_evaluations": 5496,
+    "local_repairs_checked": 2040,
+    "local_repair_violations": 0,
+    "global_bound_violations": 0,
+    "zero_bound_cases": 1507,
+    "positive_bound_cases": 221,
+    "max_gap_over_bound": "4/6",
+    "min_bound_excess_scaled": 0,
+    "max_bound_excess_scaled": 8,
+    "runtime_seconds": 0.034955501556396484
+  },
+  {
+    "name": "L2_n3_N6_release4",
+    "config": {
+      "L": [2],
+      "max_n": 3,
+      "max_total_vehicles": 6,
+      "max_release": 4,
+      "hF": 1,
+      "hS": [2, 3, 4]
+    },
+    "traffic_instances": 9075,
+    "partitions": 91875,
+    "vehicle_sequence_evaluations": 114750,
+    "platoon_sequence_evaluations": 530550,
+    "local_repairs_checked": 197700,
+    "local_repair_violations": 0,
+    "global_bound_violations": 0,
+    "zero_bound_cases": 58569,
+    "positive_bound_cases": 33306,
+    "max_gap_over_bound": "6/8",
+    "min_bound_excess_scaled": 0,
+    "max_bound_excess_scaled": 30,
+    "runtime_seconds": 2.3807740211486816
+  },
+  {
+    "name": "L3_n2_N6_release3",
+    "config": {
+      "L": [3],
+      "max_n": 2,
+      "max_total_vehicles": 6,
+      "max_release": 3,
+      "hF": 1,
+      "hS": [2, 3, 4]
+    },
+    "traffic_instances": 8232,
+    "partitions": 41472,
+    "vehicle_sequence_evaluations": 396432,
+    "platoon_sequence_evaluations": 909072,
+    "local_repairs_checked": 678240,
+    "local_repair_violations": 0,
+    "global_bound_violations": 0,
+    "zero_bound_cases": 30785,
+    "positive_bound_cases": 10687,
+    "max_gap_over_bound": "7/10",
+    "min_bound_excess_scaled": 0,
+    "max_bound_excess_scaled": 23,
+    "runtime_seconds": 5.478728532791138
+  },
+  {
+    "name": "L3_n3_N7_release3",
+    "config": {
+      "L": [3],
+      "max_n": 3,
+      "max_total_vehicles": 7,
+      "max_release": 3,
+      "hF": 1,
+      "hS": [2, 3, 4]
+    },
+    "traffic_instances": 57912,
+    "partitions": 686592,
+    "vehicle_sequence_evaluations": 7114032,
+    "platoon_sequence_evaluations": 25439472,
+    "local_repairs_checked": 16492320,
+    "local_repair_violations": 0,
+    "global_bound_violations": 0,
+    "zero_bound_cases": 441377,
+    "positive_bound_cases": 245215,
+    "max_gap_over_bound": "9/12",
+    "min_bound_excess_scaled": 0,
+    "max_bound_excess_scaled": 34,
+    "runtime_seconds": 129.18752074241638
+  },
+  {
+    "name": "L2_n5_N9_release3",
+    "config": {
+      "L": [2],
+      "max_n": 5,
+      "max_total_vehicles": 9,
+      "max_release": 3,
+      "hF": 1,
+      "hS": [2, 3, 4]
+    },
+    "traffic_instances": 37467,
+    "partitions": 2506752,
+    "vehicle_sequence_evaluations": 2417190,
+    "platoon_sequence_evaluations": 38059002,
+    "local_repairs_checked": 7526706,
+    "local_repair_violations": 0,
+    "global_bound_violations": 0,
+    "zero_bound_cases": 1574531,
+    "positive_bound_cases": 932221,
+    "max_gap_over_bound": "8/10",
+    "min_bound_excess_scaled": 0,
+    "max_bound_excess_scaled": 32,
+    "runtime_seconds": 109.03770899772644
+  }
+]
