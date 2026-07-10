@@ -1,6 +1,6 @@
-\section*{Candidate Proof Development}
+\section*{Proof Development Record}
 
-This note records the full candidate proof separately from the formal manuscript. Symbols follow \texttt{preamble.tex}. The result must not be cited as established until exhaustive verification is complete.
+This note records the development of the index-free precursor separately from the formal manuscript. Symbols follow \texttt{preamble.tex}. The missing repair-order and recursion details were subsequently resolved in \texttt{notes/formal\_proof\_audit.md}. The manuscript now states the strictly sharper FIFO-indexed theorem; its additional derivation is recorded in \texttt{notes/indexed\_bound\_derivation.md}.
 
 \subsection*{Local repair construction}
 
@@ -86,15 +86,15 @@ J(s')-J(s)
 &=M\pospart{d-\hF}-2(\hS-\hF).
 \end{align}
 
-Using the positive part provides a nonnegative per-repair bound. Repeating the repair across all platoon internal links and applying a telescoping sum yields the candidate sequence-specific bound in Eq.~\eqref{eq:candidate-sequence-bound}. Replacing every \(M_e\) with \(N\) yields Eq.~\eqref{eq:candidate-partition-bound}.
+Using the positive part provides a nonnegative per-repair bound. Repeating the repair across all platoon internal links and applying a telescoping sum yields the sequence-specific bound recorded in the formal proof audit. The historical substitution \(M_e\le N\) gives the index-free bound; the manuscript now uses the sharper substitution \(M_e\le N-i_e\).
 
-\subsection*{Unresolved proof checks}
+\subsection*{Audit disposition and remaining research questions}
 
 \begin{enumerate}
-  \item Verify that the proposed repair ordering always preserves all previously established platoon adjacencies.
-  \item Verify the suffix inequality for every combination of the approaches of \(b_m\), \(a'\), and \(x\).
+  \item Preservation of previously established platoon adjacencies is proved by processing links from left to right within each platoon.
+  \item The suffix inequality is proved using max-recursion monotonicity and the fact that \(q-\hF\ge0\).
   \item Determine whether taking a positive part separately for every repair causes avoidable looseness.
   \item Search for cases in which a different repair direction produces a smaller bound.
-  \item Determine whether the refined parameter-based zero-loss condition is genuinely valid or only an artifact of the candidate bound.
+  \item The FIFO-indexed zero-loss condition is a valid corollary of the formal theorem.
   \item Construct tight or near-tight instances and identify the limiting inequalities.
 \end{enumerate}
