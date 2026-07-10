@@ -12,14 +12,16 @@ Before performing theoretical or computational work, read these files in order:
 2. `sections/formulation.tex`
 3. `sections/theoretical_analysis.tex`
 4. `notes/proof_development.tex`
-5. `notes/rejected_results.tex`
-6. `notes/research_log.tex`
+5. `notes/formal_proof_audit.md`
+6. `notes/indexed_bound_derivation.md`
+7. `notes/rejected_results.tex`
+8. `notes/research_log.tex`
 
-The current refined optimality-gap bound is a candidate result. Never assume it is correct merely because it appears in a LaTeX theorem or equation.
+The FIFO-indexed optimality-gap bound is the current analytical result. Its proof must be read together with the audit and indexed derivation notes. The archived computational results test the earlier index-free bound, not the indexed refinement.
 
 ## Current task boundary
 
-The immediate task is exhaustive verification of the candidate bound. Do not proceed to the partition-selection MILP, large-scale Gurobi experiments, literature review, or manuscript expansion until the candidate bound has been tested and the user has approved the next stage.
+The next computational task is implementation and exhaustive verification of the FIFO-indexed bound. Do not modify verification code or launch new runs until the user explicitly starts that stage.
 
 ## Mathematical implementation requirements
 
@@ -57,7 +59,7 @@ If no counterexample is found, report only that the tested domain passed. Numeri
 
 ## Manuscript protection
 
-Do not promote candidate results to established theorems or remove status warnings from the LaTeX manuscript without explicit user approval. Preserve rejected arguments and counterexamples in `notes/rejected_results.tex`.
+The user approved promotion of the FIFO-indexed result to a formal theorem. Preserve rejected arguments and counterexamples in `notes/rejected_results.tex`, and do not change the theorem's assumptions or formula without a new proof audit.
 
 ## Verification commands
 
