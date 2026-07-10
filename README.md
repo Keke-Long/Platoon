@@ -19,7 +19,7 @@ Files under `notes/` are intentionally excluded from the compiled manuscript:
 
 ## Status rule
 
-The refined optimality-gap bound is currently a candidate result. Do not remove the candidate label until exhaustive small-instance verification has found no counterexample and the proof checks listed in `notes/proof_development.tex` have been resolved.
+The FIFO-indexed optimality-gap bound is established analytically in `sections/theoretical_analysis.tex`. The existing verification code and archived runs evaluate the earlier index-free bound. Do not describe the indexed bound as computationally verified until the code has been updated and the deterministic and random-exact suites have been rerun.
 
 ## Recommended workflow
 
