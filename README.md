@@ -14,8 +14,10 @@ Compile `notes.tex` to obtain a separate research record containing the proof au
 Files under `notes/` are intentionally excluded from the compiled manuscript:
 
 - `research_log.tex`: research decisions and audit findings.
-- `proof_development.tex`: full candidate proof and unresolved checks.
+- `proof_development.tex`: development record for the index-free precursor.
 - `rejected_results.tex`: invalid results, counterexamples, and superseded claims.
+- `formal_proof_audit.md`: analytical audit of the repair proof.
+- `indexed_bound_derivation.md`: refinement from the index-free to the FIFO-indexed bound.
 
 ## Status rule
 
