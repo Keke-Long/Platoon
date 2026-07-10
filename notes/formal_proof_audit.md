@@ -1,5 +1,27 @@
 # Formal Proof Audit of the Candidate Platoon Bound
 
+## Post-Audit FIFO-Indexed Refinement
+
+The audit below proves the local repair inequality and the global left-to-right repair argument used by the manuscript. After this audit, the substitution \(M_e\le N\) was sharpened for an internal link \(e=((l,i_e),(l,i_e+1))\). FIFO feasibility implies that the prefix before the predecessor contains at least its \(i_e-1\) same-approach predecessors, and therefore
+
+\[
+M_e=N-|P_e|-1\le N-i_e.
+\]
+
+The formal manuscript consequently uses
+
+\[
+B_{\mathrm{idx}}(\Pi)=
+\sum_{e\in\mathcal E_\Pi}
+\left[
+\frac{N-i_e}{N}(d_e-h^F)_+
+-\frac{2(h^S-h^F)}{N}
+\right]_+,
+\]
+
+which is termwise no larger than the index-free bound audited below. The complete refinement is recorded in `notes/indexed_bound_derivation.md` and proved in `sections/theoretical_analysis.tex`. The remainder of this file is retained as the audit of the shared proof core and the index-free precursor.
+
+
 This audit is purely analytical. The deterministic and random-exact verification results are not used as proof.
 
 ## Final Judgment
