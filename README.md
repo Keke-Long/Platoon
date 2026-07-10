@@ -14,12 +14,14 @@ Compile `notes.tex` to obtain a separate research record containing the proof au
 Files under `notes/` are intentionally excluded from the compiled manuscript:
 
 - `research_log.tex`: research decisions and audit findings.
-- `proof_development.tex`: full candidate proof and unresolved checks.
+- `proof_development.tex`: development record for the index-free precursor.
 - `rejected_results.tex`: invalid results, counterexamples, and superseded claims.
+- `formal_proof_audit.md`: analytical audit of the repair proof.
+- `indexed_bound_derivation.md`: refinement from the index-free to the FIFO-indexed bound.
 
 ## Status rule
 
-The refined optimality-gap bound is currently a candidate result. Do not remove the candidate label until exhaustive small-instance verification has found no counterexample and the proof checks listed in `notes/proof_development.tex` have been resolved.
+The FIFO-indexed optimality-gap bound is established analytically in `sections/theoretical_analysis.tex`. The existing verification code and archived runs evaluate the earlier index-free bound. Do not describe the indexed bound as computationally verified until the code has been updated and the deterministic and random-exact suites have been rerun.
 
 ## Recommended workflow
 

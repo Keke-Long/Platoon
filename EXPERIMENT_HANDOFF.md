@@ -1,5 +1,16 @@
 # Exhaustive Verification Handoff
 
+> **Status update.** The index-free bound documented below has passed the archived deterministic and random-exact checks and has been proved under the stated assumptions. The manuscript now uses the strictly sharper FIFO-indexed bound
+> \[
+> B_{\mathrm{idx}}(\Pi)=
+> \sum_{e\in\mathcal E_\Pi}
+> \left[
+> \frac{N-i_e}{N}(d_e-h^F)_+
+> -\frac{2(h^S-h^F)}{N}
+> \right]_+.
+> \]
+> Here \(i_e\) is the one-based FIFO index of the predecessor vehicle in internal link \(e\). See `sections/theoretical_analysis.tex` and `notes/indexed_bound_derivation.md`. The verification code has not yet been updated for this refinement; the remainder of this handoff describes the archived index-free verification stage.
+
 ## 1. Immediate goal
 
 Determine whether the current candidate upper bound on platoon-induced scheduling loss is valid for arbitrary numbers of approaches, arbitrary vehicle counts, and arbitrary contiguous platoon partitions under the stated model.

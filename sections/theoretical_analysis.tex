@@ -4,84 +4,277 @@
 \subsection{Feasible-space restriction}
 
 \begin{proposition}
-For every contiguous platoon partition \(\Pi\), the platoon-constrained optimality gap is nonnegative:
+For every contiguous platoon partition \(\Pi\), the platoon-constrained
+optimality gap is nonnegative:
 \begin{equation}
 G(\Pi)\ge 0.
 \end{equation}
 \end{proposition}
 
 \begin{proof}
-Every sequence that satisfies the platoon-continuity constraints also satisfies the original FIFO constraints. Hence \(\pseqset\subseteq\seqset\). Minimization over a subset cannot produce an objective value smaller than minimization over the original set.
+Every sequence satisfying the platoon-continuity constraints also satisfies
+the original FIFO constraints. Hence \(\pseqset\subseteq\seqset\), and
+minimization over the restricted set cannot improve the objective.
 \end{proof}
 
-\subsection{Global sequence repair}
+\subsection{A FIFO-preserving local repair}
 
-The analysis does not decompose the system into independent one-platoon examples. Instead, it starts from a complete vehicle sequence and repairs every violated platoon adjacency while retaining all interactions with other approaches.
-
-Consider two consecutive vehicles \(a\) and \(a'\) from the same approach and platoon. Suppose a current FIFO-feasible sequence has the form
+Consider an internal platoon link
+\begin{equation}
+e=(a,a')=((l,i),(l,i+1)),
+\end{equation}
+where the FIFO index \(i\) starts from one. If the two vehicles are not
+adjacent in a current FIFO-feasible sequence, that sequence has the form
 \begin{equation}
 s=[P,a,B,a',R],
 \end{equation}
-where \(B=(b_1,\ldots,b_m)\) is a nonempty sequence containing vehicles from any number of other approaches. The repaired sequence is
+where \(B=(b_1,\ldots,b_m)\) is nonempty. Because \(a'\) is the immediate
+FIFO successor of \(a\), no vehicle in \(B\) belongs to approach \(l\). The
+local repair moves \(a'\) immediately behind \(a\):
 \begin{equation}
 s'=[P,a,a',B,R].
+\label{eq:local-repair}
 \end{equation}
-Let \(d=r_{a'}-r_a\), \(q=\max\{d,\hF\}\), and let \(M=m+|R|+1\) be the number of vehicles whose passing times may change.
+Let
+\begin{equation}
+d_e=r_{a'}-r_a,
+\qquad
+q_e=\max\{d_e,\hF\},
+\qquad
+\Delta_h=\hS-\hF,
+\end{equation}
+and let
+\begin{equation}
+M_e=m+|R|+1
+\end{equation}
+be the number of vehicles whose passing times can change in this repair.
 
-\begin{lemma}[Candidate local perturbation bound]
-\label{lem:local-repair}
-Under the assumptions in Section~\ref{sec:formulation}, the change in total delay caused by the repair satisfies
+\begin{lemma}[Indexed local perturbation bound]
+\label{lem:indexed-local-repair}
+The repaired sequence \(s'\) is FIFO-feasible and its total-delay change
+satisfies
 \begin{equation}
 J(s')-J(s)
 \le
-M\pospart{d-\hF}-2(\hS-\hF),
-\label{eq:candidate-local-bound}
+M_e\pospart{d_e-\hF}-2\Delta_h,
+\label{eq:indexed-local-bound}
 \end{equation}
-where \(J(s)=ND(s)\).
+where \(J(s)=ND(s)\). Moreover,
+\begin{equation}
+M_e\le N-i.
+\label{eq:indexed-affected-count}
+\end{equation}
 \end{lemma}
 
-\statuscandidate
+\begin{proof}
+Moving \(a'\) left until it immediately follows its FIFO predecessor crosses
+no vehicle from approach \(l\). The relative order of every other approach is
+unchanged, so \(s'\) remains FIFO-feasible.
 
-The complete draft proof, including every comparison used in the recursion, is contained in \texttt{notes/proof\_development.tex}. Equation~\eqref{eq:candidate-local-bound} must be exhaustively tested before submission.
-
-\subsection{Candidate global bounds}
-
-Starting from an original optimal sequence, repeatedly apply the repair operation until every platoon is contiguous. A telescoping argument gives the following candidate sequence-specific result:
+Let \(T=C_a(s)=C_a(s')\). Since \(T\ge r_a\),
 \begin{equation}
-G(\Pi)
-\le
-\frac{1}{N}
-\sum_{e\in\mathcal{Q}}
-\pospart{M_e\pospart{d_e-\hF}-2(\hS-\hF)},
-\label{eq:candidate-sequence-bound}
+C_{a'}(s')
+=\max\{r_{a'},T+\hF\}
+\le T+q_e.
 \end{equation}
-where \(\mathcal{Q}\) is the set of internal links that require repair and \(M_e\) is evaluated at the corresponding repair step.
-
-Using \(M_e\le N\) produces the partition-specific candidate bound
+In the original sequence, the transitions \(a\to b_1\) and
+\(b_m\to a'\) are between different approaches, while every transition
+inside \(B\) requires at least \(\hF\). Therefore
 \begin{equation}
-B(\Pi)
+C_{a'}(s)
+\ge T+2\hS+(m-1)\hF,
+\end{equation}
+and hence
+\begin{equation}
+C_{a'}(s')-C_{a'}(s)
+\le q_e-2\hS-(m-1)\hF.
+\label{eq:moved-vehicle-change}
+\end{equation}
+
+For \(b_1\), monotonicity of the maximum operator gives
+\begin{equation}
+C_{b_1}(s')
+\le \max\{r_{b_1},T+\hS+q_e\}
+\le C_{b_1}(s)+q_e.
+\end{equation}
+The predecessor pairs inside \(B\) are unchanged, so induction through the
+completion-time recursion yields
+\begin{equation}
+C_{b_j}(s')-C_{b_j}(s)\le q_e,
+\qquad j=1,\ldots,m.
+\label{eq:block-vehicle-change}
+\end{equation}
+
+If \(R\) is nonempty, let \(x\) be its first vehicle. The predecessor of
+\(x\) changes from \(a'\) to \(b_m\). Using
+\(C_{b_m}(s')\le C_{b_m}(s)+q_e\),
+\(C_{a'}(s)\ge C_{b_m}(s)+\hS\),
+\(h(b_m,x)\le\hS\), and \(h(a',x)\ge\hF\), we obtain
+\begin{equation}
+C_{b_m}(s')+h(b_m,x)
+\le
+C_{a'}(s)+h(a',x)+(q_e-\hF).
+\end{equation}
+Because \(q_e-\hF=\pospart{d_e-\hF}\ge0\), another induction through the
+unchanged suffix gives
+\begin{equation}
+C_v(s')-C_v(s)
+\le q_e-\hF,
+\qquad v\in R.
+\label{eq:suffix-vehicle-change}
+\end{equation}
+Equations~\eqref{eq:moved-vehicle-change}--\eqref{eq:suffix-vehicle-change}
+sum to
+\begin{align}
+J(s')-J(s)
+&\le q_e-2\hS-(m-1)\hF+mq_e+|R|(q_e-\hF)\\
+&=(m+|R|+1)(q_e-\hF)-2(\hS-\hF),
+\end{align}
+which is Eq.~\eqref{eq:indexed-local-bound}.
+
+Finally, the decomposition of \(s\) gives
+\begin{equation}
+M_e=N-|P|-1.
+\end{equation}
+FIFO feasibility places the \(i-1\) predecessors of \(a=(l,i)\) inside
+\(P\), so \(|P|\ge i-1\). Consequently \(M_e\le N-i\), proving
+Eq.~\eqref{eq:indexed-affected-count}.
+\end{proof}
+
+\subsection{Global repair and the indexed loss bound}
+
+For each platoon, list its vehicles in FIFO order and process its internal
+links from left to right. When a processed link is not adjacent, apply
+Eq.~\eqref{eq:local-repair}; otherwise do nothing. The platoons themselves
+may be processed in any fixed order.
+
+\begin{proposition}[Validity of the global repair]
+\label{prop:global-repair}
+Starting from any sequence in \(\seqset\), the preceding repair procedure
+terminates after at most \(N-K\) local repairs and produces a sequence in
+\(\pseqset\). No previously established internal platoon adjacency is
+destroyed.
+\end{proposition}
+
+\begin{proof}
+There are \(N-K\) internal platoon links, and each is visited once. A local
+repair preserves FIFO feasibility by Lemma~\ref{lem:indexed-local-repair}.
+Within a platoon, left-to-right processing ensures that when \(a'\) is moved,
+the link between \(a'\) and its FIFO successor has not yet been established.
+The move therefore cannot destroy a previously repaired link of that
+platoon. It also cannot split an established link of another platoon: any
+such link lies wholly inside \(P\), \(B\), or \(R\), whose internal orders
+and adjacencies are unchanged. Thus every established adjacency persists.
+After all links are visited, every platoon is a consecutive block, so the
+final sequence belongs to \(\pseqset\).
+\end{proof}
+
+For an internal link \(e=((l,i_e),(l,i_e+1))\), define its FIFO-index weight
+\begin{equation}
+\alpha_e=\frac{N-i_e}{N}.
+\label{eq:index-weight}
+\end{equation}
+
+\begin{theorem}[FIFO-indexed platoon loss bound]
+\label{thm:indexed-loss-bound}
+For any finite number of approaches, any positive vehicle counts, any
+within-approach nondecreasing release times, and any contiguous platoon
+partition \(\Pi\),
+\begin{equation}
+0\le G(\Pi)\le B_{\mathrm{idx}}(\Pi),
+\label{eq:indexed-global-bound}
+\end{equation}
+where
+\begin{equation}
+B_{\mathrm{idx}}(\Pi)
 =
+\sum_{e\in\mathcal{E}_{\Pi}}
+\pospart{
+\alpha_e\pospart{d_e-\hF}
+-\frac{2(\hS-\hF)}{N}
+}.
+\label{eq:indexed-partition-bound}
+\end{equation}
+Furthermore, this bound dominates the index-free bound
+\begin{equation}
+B_{\mathrm{idx}}(\Pi)
+\le
+B_0(\Pi)
+:=
 \sum_{e\in\mathcal{E}_{\Pi}}
 \pospart{
 \pospart{d_e-\hF}
 -\frac{2(\hS-\hF)}{N}
-},
-\qquad
-G(\Pi)\le B(\Pi).
-\label{eq:candidate-partition-bound}
+}.
+\label{eq:index-free-bound}
 \end{equation}
+\end{theorem}
 
-If every platoon internal gap satisfies \(d_e\le\delta\), then
+\begin{proof}
+Let \(s^0\) be an unrestricted optimal sequence. Applying
+Proposition~\ref{prop:global-repair} produces the finite repair sequence
+\begin{equation}
+s^0,s^1,\ldots,s^T,
+\qquad s^T\in\pseqset.
+\end{equation}
+If \(e_t\) is the link
+repaired at step \(t\), Lemma~\ref{lem:indexed-local-repair} gives
+\begin{equation}
+J(s^t)-J(s^{t-1})
+\le
+M_{e_t}\pospart{d_{e_t}-\hF}-2(\hS-\hF).
+\end{equation}
+Telescoping, replacing each increment by its positive part, and using
+\(D^*_{\Pi}\le D(s^T)\) yield
 \begin{equation}
 G(\Pi)
 \le
-(N-K)
+\frac{1}{N}
+\sum_{e\in\mathcal Q}
 \pospart{
-\delta-\hF-\frac{2(\hS-\hF)}{N}
-}.
-\label{eq:candidate-parameter-bound}
+M_e\pospart{d_e-\hF}-2(\hS-\hF)
+},
 \end{equation}
+where \(\mathcal Q\subseteq\mathcal E_\Pi\) contains the links that actually
+required repair. By Eq.~\eqref{eq:indexed-affected-count} and monotonicity of
+the positive-part operator,
+\begin{equation}
+\frac{1}{N}
+\pospart{
+M_e\pospart{d_e-\hF}-2(\hS-\hF)
+}
+\le
+\pospart{
+\frac{N-i_e}{N}\pospart{d_e-\hF}
+-\frac{2(\hS-\hF)}{N}
+}.
+\end{equation}
+Adding the nonnegative terms for links outside \(\mathcal Q\) proves the
+upper bound. The lower bound follows from feasible-space restriction.
+Finally, \(0<\alpha_e<1\), so termwise monotonicity proves
+\(B_{\mathrm{idx}}(\Pi)\le B_0(\Pi)\).
+\end{proof}
 
-\statuscandidate
+\begin{corollary}[Index-dependent zero-loss condition]
+\label{cor:indexed-zero-loss}
+If every internal platoon link
+\(e=((l,i_e),(l,i_e+1))\) satisfies
+\begin{equation}
+d_e
+\le
+\hF+\frac{2(\hS-\hF)}{N-i_e},
+\label{eq:indexed-zero-loss-condition}
+\end{equation}
+then \(G(\Pi)=0\).
+\end{corollary}
 
-Before these bounds are promoted to final theorems, the study will: (i) enumerate all FIFO sequences and contiguous partitions for small systems; (ii) search for counterexamples; (iii) measure the ratio \(G(\Pi)/B(\Pi)\); and (iv) identify the inequalities responsible for conservativeness.
+\begin{proof}
+Condition~\eqref{eq:indexed-zero-loss-condition} makes every summand in
+Eq.~\eqref{eq:indexed-partition-bound} zero. Theorem~\ref{thm:indexed-loss-bound}
+and \(G(\Pi)\ge0\) then imply \(G(\Pi)=0\).
+\end{proof}
+
+The denominator \(N-i_e\) increases the admissible zero-loss release gap for
+links appearing later in an approach queue. This index dependence follows
+from FIFO structure alone and does not require solving either the original or
+the platoon-constrained scheduling problem.
