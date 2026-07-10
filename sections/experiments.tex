@@ -7,18 +7,18 @@ The experiments will distinguish theorem verification, bound usefulness, dimensi
 
 Small systems will use \(L\in\{2,3,4\}\) and small \(n_l\). For every instance, the study will enumerate all FIFO-feasible sequences and all contiguous platoon partitions to compute
 \begin{equation}
-D^*,\qquad D^*_{\Pi},\qquad G(\Pi),\qquad B(\Pi).
+D^*,\qquad D^*_{\Pi},\qquad G(\Pi),\qquad B_{\mathrm{idx}}(\Pi).
 \end{equation}
 The required validity check is
 \begin{equation}
-0\le G(\Pi)\le B(\Pi).
+0\le G(\Pi)\le B_{\mathrm{idx}}(\Pi).
 \end{equation}
 The tightness measures are
 \begin{align}
-\text{Tightness ratio}&=\frac{G(\Pi)}{B(\Pi)},\\
-\text{Bound excess}&=B(\Pi)-G(\Pi).
+\text{Tightness ratio}&=\frac{G(\Pi)}{B_{\mathrm{idx}}(\Pi)},\\
+\text{Bound excess}&=B_{\mathrm{idx}}(\Pi)-G(\Pi).
 \end{align}
-Cases with \(B(\Pi)=0\) will be reported separately.
+Cases with \(B_{\mathrm{idx}}(\Pi)=0\) will be reported separately.
 
 \subsection{Dimension-reduction comparisons}
 
