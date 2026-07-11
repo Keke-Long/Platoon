@@ -16,25 +16,25 @@ LEGEND_FONTSIZE = 11
 GRID_ALPHA = 0.24
 
 METHOD_COLORS = {
-    "proposed_bound_aware": "#7FAF9A",
-    "fixed_size_closest_dimension": "#B7A07A",
-    "threshold_closest_dimension": "#9C8FAE",
+    "proposed_bound_aware": "#69BFA3",
+    "fixed_size_closest_dimension": "#9585CC",
+    "threshold_closest_dimension": "#F0C98F",
 }
 
 METHOD_EDGES = {
-    "proposed_bound_aware": "#557C69",
-    "fixed_size_closest_dimension": "#7D6B4A",
-    "threshold_closest_dimension": "#6F6480",
+    "proposed_bound_aware": "#4F8F79",
+    "fixed_size_closest_dimension": "#6F63A0",
+    "threshold_closest_dimension": "#B7945D",
 }
 
 METHOD_HATCHES = {
     "proposed_bound_aware": "///",
-    "fixed_size_closest_dimension": "\\\\\\",
+    "fixed_size_closest_dimension": "",
     "threshold_closest_dimension": "...",
 }
 
-VEHICLE_LINE = "#5B616B"
-VEHICLE_MARKER_FACE = "#D9D4CC"
+VEHICLE_LINE = "#78A8C4"
+VEHICLE_MARKER_FACE = "#D7E6EF"
 
 METHODS = (
     "proposed_bound_aware",

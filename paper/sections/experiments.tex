@@ -48,23 +48,37 @@ Among time-limited reduced models, the proposed method also maintains incumbent 
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.47\textwidth]{figures/dimension_reduction_by_scale.png}
-  \hfill
-  \includegraphics[width=0.47\textwidth]{figures/optimality_rate_by_scale.png}
-
-  \vspace{0.6em}
-
-  \includegraphics[width=0.62\textwidth]{figures/mip_gap_by_scale.png}
-  \caption{Controlled scalability summaries over \(N\in\{20,30,40\}\): mean downstream dimension reduction, optimality rate within the \(30\)-second limit, and mean terminal MIP gap. The proposed method retains large dimension reductions while keeping lower fixed-time gaps than the release-threshold baseline at \(N=30\) and \(N=40\).}
-  \label{fig:scalability-quality}
+  \includegraphics[width=0.62\textwidth]{figures/dimension_reduction_by_scale.png}
+  \caption{Mean downstream ordering-variable counts over \(N\in\{20,30,40\}\). The proposed method preserves substantial dimension reduction relative to vehicle-level scheduling while remaining more conservative than the fixed-size baseline.}
+  \label{fig:dimension-reduction-by-scale}
 \end{figure}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.47\textwidth]{figures/runtime_by_scale.png}
-  \includegraphics[width=0.47\textwidth]{figures/nodes_by_scale.png}
-  \caption{End-to-end wall time and branch-and-bound nodes for the controlled scalability study. Vehicle-level scheduling is consistently the hardest model class, while all reduced methods remain substantially smaller and solve more often within the fixed time limit.}
-  \label{fig:scalability-runtime}
+  \includegraphics[width=0.62\textwidth]{figures/optimality_rate_by_scale.png}
+  \caption{Reduced-model optimality rate within the \(30\)-second limit. At \(N=30\) and \(N=40\), all reduced methods solve substantially more often than the vehicle-level formulation.}
+  \label{fig:optimality-rate-by-scale}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.62\textwidth]{figures/mip_gap_by_scale.png}
+  \caption{Mean terminal MIP gap under the \(30\)-second time limit. The proposed method retains lower fixed-time gaps than the release-threshold baseline at \(N=30\) and \(N=40\).}
+  \label{fig:mip-gap-by-scale}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.62\textwidth]{figures/runtime_by_scale.png}
+  \caption{Mean end-to-end wall time for the controlled scalability study. Vehicle-level scheduling remains the hardest model class, while reduced models remain much smaller.}
+  \label{fig:runtime-by-scale}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.62\textwidth]{figures/nodes_by_scale.png}
+  \caption{Mean branch-and-bound node counts for the controlled scalability study. Reduced models search substantially smaller trees than the vehicle-level formulation.}
+  \label{fig:nodes-by-scale}
 \end{figure}
 
 \begin{table}[H]
