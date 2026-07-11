@@ -13,12 +13,9 @@ For arbitrary numbers of approaches, vehicles, and contiguous platoons, how much
 
 The derived loss bound is then used to support two complementary decisions. Given an acceptable scheduling loss, the scheduler can minimize the reduced problem dimension. Given a computational-size budget, the scheduler can select the partition with the smallest guaranteed loss. In both cases, the resulting scheduling model is solved by an off-the-shelf optimizer such as Gurobi.
 
-The intended contributions are:
+The contributions are:
 \begin{enumerate}[label=(\roman*)]
-  \item a general optimality-loss analysis for arbitrary traffic approaches and contiguous platoon partitions;
+  \item a FIFO-indexed optimality-loss bound for arbitrary traffic approaches and contiguous platoon partitions, without requiring a probabilistic arrival model;
   \item a performance-guaranteed dimension-reduction formulation that connects an acceptable delay loss to the size of the downstream scheduling model; and
-  \item computational validation of bound validity, conservativeness, dimensional reduction, and downstream solver performance.
+  \item exhaustive computational checks and controlled scalability experiments showing that the bound-aware partition substantially reduces model dimension while preserving a deterministic loss guarantee.
 \end{enumerate}
-
-\paragraph{Current development status.}
-The problem formulation and paper positioning are stable. Section~\ref{sec:theory} establishes a FIFO-indexed global upper bound under the stated model assumptions. Exhaustive evaluation of the sharpened bound and the remaining large-scale computational experiments are in progress. The derivation and audit record are preserved under \texttt{notes/}.
