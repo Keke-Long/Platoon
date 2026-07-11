@@ -3,15 +3,22 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 from scalability_suite import summarize, summarize_vehicle_level, write_csv  # noqa: E402
 
 
 EXPECTED_METHODS_PER_TARGET = 3
+
+
+def normalized_config(config: dict[str, object]) -> dict[str, object]:
+    return {
+        key: value
+        for key, value in config.items()
+        if key not in {"output_dir", "reps_per_cell"}
+    }
 
 
 def read_chunk(chunk_dir: Path) -> dict[str, object]:
@@ -26,6 +33,10 @@ def aggregate(root: Path, expected_reps: int | None = None) -> dict[str, object]
     chunk_payloads = [read_chunk(path) for path in chunk_dirs]
     scenario_blobs = {json.dumps(payload["scenario"], sort_keys=True) for payload in chunk_payloads}
     config_blobs = {json.dumps(payload["config"], sort_keys=True) for payload in chunk_payloads}
+    normalized_config_blobs = {
+        json.dumps(normalized_config(payload["config"]), sort_keys=True)
+        for payload in chunk_payloads
+    }
     rep_payloads: dict[int, dict[str, object]] = {}
     duplicate_replications: list[int] = []
     duplicate_instance_seeds: list[int] = []
@@ -90,6 +101,7 @@ def aggregate(root: Path, expected_reps: int | None = None) -> dict[str, object]
     output_payload = {
         "scenario": json.loads(next(iter(scenario_blobs))),
         "config_count": len(config_blobs),
+        "normalized_config_count": len(normalized_config_blobs),
         "chunk_count": len(chunk_dirs),
         "replication_count": len(sorted_replications),
         "replications": sorted_replications,
