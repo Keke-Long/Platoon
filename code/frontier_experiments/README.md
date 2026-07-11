@@ -67,3 +67,32 @@ python plot_frontier.py \
 For small instances, the driver also computes the actual optimality gap by
 exact sequence enumeration. For larger instances, pass `--skip-actual-gap` and
 compute downstream schedule quality with the later Gurobi scheduling model.
+
+Run the integrated three-part experiment suite:
+
+```bash
+python experiment_suite.py \
+  --replications 30 \
+  --time-limit 5 \
+  --partition-solver gurobi \
+  --output-dir ../../results/frontier_experiments/paper_core_30
+```
+
+This produces:
+
+```text
+experiment_suite.json
+comparison_runtime.csv
+dimension_loss_frontier.csv
+summary.csv
+```
+
+Generate review plots from the suite output:
+
+```bash
+python plot_suite.py ../../results/frontier_experiments/paper_core_30
+```
+
+The suite covers the dimension-loss frontier, comparisons with vehicle-level,
+fixed-size, fixed-threshold, and bound-aware partitions, and downstream Gurobi
+runtime metrics for each selected partition.
