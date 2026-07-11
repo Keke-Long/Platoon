@@ -1,7 +1,7 @@
 \section{Problem Formulation}
 \label{sec:formulation}
 
-This section formulates vehicle scheduling at a general conflict area and then introduces platoon-based dimension reduction. The presentation follows the physical order of the problem: vehicles first arrive from mutually conflicting approaches, a passing sequence determines how they use the shared conflict area, and a contiguous platoon partition restricts the admissible passing sequences.
+This section formulates vehicle scheduling at a general conflict area and then introduces platoon-based scheduling. The presentation follows the physical order of the problem: vehicles first arrive from mutually conflicting approaches, a passing sequence determines how they use the shared conflict area, and grouping consecutive vehicles into platoons restricts the admissible passing sequences.
 
 \subsection{General conflict area and vehicles}
 
@@ -26,11 +26,11 @@ This assumption allows equal release times, for example when several vehicles ar
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.95\linewidth]{figures/Picture2.png}
-  \caption{Illustration of vehicles approaching a shared conflict area. Vehicles are indexed by approach and FIFO position, and each approach queue may be partitioned into contiguous platoons.}
+  \caption{Illustration of vehicles approaching a shared conflict area. Vehicles are indexed by approach and FIFO position, and each approach queue may be divided into contiguous platoons.}
   \label{fig:general-conflict-area-platoons}
 \end{figure}
 
-Figure~\ref{fig:general-conflict-area-platoons} illustrates the indexing and partition structure for two conflicting approaches. The theoretical development and optimization framework are not restricted to two approaches.
+Figure~\ref{fig:general-conflict-area-platoons} illustrates the indexing and platoon structure for two conflicting approaches. The formulation is not restricted to two approaches.
 
 \subsection{Passing sequences and vehicle delay}
 
@@ -111,7 +111,7 @@ internal links. For each internal link, define the release-time gap
 d_e=r_{a'}-r_a.
 \label{eq:release-gap}
 \end{equation}
-These link-level quantities will be used in Section~\ref{sec:theory} to construct the FIFO-indexed optimality-loss bound.
+These link-level quantities will be used in Section~\ref{sec:theory} to analyze the platooning-induced optimality gap and identify the factors that should be controlled by the platoon-formation rule.
 
 \subsection{Summary of notation}
 
