@@ -115,8 +115,9 @@ def solve_downstream_schedule(
 ) -> ScheduleResult:
     """Solve the platoon-constrained scheduling MILP.
 
-    The decision variable for each platoon is the passing time of its first
-    vehicle. Internal vehicles pass at fixed hF spacing.
+    Each vehicle has a passing-time variable. Vehicles inside a platoon are
+    constrained to be consecutive in the unit ordering, but their internal
+    headways may exceed hF when release times require waiting.
     """
 
     total_start = time.perf_counter()
@@ -134,18 +135,24 @@ def solve_downstream_schedule(
 
     releases = instance.release_map
     units = units_from_partition(partition)
-    start = {
-        unit: model.addVar(lb=0.0, vtype=GRB.CONTINUOUS, name=f"T_{unit.approach}_{unit.index}")
+    passing_time = {
+        vehicle: model.addVar(lb=0.0, vtype=GRB.CONTINUOUS, name=f"C_{vehicle[0]}_{vehicle[1]}")
         for unit in units
+        for vehicle in unit.vehicles
     }
     max_release = max(releases.values()) if releases else 0
     big_m = max_release + instance.N * instance.hS + instance.N * instance.hF + 1
 
     for unit in units:
-        for offset, vehicle in enumerate(unit.vehicles):
+        for vehicle in unit.vehicles:
             model.addConstr(
-                start[unit] + offset * instance.hF >= releases[vehicle],
+                passing_time[vehicle] >= releases[vehicle],
                 name=f"release_{vehicle[0]}_{vehicle[1]}",
+            )
+        for previous, current in zip(unit.vehicles, unit.vehicles[1:], strict=False):
+            model.addConstr(
+                passing_time[current] >= passing_time[previous] + instance.hF,
+                name=f"internal_{previous[0]}_{previous[1]}",
             )
 
     units_by_approach: dict[int, list[PlatoonUnit]] = {}
@@ -154,7 +161,7 @@ def solve_downstream_schedule(
     for approach_units in units_by_approach.values():
         for previous, current in zip(approach_units, approach_units[1:], strict=False):
             model.addConstr(
-                start[current] >= start[previous] + previous.size * instance.hF,
+                passing_time[current.vehicles[0]] >= passing_time[previous.vehicles[-1]] + instance.hF,
                 name=f"fifo_{previous.approach}_{previous.index}",
             )
 
@@ -164,20 +171,20 @@ def solve_downstream_schedule(
                 continue
             y = model.addVar(vtype=GRB.BINARY, name=f"prec_{left.approach}_{left.index}_{right.approach}_{right.index}")
             model.addConstr(
-                start[right]
-                >= start[left] + (left.size - 1) * instance.hF + instance.hS - big_m * (1 - y),
+                passing_time[right.vehicles[0]]
+                >= passing_time[left.vehicles[-1]] + instance.hS - big_m * (1 - y),
                 name=f"sep_lr_{left.approach}_{left.index}_{right.approach}_{right.index}",
             )
             model.addConstr(
-                start[left]
-                >= start[right] + (right.size - 1) * instance.hF + instance.hS - big_m * y,
+                passing_time[left.vehicles[0]]
+                >= passing_time[right.vehicles[-1]] + instance.hS - big_m * y,
                 name=f"sep_rl_{left.approach}_{left.index}_{right.approach}_{right.index}",
             )
 
     total_delay_expr = 0
     for unit in units:
-        for offset, vehicle in enumerate(unit.vehicles):
-            total_delay_expr += start[unit] + offset * instance.hF - releases[vehicle]
+        for vehicle in unit.vehicles:
+            total_delay_expr += passing_time[vehicle] - releases[vehicle]
     model.setObjective(total_delay_expr, GRB.MINIMIZE)
     model.update()
     construction_seconds = time.perf_counter() - total_start
@@ -213,7 +220,10 @@ def solve_downstream_schedule(
     sol_count = int(model.SolCount)
     objective = float(model.ObjVal) if sol_count else None
     best_bound = float(model.ObjBound) if sol_count or model.Status == GRB.TIME_LIMIT else None
-    gap = float(model.MIPGap) if sol_count else None
+    try:
+        gap = float(model.MIPGap) if sol_count else None
+    except AttributeError:
+        gap = 0.0 if sol_count else None
     return ScheduleResult(
         status=_status_name(GRB, model.Status),
         objective_total_delay=objective,

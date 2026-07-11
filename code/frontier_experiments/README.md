@@ -122,3 +122,20 @@ T_total = T_partition + T_model_construction + T_downstream
 
 where partition time is nonzero for the proposed bound-aware partition and
 zero for rule-based fixed-size and threshold baselines.
+
+For long full runs, split the grid into independent scenario batches:
+
+```bash
+python run_scalability_batches.py \
+  --reps-per-cell 30 \
+  --time-limit 30 \
+  --threads 1 \
+  --resume \
+  --output-dir ../../results/frontier_experiments/scalability_full_wls
+
+python aggregate_scalability_batches.py \
+  ../../results/frontier_experiments/scalability_full_wls
+```
+
+The batch runner writes each scenario under `batches/<scenario>/` and updates a
+manifest after every completed scenario.

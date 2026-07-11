@@ -25,3 +25,10 @@ def test_downstream_schedule_tight_example() -> None:
     assert round(vehicle.objective_total_delay or -1) == 2
     assert round(platoon.objective_total_delay or -1) == 4
 
+
+def test_platoon_internal_release_slack_does_not_delay_early_vehicles() -> None:
+    instance = Instance(counts=(3,), releases=((0, 1, 3),), hF=1, hS=2)
+    result = solve_downstream_schedule(instance, ((3,),), time_limit=5)
+    assert result.status == "OPTIMAL"
+    assert result.objective_total_delay is not None
+    assert round(result.objective_total_delay) == 0
