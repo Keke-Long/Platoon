@@ -98,14 +98,14 @@ fixed-size, fixed-threshold, and bound-aware partitions, and downstream Gurobi
 runtime metrics for each selected partition.
 
 Run the fair dimension-target scalability suite. The recommended paper design
-uses three smaller scenario families rather than the full Cartesian grid.
+uses a controlled scalability setting to isolate the effect of vehicle count.
 
 Scalability fixes `L=4`, balanced demand, and Poisson arrivals while varying
 `N`:
 
 ```bash
 python run_scalability_batches.py \
-  --n-values 20,30,40,60 \
+  --n-values 20,30,40 \
   --l-values 4 \
   --demand-patterns balanced \
   --arrival-modes poisson \
@@ -117,38 +117,13 @@ python run_scalability_batches.py \
   --output-dir ../../results/frontier_experiments/scalability_final
 ```
 
-Robustness fixes `N=30` and varies approaches, demand balance, and arrivals:
-
-```bash
-python run_scalability_batches.py \
-  --n-values 30 \
-  --l-values 3,4 \
-  --demand-patterns balanced,unbalanced \
-  --arrival-modes uniform,poisson,bursty \
-  --targets 0.25,0.5,0.75,0.9 \
-  --reps-per-cell 30 \
-  --time-limit 30 \
-  --threads 1 \
-  --resume \
-  --output-dir ../../results/frontier_experiments/robustness_final
-```
-
-Headway sensitivity fixes one representative scenario and varies `hS/hF`:
-
-```bash
-python run_scalability_batches.py \
-  --n-values 30 \
-  --l-values 4 \
-  --demand-patterns balanced \
-  --arrival-modes poisson \
-  --hS-values 2,3,4 \
-  --targets 0.25,0.5,0.75,0.9 \
-  --reps-per-cell 30 \
-  --time-limit 30 \
-  --threads 1 \
-  --resume \
-  --output-dir ../../results/frontier_experiments/headway_final
-```
+The balanced Poisson setting above is a controlled instance generator, not an
+assumption required by the FIFO-indexed theorem. A compact heterogeneous
+collection may be used as a supplementary illustration by mixing a small
+number of approach counts, demand patterns, arrival generators, and admissible
+headways. A full factorial robustness study, a separate headway-sensitivity
+study, and the `N=60` scalability case are optional extensions rather than
+requirements for the current manuscript.
 
 For a smoke test, use `--reps-per-cell 2` on a single scenario and keep the
 output directory clearly named as a smoke result.
