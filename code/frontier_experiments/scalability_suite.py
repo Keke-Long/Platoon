@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import random
 import statistics
@@ -132,6 +133,34 @@ def generate_releases(scenario: Scenario, rng: random.Random) -> tuple[tuple[int
     return tuple(releases)
 
 
+def replication_seed(base_seed: int, scenario: Scenario, replication: int) -> int:
+    material = json.dumps(
+        {
+            "base_seed": base_seed,
+            "scenario": asdict(scenario),
+            "replication": replication,
+        },
+        sort_keys=True,
+    ).encode("utf-8")
+    return int.from_bytes(hashlib.sha256(material).digest()[:8], "big")
+
+
+def instance_for_replication(
+    scenario: Scenario,
+    replication: int,
+    base_seed: int,
+) -> tuple[Instance, int]:
+    seed = replication_seed(base_seed, scenario, replication)
+    rng = random.Random(seed)
+    instance = Instance(
+        counts=scenario.counts,
+        releases=generate_releases(scenario, rng),
+        hF=scenario.hF,
+        hS=scenario.hS,
+    )
+    return instance, seed
+
+
 def target_ordering_budget(instance: Instance, reduction_target: float) -> int:
     c0 = vehicle_level_ordering_variables(instance.counts)
     return max(1, round(c0 * (1.0 - reduction_target)))
@@ -208,15 +237,26 @@ def solve_partition_proposed(
     instance: Instance,
     target_c: int,
     max_platoon_size: int,
+    time_limit: float | None,
 ) -> tuple[PartitionSelectionResult, Partition]:
     result = solve_size_budget(
         instance,
         target_c,
         max_platoon_size=max_platoon_size,
         solver="gurobi",
+        time_limit=time_limit,
     )
     partition = result.partition if result.partition is not None else singleton_partition(instance.counts)
     return result, partition
+
+
+def timed_baseline_partition(
+    builder,
+) -> tuple[str, Partition, float, float, float]:
+    start = time.perf_counter()
+    label, partition = builder()
+    elapsed = time.perf_counter() - start
+    return label, partition, elapsed, elapsed, 0.0
 
 
 def record_method(
@@ -303,6 +343,116 @@ def record_method(
     }
 
 
+def run_replication(
+    instance: Instance,
+    scenario: Scenario,
+    replication: int,
+    config: ScalabilityConfig,
+    include_frontier: bool,
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    rows: list[dict[str, object]] = []
+    frontier_rows: list[dict[str, object]] = []
+    vehicle_schedule = solve_downstream_schedule(
+        instance,
+        singleton_partition(instance.counts),
+        time_limit=config.time_limit,
+        threads=config.threads,
+    )
+    vehicle_average_delay = (
+        vehicle_schedule.objective_average_delay
+        if vehicle_schedule.status == "OPTIMAL"
+        else None
+    )
+    for target in config.targets:
+        raw_target_c = target_ordering_budget(instance, target)
+        target_c = max(
+            raw_target_c,
+            min_budget_for_max_platoon_size(instance, config.max_platoon_size),
+        )
+
+        proposed_result, proposed_partition = solve_partition_proposed(
+            instance,
+            target_c,
+            config.max_platoon_size,
+            config.time_limit,
+        )
+        rows.append(
+            record_method(
+                instance,
+                scenario,
+                replication,
+                target,
+                target_c,
+                raw_target_c,
+                "proposed_bound_aware",
+                "min_Bidx_under_C_budget",
+                proposed_partition,
+                proposed_result.end_to_end_seconds or 0.0,
+                proposed_result.model_construction_seconds or 0.0,
+                proposed_result.runtime_seconds or 0.0,
+                vehicle_average_delay,
+                vehicle_schedule,
+                config,
+            )
+        )
+
+        fixed_label, fixed_partition, fixed_partition_time, fixed_construction_time, fixed_optimization_time = timed_baseline_partition(
+            lambda: choose_largest_feasible_dimension(
+                fixed_size_candidates(instance, config.max_platoon_size),
+                target_c,
+            )
+        )
+        rows.append(
+            record_method(
+                instance,
+                scenario,
+                replication,
+                target,
+                target_c,
+                raw_target_c,
+                "fixed_size_closest_dimension",
+                fixed_label,
+                fixed_partition,
+                fixed_partition_time,
+                fixed_construction_time,
+                fixed_optimization_time,
+                vehicle_average_delay,
+                vehicle_schedule,
+                config,
+            )
+        )
+
+        threshold_label, threshold_partition, threshold_partition_time, threshold_construction_time, threshold_optimization_time = timed_baseline_partition(
+            lambda: choose_largest_feasible_dimension(
+                threshold_candidates(instance, config.max_platoon_size),
+                target_c,
+            )
+        )
+        rows.append(
+            record_method(
+                instance,
+                scenario,
+                replication,
+                target,
+                target_c,
+                raw_target_c,
+                "threshold_closest_dimension",
+                threshold_label,
+                threshold_partition,
+                threshold_partition_time,
+                threshold_construction_time,
+                threshold_optimization_time,
+                vehicle_average_delay,
+                vehicle_schedule,
+                config,
+            )
+        )
+
+    if include_frontier and is_small_frontier_instance(instance):
+        frontier_rows.extend(complete_frontier_rows(instance, scenario, replication, config))
+    return rows, frontier_rows
+
+
 def complete_frontier_rows(
     instance: Instance,
     scenario: Scenario,
@@ -323,6 +473,7 @@ def complete_frontier_rows(
             budget,
             max_platoon_size=config.max_platoon_size,
             solver="gurobi",
+            time_limit=config.time_limit,
         )
         if result.partition is None:
             continue
@@ -384,6 +535,16 @@ def summarize(rows: list[dict[str, object]]) -> list[dict[str, object]]:
         mean_bound, ci_bound = mean_ci95(values("indexed_bound"))
         mean_c, ci_c = mean_ci95(values("ordering_variables"))
         mean_nodes, ci_nodes = mean_ci95(values("nodes"))
+        actual_gap_case_count = sum(1 for row in group if row.get("actual_average_gap") is not None)
+        all_actual_gaps_within_bound: str | bool
+        if actual_gap_case_count == 0:
+            all_actual_gaps_within_bound = "N/A"
+        else:
+            all_actual_gaps_within_bound = all(
+                bool(row["actual_gap_le_indexed_bound"])
+                for row in group
+                if row.get("actual_average_gap") is not None
+            )
         summary.append(
             {
                 "N": key[0],
@@ -409,14 +570,108 @@ def summarize(rows: list[dict[str, object]]) -> list[dict[str, object]]:
                 "ci95_ordering_variables": ci_c,
                 "mean_nodes": mean_nodes,
                 "ci95_nodes": ci_nodes,
+                "actual_gap_case_count": actual_gap_case_count,
                 "statuses": json.dumps(
                     {status: sum(1 for row in group if row["status"] == status) for status in sorted({row["status"] for row in group})},
                     sort_keys=True,
                 ),
-                "all_actual_gaps_within_bound": all(
-                    bool(row["actual_gap_le_indexed_bound"])
-                    for row in group
-                    if row.get("actual_average_gap") is not None
+                "all_actual_gaps_within_bound": all_actual_gaps_within_bound,
+            }
+        )
+    return summary
+
+
+def vehicle_level_rows(rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    dedup: dict[tuple[object, ...], dict[str, object]] = {}
+    for row in rows:
+        key = (
+            row["scenario"],
+            row["replication"],
+            row["N"],
+            row["L"],
+            row["demand_pattern"],
+            row["arrival_mode"],
+            row["hF"],
+            row["hS"],
+        )
+        dedup.setdefault(
+            key,
+            {
+                "scenario": row["scenario"],
+                "replication": row["replication"],
+                "N": row["N"],
+                "L": row["L"],
+                "counts": row["counts"],
+                "demand_pattern": row["demand_pattern"],
+                "arrival_mode": row["arrival_mode"],
+                "hF": row["hF"],
+                "hS": row["hS"],
+                "max_platoon_size": row["max_platoon_size"],
+                "vehicle_level_ordering_variables": row["vehicle_level_ordering_variables"],
+                "vehicle_level_average_delay": row["vehicle_level_average_delay"],
+                "vehicle_level_status": row["vehicle_level_status"],
+                "vehicle_level_mip_gap": row["vehicle_level_mip_gap"],
+                "vehicle_level_nodes": row["vehicle_level_nodes"],
+                "vehicle_level_time_to_first_feasible": row["vehicle_level_time_to_first_feasible"],
+                "vehicle_level_model_construction_seconds": row["vehicle_level_model_construction_seconds"],
+                "vehicle_level_downstream_optimization_seconds": row["vehicle_level_downstream_optimization_seconds"],
+                "vehicle_level_wall_time_seconds": row["vehicle_level_wall_time_seconds"],
+            },
+        )
+    return sorted(dedup.values(), key=lambda item: (str(item["scenario"]), int(item["replication"])))
+
+
+def summarize_vehicle_level(rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    unique_rows = vehicle_level_rows(rows)
+    groups: dict[tuple[object, ...], list[dict[str, object]]] = {}
+    for row in unique_rows:
+        key = (
+            row["N"],
+            row["L"],
+            row["demand_pattern"],
+            row["arrival_mode"],
+            row["hS"],
+        )
+        groups.setdefault(key, []).append(row)
+
+    summary: list[dict[str, object]] = []
+    for key, group in sorted(groups.items()):
+        def values(field: str) -> list[float]:
+            return [float(row[field]) for row in group if row.get(field) not in (None, "")]
+
+        mean_delay, ci_delay = mean_ci95(values("vehicle_level_average_delay"))
+        mean_gap, ci_gap = mean_ci95(values("vehicle_level_mip_gap"))
+        mean_nodes, ci_nodes = mean_ci95(values("vehicle_level_nodes"))
+        mean_construction, ci_construction = mean_ci95(values("vehicle_level_model_construction_seconds"))
+        mean_runtime, ci_runtime = mean_ci95(values("vehicle_level_downstream_optimization_seconds"))
+        mean_total, ci_total = mean_ci95(values("vehicle_level_wall_time_seconds"))
+        summary.append(
+            {
+                "N": key[0],
+                "L": key[1],
+                "demand_pattern": key[2],
+                "arrival_mode": key[3],
+                "hS": key[4],
+                "cases": len(group),
+                "optimal_case_count": sum(1 for row in group if row["vehicle_level_status"] == "OPTIMAL"),
+                "mean_vehicle_level_average_delay": mean_delay,
+                "ci95_vehicle_level_average_delay": ci_delay,
+                "mean_vehicle_level_mip_gap": mean_gap,
+                "ci95_vehicle_level_mip_gap": ci_gap,
+                "mean_vehicle_level_nodes": mean_nodes,
+                "ci95_vehicle_level_nodes": ci_nodes,
+                "mean_vehicle_level_model_construction_seconds": mean_construction,
+                "ci95_vehicle_level_model_construction_seconds": ci_construction,
+                "mean_vehicle_level_downstream_optimization_seconds": mean_runtime,
+                "ci95_vehicle_level_downstream_optimization_seconds": ci_runtime,
+                "mean_vehicle_level_wall_time_seconds": mean_total,
+                "ci95_vehicle_level_wall_time_seconds": ci_total,
+                "statuses": json.dumps(
+                    {
+                        status: sum(1 for row in group if row["vehicle_level_status"] == status)
+                        for status in sorted({row["vehicle_level_status"] for row in group})
+                    },
+                    sort_keys=True,
                 ),
             }
         )
@@ -445,7 +700,6 @@ def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
 
 
 def run(config: ScalabilityConfig) -> dict[str, object]:
-    rng = random.Random(config.seed)
     output_dir = Path(config.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     rows: list[dict[str, object]] = []
@@ -454,120 +708,34 @@ def run(config: ScalabilityConfig) -> dict[str, object]:
 
     def write_current_outputs() -> dict[str, object]:
         summary = summarize(rows)
+        vehicle_summary = summarize_vehicle_level(rows)
         payload = {
             "config": asdict(config),
             "scenarios": [asdict(scenario) for scenario in scenario_list],
             "rows": rows,
             "frontier_rows": frontier_rows,
             "summary": summary,
+            "vehicle_level_summary": vehicle_summary,
         }
         (output_dir / "scalability_suite.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
         write_csv(output_dir / "fair_dimension_comparison.csv", rows)
         write_csv(output_dir / "complete_frontier.csv", frontier_rows)
         write_csv(output_dir / "summary.csv", summary)
+        write_csv(output_dir / "vehicle_level_summary.csv", vehicle_summary)
         return payload
 
     for scenario_index, scenario in enumerate(scenario_list):
         for replication in range(config.reps_per_cell):
-            instance = Instance(
-                counts=scenario.counts,
-                releases=generate_releases(scenario, rng),
-                hF=scenario.hF,
-                hS=scenario.hS,
-            )
-            vehicle_schedule = solve_downstream_schedule(
+            instance, _ = instance_for_replication(scenario, replication, config.seed)
+            rep_rows, rep_frontier_rows = run_replication(
                 instance,
-                singleton_partition(instance.counts),
-                time_limit=config.time_limit,
-                threads=config.threads,
+                scenario,
+                replication,
+                config,
+                include_frontier=len(frontier_rows) < config.frontier_instance_limit,
             )
-            vehicle_average_delay = (
-                vehicle_schedule.objective_average_delay
-                if vehicle_schedule.status == "OPTIMAL"
-                else None
-            )
-            for target in config.targets:
-                raw_target_c = target_ordering_budget(instance, target)
-                target_c = max(
-                    raw_target_c,
-                    min_budget_for_max_platoon_size(instance, config.max_platoon_size),
-                )
-
-                proposed_result, proposed_partition = solve_partition_proposed(
-                    instance,
-                    target_c,
-                    config.max_platoon_size,
-                )
-                rows.append(
-                    record_method(
-                        instance,
-                        scenario,
-                        replication,
-                        target,
-                        target_c,
-                        raw_target_c,
-                        "proposed_bound_aware",
-                        "min_Bidx_under_C_budget",
-                        proposed_partition,
-                        proposed_result.end_to_end_seconds or 0.0,
-                        proposed_result.model_construction_seconds or 0.0,
-                        proposed_result.runtime_seconds or 0.0,
-                        vehicle_average_delay,
-                        vehicle_schedule,
-                        config,
-                    )
-                )
-
-                fixed_label, fixed_partition = choose_largest_feasible_dimension(
-                    fixed_size_candidates(instance, config.max_platoon_size),
-                    target_c,
-                )
-                rows.append(
-                    record_method(
-                        instance,
-                        scenario,
-                        replication,
-                        target,
-                        target_c,
-                        raw_target_c,
-                        "fixed_size_closest_dimension",
-                        fixed_label,
-                        fixed_partition,
-                        0.0,
-                        0.0,
-                        0.0,
-                        vehicle_average_delay,
-                        vehicle_schedule,
-                        config,
-                    )
-                )
-
-                threshold_label, threshold_partition = choose_largest_feasible_dimension(
-                    threshold_candidates(instance, config.max_platoon_size),
-                    target_c,
-                )
-                rows.append(
-                    record_method(
-                        instance,
-                        scenario,
-                        replication,
-                        target,
-                        target_c,
-                        raw_target_c,
-                        "threshold_closest_dimension",
-                        threshold_label,
-                        threshold_partition,
-                        0.0,
-                        0.0,
-                        0.0,
-                        vehicle_average_delay,
-                        vehicle_schedule,
-                        config,
-                    )
-                )
-
-            if len(frontier_rows) < config.frontier_instance_limit and is_small_frontier_instance(instance):
-                frontier_rows.extend(complete_frontier_rows(instance, scenario, replication, config))
+            rows.extend(rep_rows)
+            frontier_rows.extend(rep_frontier_rows)
         print(f"completed {scenario_index + 1}/{len(scenario_list)} {scenario.name}", flush=True)
         write_current_outputs()
 
