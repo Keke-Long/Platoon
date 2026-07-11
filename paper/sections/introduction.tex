@@ -26,17 +26,6 @@ Existing platoon-based vehicle-scheduling studies have demonstrated important co
 
 This paper develops a performance-guaranteed dimension-reduction framework for vehicle scheduling at general conflict areas. We first derive a FIFO-indexed upper bound on the optimality loss induced by any contiguous platoon partition. The bound depends only on the partition, the release-time gaps between consecutive vehicles, the FIFO positions of the internal platoon links, and the required following and switching headways. It does not require a probabilistic vehicle-arrival model and does not require solving either the unrestricted or the platoon-constrained scheduling problem. The bound is then used to select a platoon partition before the downstream scheduling model is constructed. Given an acceptable loss budget, the framework minimizes the number of downstream ordering variables. Alternatively, given a computation-size budget, it selects the partition with the smallest guaranteed loss.
 
-\begin{figure}[t]
-  \centering
-  \IfFileExists{figures/dimension_loss_frontier_concept.pdf}{%
-    \includegraphics[width=0.82\linewidth]{figures/dimension_loss_frontier_concept.pdf}%
-  }{%
-    \fbox{\parbox[c][0.23\textheight][c]{0.75\linewidth}{\centering Placeholder for the conceptual dimension-loss frontier.}}%
-  }
-  \caption{Conceptual illustration of the trade-off between downstream scheduling dimension and aggregation-induced performance loss. The curve is illustrative and does not imply that solver runtime is a deterministic function of model dimension.}
-  \label{fig:dimension-loss-frontier-concept}
-\end{figure}
-
 The main contributions of this study are threefold:
 \begin{enumerate}[label=(\roman*)]
   \item We derive a FIFO-indexed deterministic upper bound on the average-delay loss caused by arbitrary contiguous platoon partitions across an arbitrary finite number of approaches.
