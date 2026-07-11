@@ -1,0 +1,80 @@
+\section{Numerical Experiments}
+\label{sec:experiments}
+
+The numerical study separates three roles: exhaustive computation checks the implementation of the analytical bound on small instances, fair method comparisons evaluate the usefulness of the bound for partition selection, and controlled scalability experiments measure the resulting reduction in downstream MILP size and solution difficulty. The analytical guarantee itself does not rely on an arrival distribution.
+
+\subsection{Exhaustive small-instance verification}
+
+Small systems with \(L\in\{2,3,4\}\) and small \(n_l\) were evaluated by enumerating FIFO-feasible sequences and contiguous platoon partitions. For each instance and partition, the computation obtained
+\begin{equation}
+D^*,\qquad D^*_{\Pi},\qquad G(\Pi),\qquad B_{\mathrm{idx}}(\Pi),
+\end{equation}
+and checked
+\begin{equation}
+0\le G(\Pi)\le B_{\mathrm{idx}}(\Pi).
+\end{equation}
+The verification found no violation in the tested domain and included positive equality cases. These calculations verify the implementation and illustrate tightness; the general validity of the bound follows from the analytical proof in Section~\ref{sec:theory}.
+
+\subsection{Dimension-reduction comparisons}
+
+The computational comparisons include vehicle-level scheduling, fixed-size platooning, release-threshold platooning, and the proposed bound-aware partition. All partition methods are selected under the same downstream ordering-variable budget,
+\begin{equation}
+C(\Pi)\le \bar C,
+\end{equation}
+so that the comparison does not allow a baseline to exceed the prescribed model dimension. Small representative instances additionally use complete dimension-loss frontiers. Larger instances use sampled budgets because exhaustive integer-budget frontiers would require many redundant partition solves.
+
+\subsection{Controlled scalability experiment}
+
+The scalability study fixes \(L=4\), balanced demand, Poisson arrivals, \(\hF=1\), \(\hS=2\), and a downstream time limit of \(30\) seconds with one Gurobi thread per model. Holding these factors fixed isolates the effect of increasing vehicle count; balanced Poisson traffic is an instance-generation setting, not an assumption required by the theorem. Each size uses \(30\) independently generated instances, with \(N\in\{20,30,40\}\).
+
+The reported measures are the reduced-model ordering-variable count \(C(\Pi)\), end-to-end wall time \(T_{\mathrm{partition}}+T_{\mathrm{downstream}}\), branch-and-bound node count, fixed-time MIP gap, and incumbent objective value when the downstream model reaches the time limit. Actual gaps are reported only when the vehicle-level optimum is known. For larger time-limited cases, the results report objective, status, MIP gap, runtime, and nodes without claiming knowledge of the true actual gap.
+
+For \(N=20\), the vehicle-level model proves optimality in \(5\) of the \(30\) instances, while the reduced models solve \(359\) of \(360\) method-instance combinations to proven optimality. For \(N=30\), the vehicle-level model reaches the time limit in all \(30\) instances, but the reduced models still prove optimality in \(276\) of \(360\) method-instance combinations. For \(N=40\), the vehicle-level model again reaches the time limit in all \(30\) instances, and the reduced models prove optimality in \(105\) of \(360\) method-instance combinations.
+
+The proposed bound-aware partition preserves a substantial dimension reduction across all three sizes. The mean ordering-variable counts are \(41.64\) at \(N=20\), \(88.78\) at \(N=30\), and \(141.26\) at \(N=40\), compared with vehicle-level counts \(150\), \(337\), and \(600\), respectively. This corresponds to mean dimension reductions of \(72.24\%\), \(73.65\%\), and \(76.46\%\). The same runs show that fixed-size platooning typically produces the smallest reduced model, whereas the proposed method yields the smallest theoretical loss guarantee. At \(N=30\), the mean indexed bounds are \(20.21\) for fixed size, \(6.06\) for the release-threshold baseline, and \(4.90\) for the proposed partition. At \(N=40\), the corresponding means are \(22.75\), \(7.76\), and \(5.46\).
+
+Among time-limited reduced models, the proposed method also maintains incumbent objectives comparable to or slightly better than the two baselines. This result is interpreted as a solution-quality check rather than a claim of known optimality. Overall, the results support the main computational claim: the indexed bound guides partitions that remain much smaller than the vehicle-level model while providing tighter deterministic loss guarantees.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.47\textwidth]{figures/dimension_reduction_by_scale.png}
+  \hfill
+  \includegraphics[width=0.47\textwidth]{figures/optimality_rate_by_scale.png}
+
+  \vspace{0.6em}
+
+  \includegraphics[width=0.62\textwidth]{figures/mip_gap_by_scale.png}
+  \caption{Controlled scalability summaries over \(N\in\{20,30,40\}\): mean downstream dimension reduction, optimality rate within the \(30\)-second limit, and mean terminal MIP gap. The proposed method retains large dimension reductions while keeping lower fixed-time gaps than the release-threshold baseline at \(N=30\) and \(N=40\).}
+  \label{fig:scalability-quality}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.47\textwidth]{figures/runtime_by_scale.png}
+  \includegraphics[width=0.47\textwidth]{figures/nodes_by_scale.png}
+  \caption{End-to-end wall time and branch-and-bound nodes for the controlled scalability study. Vehicle-level scheduling is consistently the hardest model class, while all reduced methods remain substantially smaller and solve more often within the fixed time limit.}
+  \label{fig:scalability-runtime}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \caption{Fair dimension-budget comparison in the controlled scalability study. Each reduced method respects the same prescribed ordering-variable budget \(C(\Pi)\le \bar C\).}
+  \label{tab:fair-comparison}
+  \begin{tabular}{cccccc}
+    \toprule
+    \(N\) & Method & Mean \(C(\Pi)\) & Reduction & Opt. rate & Mean \(B_{\mathrm{idx}}(\Pi)\) \\
+    \midrule
+    20 & Proposed & 41.64 & 72.24\% & 1.000 & 1.76 \\
+    20 & Fixed size & 39.00 & 74.00\% & 1.000 & 9.60 \\
+    20 & Threshold & 48.00 & 68.00\% & 0.992 & 2.75 \\
+    30 & Proposed & 88.78 & 73.65\% & 0.750 & 4.90 \\
+    30 & Fixed size & 67.50 & 79.97\% & 0.917 & 20.21 \\
+    30 & Threshold & 107.27 & 68.17\% & 0.633 & 6.06 \\
+    40 & Proposed & 141.26 & 76.46\% & 0.275 & 5.46 \\
+    40 & Fixed size & 126.00 & 79.00\% & 0.250 & 22.75 \\
+    40 & Threshold & 175.24 & 70.79\% & 0.350 & 7.76 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The present manuscript therefore uses the \(N=20/30/40\) controlled study as the main large-instance evidence. Earlier pilot and stress-test directories are retained for development traceability but are not used in the reported manuscript summaries.
