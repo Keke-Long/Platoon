@@ -1,21 +1,47 @@
 \section{Introduction}
 \label{sec:introduction}
 
-Vehicle scheduling at a general conflict area determines the order in which vehicles from multiple approaches enter a mutually exclusive spatial resource. Applications include unsignalized intersections, merging roadways, work zones, and connected automated vehicle coordination. Vehicle-level formulations preserve substantial sequencing flexibility but may contain a large number of pairwise ordering decisions. This limits their use when a central scheduler must return a solution within a short computation window.
+Vehicle scheduling is a fundamental problem in intelligent transportation systems. It determines the order and timing with which vehicles from competing approaches pass a shared conflict area while maintaining safety and improving traffic efficiency. The same scheduling structure appears at signalized intersections, unsignalized intersections, freeway merging areas, work zones, roundabouts, and other locations where multiple traffic streams compete for a mutually exclusive spatial resource \citep{yu2017optimization,soleimaniamiri2020joint,rios2017automated,martingasulla2021traffic}. In connected and automated vehicle environments, vehicle-to-vehicle and vehicle-to-infrastructure communication further enables vehicles to negotiate conflict-free passing orders and trajectories in real time \citep{chen2016cooperative,li2006cooperative,liu2019trajectory}. Consequently, vehicle scheduling provides an important foundation for real-time traffic control and cooperative driving at general conflict areas.
 
-Platooning provides a structural preprocessing mechanism. Consecutive vehicles from the same approach are aggregated into indivisible scheduling units before the downstream optimization problem is constructed. The aggregation reduces the number of control units and ordering variables, but it also removes passing sequences in which vehicles from another approach are inserted inside a platoon. Consequently, the reduced model can be solved more efficiently, but its optimal objective value can be worse than that of the original vehicle-level problem.
+Vehicle scheduling problems are often formulated as mixed-integer linear programs. In a vehicle-level formulation, each vehicle is represented by timing variables, while binary variables determine the relative order of vehicles from conflicting approaches. Safety constraints enforce the minimum following headway between vehicles from the same approach and the minimum switching headway between vehicles from different approaches. Such formulations can produce globally optimal schedules when solved to proven optimality. However, their computational burden grows rapidly with the number of vehicles because the number of pairwise ordering decisions increases approximately quadratically, while the corresponding branch-and-bound search can grow much faster \citep{chen2016cooperative,wolsey1999integer}. This scalability limitation is especially important in online control, where a central scheduler may have only a few seconds to return a usable solution.
 
-This study focuses on the dimension-reduction step rather than developing a new solver for the downstream mixed-integer linear program. The central question is:
+Existing studies have addressed this difficulty through two broad classes of methods. The first class uses heuristic or approximate algorithms to construct feasible schedules with limited computational effort. Representative examples include conflict-point reservation methods, rule-based coordination, decentralized trajectory heuristics, and specialized merging or roundabout strategies \citep{debada2016autonomous,liu2019trajectory,rios2017automated,martingasulla2021traffic}. These methods can be effective in real-time applications, but they generally do not guarantee global optimality. The second class improves exact solution procedures through problem-specific search rules, decomposition, or tree pruning \citep{li2006cooperative,xu2019tree}. Such methods can reduce computation substantially for selected problem structures, but the underlying combinatorial difficulty remains as the number of vehicles increases.
 
-\begin{quote}
-For arbitrary numbers of approaches, vehicles, and contiguous platoons, how much can the optimal scheduling objective deteriorate when each platoon is required to pass the conflict area without interruption?
-\end{quote}
+Rather than developing another scheduling heuristic or solver enhancement, platoon-based scheduling addresses the problem structurally. Consecutive vehicles from the same approach are grouped into unified scheduling units before the downstream optimization problem is constructed \citep{bashiri2017platoon,xu2019grouping}. The scheduler then determines the order of platoons rather than the order of individual vehicles. This aggregation can sharply reduce the number of control units and pairwise ordering variables, thereby improving the tractability of the downstream mixed-integer program. However, requiring all vehicles within a platoon to pass consecutively also removes passing sequences in which vehicles from another approach are inserted inside that platoon. The reduced problem is therefore easier to solve, but its optimal objective value can be worse than that of the original vehicle-level problem.
 
-The derived loss bound is then used to support two complementary decisions. Given an acceptable scheduling loss, the scheduler can minimize the reduced problem dimension. Given a computational-size budget, the scheduler can select the partition with the smallest guaranteed loss. In both cases, the resulting scheduling model is solved by an off-the-shelf optimizer such as Gurobi.
+This trade-off is not unique to vehicle scheduling. Aggregation is widely used to reduce the dimension of large optimization problems by replacing fine-grained decision units with coarser groups. Spatial aggregation merges demand regions in facility-location models \citep{daskin1989aggregation}; multilevel graph methods combine neighboring nodes before solving a reduced graph problem \citep{karypis1998fast,loukas2019graph}; and order batching groups customer orders to simplify warehouse routing and picking decisions \citep{cergibozan2019order}. Although these applications have different operational interpretations, they share the same basic tension: aggregation reduces computational burden by restricting the original solution space, and the restriction may cause a loss in solution quality.
 
-The contributions are:
+\begin{figure}[t]
+  \centering
+  \IfFileExists{figures/platooning_tradeoff_concept.pdf}{%
+    \includegraphics[width=0.95\linewidth]{figures/platooning_tradeoff_concept.pdf}%
+  }{%
+    \fbox{\parbox[c][0.24\textheight][c]{0.88\linewidth}{\centering Placeholder for the vehicle-level versus platoon-level scheduling illustration.}}%
+  }
+  \caption{Conceptual illustration of vehicle-level scheduling, platoon-level scheduling, and the resulting trade-off between scheduling flexibility and computational efficiency.}
+  \label{fig:platooning-tradeoff-concept}
+\end{figure}
+
+Existing platoon-based vehicle-scheduling studies have demonstrated important computational benefits, but the performance loss caused by aggregation has mainly been evaluated numerically. A general deterministic guarantee is still missing. In particular, the literature does not establish, for an arbitrary number of approaches and an arbitrary contiguous platoon partition, how much the optimal average vehicle delay can deteriorate when every platoon must pass the conflict area without interruption. Without such a guarantee, platoon formation is commonly controlled by empirical thresholds or fixed platoon sizes, and the selected aggregation level cannot be directly tied to an acceptable loss in scheduling performance.
+
+This paper develops a performance-guaranteed dimension-reduction framework for vehicle scheduling at general conflict areas. We first derive a FIFO-indexed upper bound on the optimality loss induced by any contiguous platoon partition. The bound depends only on the partition, the release-time gaps between consecutive vehicles, the FIFO positions of the internal platoon links, and the required following and switching headways. It does not require a probabilistic vehicle-arrival model and does not require solving either the unrestricted or the platoon-constrained scheduling problem. The bound is then used to select a platoon partition before the downstream scheduling model is constructed. Given an acceptable loss budget, the framework minimizes the number of downstream ordering variables. Alternatively, given a computation-size budget, it selects the partition with the smallest guaranteed loss.
+
+\begin{figure}[t]
+  \centering
+  \IfFileExists{figures/dimension_loss_frontier_concept.pdf}{%
+    \includegraphics[width=0.82\linewidth]{figures/dimension_loss_frontier_concept.pdf}%
+  }{%
+    \fbox{\parbox[c][0.23\textheight][c]{0.75\linewidth}{\centering Placeholder for the conceptual dimension-loss frontier.}}%
+  }
+  \caption{Conceptual illustration of the trade-off between downstream scheduling dimension and aggregation-induced performance loss. The curve is illustrative and does not imply that solver runtime is a deterministic function of model dimension.}
+  \label{fig:dimension-loss-frontier-concept}
+\end{figure}
+
+The main contributions of this study are threefold:
 \begin{enumerate}[label=(\roman*)]
-  \item a FIFO-indexed optimality-loss bound for arbitrary traffic approaches and contiguous platoon partitions, without requiring a probabilistic arrival model;
-  \item a performance-guaranteed dimension-reduction formulation that connects an acceptable delay loss to the size of the downstream scheduling model; and
-  \item exhaustive computational checks and controlled scalability experiments showing that the bound-aware partition substantially reduces model dimension while preserving a deterministic loss guarantee.
+  \item We derive a FIFO-indexed deterministic upper bound on the average-delay loss caused by arbitrary contiguous platoon partitions across an arbitrary finite number of approaches.
+  \item We formulate two complementary partition-selection problems that connect the theoretical loss guarantee to the size of the downstream scheduling model, either by minimizing dimension under a prescribed loss budget or by minimizing guaranteed loss under a prescribed dimension budget.
+  \item We conduct exhaustive small-instance verification and controlled scalability experiments to evaluate bound validity, dimension reduction, downstream solvability, fixed-time MIP gaps, and end-to-end computation time.
 \end{enumerate}
+
+The remainder of the paper is organized as follows. Section~\ref{sec:formulation} formulates the vehicle-level and platoon-constrained scheduling problems. Section~\ref{sec:theory} develops the local repair argument and the FIFO-indexed optimality-loss bound. Section~\ref{sec:dimension-reduction} presents the performance-guaranteed partition-selection formulations. Section~\ref{sec:experiments} reports the numerical experiments. Section~\ref{sec:conclusion} concludes the paper.
