@@ -17,7 +17,7 @@ Before performing theoretical or computational work, read these files in order:
 7. `notes/rejected_results.tex`
 8. `notes/research_log.tex`
 
-The FIFO-indexed optimality-gap bound is the current analytical result. Its proof must be read together with the audit and indexed derivation notes. The archived computational results test the earlier index-free bound, not the indexed refinement.
+The FIFO-indexed optimality-gap bound is the only loss bound used in the manuscript. Its analytical proof and indexed verification results are current. Historical precursor materials may remain in research notes and archived code, but must not be reintroduced into the manuscript.
 
 ## Current task boundary
 
