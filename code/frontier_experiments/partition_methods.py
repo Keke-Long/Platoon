@@ -1,17 +1,33 @@
-"""Baseline and bound-aware platoon partition methods."""
+"""Rule-based and archived platoon partition methods."""
 
 from __future__ import annotations
 
 import sys
+import time
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 VERIFY_DIR = Path(__file__).resolve().parents[1] / "exhaustive_verification"
 if str(VERIFY_DIR) not in sys.path:
     sys.path.insert(0, str(VERIFY_DIR))
 
 from model import Instance, Partition  # noqa: E402
-from partition_selection import solve_loss_budget, solve_size_budget  # noqa: E402
-from scheduling_milp import singleton_partition  # noqa: E402
+
+RuleMethod = Literal["NP", "CHP", "PP"]
+
+
+@dataclass(frozen=True)
+class PlatoonFormationResult:
+    method: RuleMethod
+    partition: Partition
+    formation_time_ms: float
+    threshold: int | None = None
+    max_platoon_size: int | None = None
+
+
+def no_platooning_partition(counts: tuple[int, ...]) -> Partition:
+    return tuple(tuple(1 for _ in range(count)) for count in counts)
 
 
 def fixed_size_partition(counts: tuple[int, ...], platoon_size: int) -> Partition:
@@ -34,6 +50,10 @@ def release_gap_threshold_partition(
     threshold: int,
     max_platoon_size: int | None = None,
 ) -> Partition:
+    if threshold < 0:
+        raise ValueError("threshold must be nonnegative")
+    if max_platoon_size is not None and max_platoon_size <= 0:
+        raise ValueError("max_platoon_size must be positive")
     partition: list[tuple[int, ...]] = []
     for releases in instance.releases:
         blocks: list[int] = []
@@ -52,6 +72,69 @@ def release_gap_threshold_partition(
     return tuple(partition)
 
 
+def critical_headway_platooning(instance: Instance, threshold: int) -> Partition:
+    return release_gap_threshold_partition(
+        instance,
+        threshold=threshold,
+        max_platoon_size=None,
+    )
+
+
+def proposed_platooning(
+    instance: Instance,
+    threshold: int,
+    max_platoon_size: int,
+) -> Partition:
+    return release_gap_threshold_partition(
+        instance,
+        threshold=threshold,
+        max_platoon_size=max_platoon_size,
+    )
+
+
+def form_rule_based_platoons(
+    instance: Instance,
+    method: RuleMethod,
+    threshold: int | None = None,
+    max_platoon_size: int | None = None,
+) -> PlatoonFormationResult:
+    """Form NP, CHP, or PP platoons by direct linear scanning.
+
+    This entry point intentionally does not call the archived partition
+    optimization code and does not enumerate candidate partitions.
+    """
+
+    start = time.perf_counter()
+    if method == "NP":
+        partition = no_platooning_partition(instance.counts)
+        resolved_threshold = None
+        resolved_max_platoon_size = 1
+    elif method == "CHP":
+        if threshold is None:
+            raise ValueError("CHP requires threshold")
+        partition = critical_headway_platooning(instance, threshold)
+        resolved_threshold = threshold
+        resolved_max_platoon_size = None
+    elif method == "PP":
+        if threshold is None:
+            raise ValueError("PP requires threshold")
+        if max_platoon_size is None:
+            raise ValueError("PP requires max_platoon_size")
+        partition = proposed_platooning(instance, threshold, max_platoon_size)
+        resolved_threshold = threshold
+        resolved_max_platoon_size = max_platoon_size
+    else:
+        raise ValueError(f"unknown rule-based method: {method}")
+    elapsed_ms = (time.perf_counter() - start) * 1000.0
+    return PlatoonFormationResult(
+        method=method,
+        partition=partition,
+        formation_time_ms=elapsed_ms,
+        threshold=resolved_threshold,
+        max_platoon_size=resolved_max_platoon_size,
+    )
+
+
 def bound_aware_loss_budget_partition(
     instance: Instance,
     scaled_loss_budget: int,
@@ -59,6 +142,8 @@ def bound_aware_loss_budget_partition(
     solver: str = "gurobi",
     time_limit: float | None = None,
 ) -> Partition:
+    from partition_selection import solve_loss_budget  # noqa: PLC0415
+
     result = solve_loss_budget(
         instance,
         scaled_loss_budget,
@@ -67,7 +152,7 @@ def bound_aware_loss_budget_partition(
         time_limit=time_limit,
     )
     if result.partition is None:
-        return singleton_partition(instance.counts)
+        return no_platooning_partition(instance.counts)
     return result.partition
 
 
@@ -78,6 +163,8 @@ def bound_aware_size_budget_partition(
     solver: str = "gurobi",
     time_limit: float | None = None,
 ) -> Partition:
+    from partition_selection import solve_size_budget  # noqa: PLC0415
+
     result = solve_size_budget(
         instance,
         ordering_budget,
@@ -86,5 +173,5 @@ def bound_aware_size_budget_partition(
         time_limit=time_limit,
     )
     if result.partition is None:
-        return singleton_partition(instance.counts)
+        return no_platooning_partition(instance.counts)
     return result.partition

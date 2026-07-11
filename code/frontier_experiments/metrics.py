@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 from fractions import Fraction
+from math import ceil
 from pathlib import Path
 from typing import Iterable
 
@@ -74,6 +75,38 @@ def partition_metrics(instance: Instance, partition: Partition) -> PartitionMetr
     )
 
 
+def scaled_rule_level_bound(
+    instance: Instance,
+    threshold: int,
+    max_platoon_size: int | None,
+) -> int:
+    """Return N times the rule-level bound for a threshold-and-size rule."""
+
+    if threshold < 0:
+        raise ValueError("threshold must be nonnegative")
+    effective_max_size = instance.N if max_platoon_size is None else max_platoon_size
+    if effective_max_size <= 0:
+        raise ValueError("max_platoon_size must be positive")
+    link_count_bound = instance.N - ceil(instance.N / effective_max_size)
+    same_approach_slack = max(threshold - instance.hF, 0)
+    per_link_scaled = max(
+        (instance.N - 1) * same_approach_slack - 2 * (instance.hS - instance.hF),
+        0,
+    )
+    return link_count_bound * per_link_scaled
+
+
+def rule_level_bound(
+    instance: Instance,
+    threshold: int,
+    max_platoon_size: int | None,
+) -> Fraction:
+    return Fraction(
+        scaled_rule_level_bound(instance, threshold, max_platoon_size),
+        instance.N,
+    )
+
+
 def partition_from_cut_bits(cuts_by_approach: tuple[tuple[int, ...], ...]) -> Partition:
     """Build a contiguous partition from boundary cut indicators.
 
@@ -137,4 +170,3 @@ def fraction_label(value: Fraction) -> str:
     if value.denominator == 1:
         return str(value.numerator)
     return f"{value.numerator}/{value.denominator}"
-

@@ -1,0 +1,208 @@
+{
+  "config": {
+    "counts": [
+      3,
+      2
+    ],
+    "hF": 1,
+    "hS_values": [
+      2,
+      3
+    ],
+    "max_release": 3,
+    "thresholds": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "max_platoon_sizes": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "output_dir": "results/rule_based_experiments/theory_smoke"
+  },
+  "case_count": 6400,
+  "violation_count": 0,
+  "summary": [
+    {
+      "threshold": 0,
+      "max_platoon_size": 1,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 5.0,
+      "mean_ordering_variable_count": 6.0
+    },
+    {
+      "threshold": 0,
+      "max_platoon_size": 2,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 3.8,
+      "mean_ordering_variable_count": 3.52
+    },
+    {
+      "threshold": 0,
+      "max_platoon_size": 3,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 3.6,
+      "mean_ordering_variable_count": 3.2
+    },
+    {
+      "threshold": 0,
+      "max_platoon_size": 5,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 3.6,
+      "mean_ordering_variable_count": 3.2
+    },
+    {
+      "threshold": 1,
+      "max_platoon_size": 1,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 5.0,
+      "mean_ordering_variable_count": 6.0
+    },
+    {
+      "threshold": 1,
+      "max_platoon_size": 2,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 3.3,
+      "mean_ordering_variable_count": 2.6
+    },
+    {
+      "threshold": 1,
+      "max_platoon_size": 3,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 2.7,
+      "mean_ordering_variable_count": 1.82
+    },
+    {
+      "threshold": 1,
+      "max_platoon_size": 5,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 2.7,
+      "mean_ordering_variable_count": 1.82
+    },
+    {
+      "threshold": 2,
+      "max_platoon_size": 1,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 5.0,
+      "mean_ordering_variable_count": 6.0
+    },
+    {
+      "threshold": 2,
+      "max_platoon_size": 2,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.075,
+      "mean_scaled_partition_bound": 0.35,
+      "mean_scaled_rule_bound": 2.0,
+      "mean_number_of_platoons": 3.1,
+      "mean_ordering_variable_count": 2.2
+    },
+    {
+      "threshold": 2,
+      "max_platoon_size": 3,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.095,
+      "mean_scaled_partition_bound": 0.425,
+      "mean_scaled_rule_bound": 3.0,
+      "mean_number_of_platoons": 2.2,
+      "mean_ordering_variable_count": 1.21
+    },
+    {
+      "threshold": 2,
+      "max_platoon_size": 5,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.095,
+      "mean_scaled_partition_bound": 0.425,
+      "mean_scaled_rule_bound": 4.0,
+      "mean_number_of_platoons": 2.2,
+      "mean_ordering_variable_count": 1.21
+    },
+    {
+      "threshold": 3,
+      "max_platoon_size": 1,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.0,
+      "mean_scaled_partition_bound": 0.0,
+      "mean_scaled_rule_bound": 0.0,
+      "mean_number_of_platoons": 5.0,
+      "mean_ordering_variable_count": 6.0
+    },
+    {
+      "threshold": 3,
+      "max_platoon_size": 2,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.2775,
+      "mean_scaled_partition_bound": 1.1,
+      "mean_scaled_rule_bound": 10.0,
+      "mean_number_of_platoons": 3.0,
+      "mean_ordering_variable_count": 2.0
+    },
+    {
+      "threshold": 3,
+      "max_platoon_size": 3,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.3175,
+      "mean_scaled_partition_bound": 1.325,
+      "mean_scaled_rule_bound": 15.0,
+      "mean_number_of_platoons": 2.0,
+      "mean_ordering_variable_count": 1.0
+    },
+    {
+      "threshold": 3,
+      "max_platoon_size": 5,
+      "cases": 400,
+      "valid_cases": 400,
+      "mean_scaled_actual_gap": 0.3175,
+      "mean_scaled_partition_bound": 1.325,
+      "mean_scaled_rule_bound": 20.0,
+      "mean_number_of_platoons": 2.0,
+      "mean_ordering_variable_count": 1.0
+    }
+  ],
+  "first_violation": null
+}

@@ -8,6 +8,8 @@ from metrics import (
     partition_from_cut_bits,
     partition_metrics,
     respects_max_platoon_size,
+    rule_level_bound,
+    scaled_rule_level_bound,
     vehicle_level_ordering_variables,
 )
 
@@ -48,3 +50,9 @@ def test_max_platoon_size_filter() -> None:
     assert respects_max_platoon_size(((2, 1),), 2)
     assert not respects_max_platoon_size(((3,),), 2)
 
+
+def test_rule_level_bound_is_exact_scaled_formula() -> None:
+    instance = Instance(counts=(2, 2), releases=((0, 3), (0, 1)), hF=1, hS=2)
+    assert scaled_rule_level_bound(instance, threshold=3, max_platoon_size=2) == 8
+    assert rule_level_bound(instance, threshold=3, max_platoon_size=2) == Fraction(2, 1)
+    assert scaled_rule_level_bound(instance, threshold=1, max_platoon_size=2) == 0

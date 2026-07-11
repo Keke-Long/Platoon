@@ -8,7 +8,14 @@ if str(VERIFY_DIR) not in sys.path:
     sys.path.insert(0, str(VERIFY_DIR))
 
 from model import Instance  # noqa: E402
-from partition_methods import fixed_size_partition, release_gap_threshold_partition
+from partition_methods import (
+    critical_headway_platooning,
+    fixed_size_partition,
+    form_rule_based_platoons,
+    no_platooning_partition,
+    proposed_platooning,
+    release_gap_threshold_partition,
+)
 
 
 def test_fixed_size_partition() -> None:
@@ -20,3 +27,27 @@ def test_release_gap_threshold_partition() -> None:
     assert release_gap_threshold_partition(instance, threshold=1) == ((2, 2),)
     assert release_gap_threshold_partition(instance, threshold=10, max_platoon_size=3) == ((3, 1),)
 
+
+def test_rule_method_wrappers() -> None:
+    instance = Instance(
+        counts=(4, 3),
+        releases=((0, 1, 4, 5), (0, 2, 3)),
+        hF=1,
+        hS=2,
+    )
+    assert no_platooning_partition(instance.counts) == ((1, 1, 1, 1), (1, 1, 1))
+    assert critical_headway_platooning(instance, threshold=2) == ((2, 2), (3,))
+    assert proposed_platooning(instance, threshold=10, max_platoon_size=2) == ((2, 2), (2, 1))
+
+
+def test_form_rule_based_platoons_records_time_and_uses_rule_outputs() -> None:
+    instance = Instance(counts=(4,), releases=((0, 1, 4, 5),), hF=1, hS=2)
+    np_result = form_rule_based_platoons(instance, "NP")
+    chp_result = form_rule_based_platoons(instance, "CHP", threshold=1)
+    pp_result = form_rule_based_platoons(instance, "PP", threshold=10, max_platoon_size=3)
+    assert np_result.partition == ((1, 1, 1, 1),)
+    assert chp_result.partition == ((2, 2),)
+    assert pp_result.partition == ((3, 1),)
+    assert np_result.formation_time_ms >= 0
+    assert chp_result.formation_time_ms >= 0
+    assert pp_result.formation_time_ms >= 0
