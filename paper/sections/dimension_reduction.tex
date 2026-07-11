@@ -1,7 +1,7 @@
 \section{Performance-Guaranteed Dimension Reduction}
 \label{sec:dimension-reduction}
 
-The theoretical bound is used before the downstream scheduling MILP is constructed. The contribution is a guaranteed preprocessing framework rather than a new MILP solution algorithm.
+The theoretical bound is used before the downstream scheduling MILP is constructed. The contribution is a guaranteed preprocessing framework rather than a new scheduling solver.
 
 \subsection{Scheduling dimension}
 
@@ -16,36 +16,97 @@ C(\Pi)=\sum_{l<l'}K_lK_{l'}.
 \end{equation}
 This quantity is a deterministic measure of model size. Actual Gurobi runtime is evaluated empirically and is not assumed to be a strictly monotone function of \(C(\Pi)\).
 
+\subsection{MILP encoding of a contiguous partition}
+\label{sec:partition-encoding}
+
+For each boundary between vehicles \((l,i)\) and \((l,i+1)\), define
+\begin{equation}
+x_{l,i}=
+\begin{cases}
+1, & \text{if a platoon is cut after vehicle }(l,i),\\
+0, & \text{if the two vehicles are joined.}
+\end{cases}
+\end{equation}
+Every binary vector \(x\) defines one contiguous partition, and the number of platoons on approach \(l\) is
+\begin{equation}
+K_l=1+\sum_{i=1}^{n_l-1}x_{l,i}.
+\label{eq:platoon-count-cuts}
+\end{equation}
+
+Let \(d_{l,i}=r_{l,i+1}-r_{l,i}\), and define the nonnegative link weight
+\begin{equation}
+w_{l,i}=\left[(N-i)\left[d_{l,i}-\hF\right]_+-2(\hS-\hF)\right]_+.
+\end{equation}
+A boundary contributes to the FIFO-indexed bound only when it is joined. Therefore,
+\begin{equation}
+B_{\mathrm{idx}}(\Pi)=\frac{1}{N}\sum_{l\in\approaches}\sum_{i=1}^{n_l-1}w_{l,i}(1-x_{l,i}),
+\label{eq:linear-indexed-bound}
+\end{equation}
+which is linear in the cut variables.
+
+The maximum platoon size is enforced by requiring at least one cut in every sequence of \(P_{\max}\) consecutive boundaries:
+\begin{equation}
+\sum_{q=i}^{i+P_{\max}-1}x_{l,q}\ge 1,
+\quad
+ i=1,\ldots,n_l-P_{\max}.
+\label{eq:max-platoon-size-cuts}
+\end{equation}
+No such constraint is needed when \(n_l\le P_{\max}\).
+
+The dimension measure contains products of platoon counts. For each pair of approaches \(l<l'\), introduce
+\begin{equation}
+y_{l,i,l',j}=x_{l,i}x_{l',j}
+\end{equation}
+with the exact binary linearization
+\begin{align}
+y_{l,i,l',j}&\le x_{l,i},\\
+y_{l,i,l',j}&\le x_{l',j},\\
+y_{l,i,l',j}&\ge x_{l,i}+x_{l',j}-1.
+\end{align}
+Using \eqref{eq:platoon-count-cuts}, the product \(K_lK_{l'}\) is written as
+\begin{equation}
+K_lK_{l'}=
+1+\sum_i x_{l,i}+\sum_j x_{l',j}
++\sum_i\sum_j y_{l,i,l',j}.
+\label{eq:linear-dimension}
+\end{equation}
+Thus, both \(B_{\mathrm{idx}}(\Pi)\) and \(C(\Pi)\) are represented exactly by linear expressions.
+
+The partition model contains \(N-L\) cut variables and
+\begin{equation}
+\sum_{l<l'}(n_l-1)(n_{l'}-1)
+\end{equation}
+product variables. Its formulation size is therefore \(O(N^2)\), although the worst-case solution time remains exponential because the model is a MILP.
+
 \subsection{Loss-budget formulation}
 
-Given an acceptable average-delay loss \(\varepsilon\), the central scheduler selects a partition by solving
+Given an acceptable average-delay loss \(\varepsilon\), the central scheduler solves
 \begin{align}
-\min_{\Pi}\quad & C(\Pi)\\
+\min_{x,y}\quad & C(\Pi)\\
 \text{s.t.}\quad & B_{\mathrm{idx}}(\Pi)\le\varepsilon,\\
-& \Pi\text{ is a contiguous partition},\\
-& |P_{l,j}|\le P_{\max},\quad \forall l,j.
+& \eqref{eq:max-platoon-size-cuts},\\
+& \text{binary cut and product linearization constraints.}
 \label{eq:loss-budget-formulation}
 \end{align}
-The downstream scheduling MILP is then built using the selected platoons and solved with Gurobi.
+The downstream scheduling MILP is then built using the selected platoons.
 
 \subsection{Computation-size formulation}
 
-Alternatively, if the scheduler can process at most \(\overline C\) pairwise ordering decisions, it solves
+If the scheduler can process at most \(\overline C\) pairwise ordering decisions, it instead solves
 \begin{align}
-\min_{\Pi}\quad & B_{\mathrm{idx}}(\Pi)\\
+\min_{x,y}\quad & B_{\mathrm{idx}}(\Pi)\\
 \text{s.t.}\quad & C(\Pi)\le\overline C,\\
-& \Pi\text{ is a contiguous partition},\\
-& |P_{l,j}|\le P_{\max},\quad \forall l,j.
+& \eqref{eq:max-platoon-size-cuts},\\
+& \text{binary cut and product linearization constraints.}
 \label{eq:size-budget-formulation}
 \end{align}
-The two formulations generate a set of nondominated dimension--loss pairs
+The two formulations generate nondominated dimension-loss pairs
 \begin{equation}
-\mathcal{F}
-=
-\left\{
-\big(C(\Pi),B_{\mathrm{idx}}(\Pi)\big):
-\Pi\text{ is feasible}
-\right\}.
+\mathcal{F}=\left\{\big(C(\Pi),B_{\mathrm{idx}}(\Pi)\big):\Pi\text{ is feasible}\right\}.
 \end{equation}
 
-No specialized solution algorithm is claimed. The partition model and downstream scheduling model are both solved by an off-the-shelf optimizer. The methodological contribution lies in the valid loss guarantee and its use in selecting the aggregation level.
+Both partition formulations are solved with Gurobi. Small verification instances are also solved by complete partition enumeration to confirm the MILP solution. The reported partition time includes model construction and optimization. The reported end-to-end time is
+\begin{equation}
+T_{\mathrm{end}}=T_{\mathrm{partition}}+T_{\mathrm{downstream}},
+\end{equation}
+so the computational cost of selecting the partition is included in every method comparison.
