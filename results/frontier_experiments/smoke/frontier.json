@@ -1,0 +1,434 @@
+{
+  "config": {
+    "counts": [
+      3,
+      3,
+      3
+    ],
+    "hF": 1,
+    "hS": 2,
+    "releases": [
+      [
+        1,
+        2,
+        3
+      ],
+      [
+        5,
+        5,
+        6
+      ],
+      [
+        6,
+        7,
+        7
+      ]
+    ],
+    "max_platoon_size": 3,
+    "solver": "auto",
+    "compute_actual_gap": true,
+    "max_total_for_exact_gap": 9,
+    "seed": 20260710,
+    "arrival_mode": "bursty"
+  },
+  "N": 9,
+  "vehicle_level_ordering_variables": 27,
+  "partition_count": 64,
+  "actual_gap_computed": true,
+  "pareto_frontier": [
+    {
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "total_platoons": 3,
+      "ordering_variables": 3,
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "scaled_indexed_bound": 0,
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    }
+  ],
+  "loss_budget_solutions": [
+    {
+      "mode": "loss_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": 0,
+      "ordering_budget": null,
+      "objective_value": 3,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    }
+  ],
+  "size_budget_solutions": [
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 3,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 5,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 7,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 8,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 11,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 12,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 15,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 16,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 21,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    },
+    {
+      "mode": "size_budget",
+      "solver": "enum",
+      "status": "OPTIMAL",
+      "partition": [
+        [
+          3
+        ],
+        [
+          3
+        ],
+        [
+          3
+        ]
+      ],
+      "scaled_loss_budget": null,
+      "ordering_budget": 27,
+      "objective_value": 0,
+      "ordering_variables": 3,
+      "scaled_indexed_bound": 0,
+      "total_platoons": 3,
+      "platoons_by_approach": [
+        1,
+        1,
+        1
+      ],
+      "vehicle_level_ordering_variables": 27,
+      "dimension_reduction_fraction": "8/9",
+      "indexed_bound": "0",
+      "actual_scaled_gap": 0,
+      "actual_average_gap": "0",
+      "gap_le_indexed_bound": true
+    }
+  ]
+}
