@@ -97,6 +97,10 @@ The suite covers the dimension-loss frontier, comparisons with vehicle-level,
 fixed-size, fixed-threshold, and bound-aware partitions, and downstream Gurobi
 runtime metrics for each selected partition.
 
+The finalized paper-facing experiment design is documented in
+[`EXPERIMENT_DESIGN.md`](./EXPERIMENT_DESIGN.md). Use that file as the source
+of truth for formal settings, result locations, and field meanings.
+
 Run the fair dimension-target scalability suite. The recommended paper design
 uses a controlled scalability setting to isolate the effect of vehicle count.
 
@@ -152,3 +156,36 @@ The batch runner writes each scenario under `batches/<scenario>/` and updates a
 manifest after every completed scenario. Complete integer-budget frontiers are
 generated only for small representative instances; larger instances use sampled
 frontier budgets.
+
+For long-running `N=30` and `N=40` scenarios, use the checkpointed chunk
+runner instead of rerunning the entire 30-repetition scenario in one process.
+Each chunk writes one repetition at a time and can be resumed safely.
+
+Example: five-repetition chunk for the controlled `N=30` scenario
+
+```bash
+python scalability_chunk_runner.py \
+  --n 30 \
+  --l 4 \
+  --demand-pattern balanced \
+  --arrival-mode poisson \
+  --hS 2 \
+  --rep-start 0 \
+  --rep-end 4 \
+  --time-limit 30 \
+  --threads 1 \
+  --resume \
+  --output-dir ../../results/frontier_experiments/scalability_checkpointed/N30_L4_balanced_poisson_hS2/chunks/rep_000_004
+```
+
+Aggregate all chunks for a completed scenario with:
+
+```bash
+python aggregate_scalability_chunks.py \
+  ../../results/frontier_experiments/scalability_checkpointed/N30_L4_balanced_poisson_hS2 \
+  --expected-reps 30
+```
+
+The aggregate step verifies missing or duplicate seeds, per-repetition row
+counts, budget violations, known actual-gap violations, and status totals
+before writing the scenario-level CSV outputs.
