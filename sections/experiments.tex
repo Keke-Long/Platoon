@@ -35,4 +35,42 @@ The proposed bound-aware partition preserves a substantial dimension reduction a
 
 Among time-limited reduced models, the proposed method also maintains incumbent objectives comparable to or slightly better than the two baselines. This result is interpreted as a solution-quality check rather than a claim of known optimality. Overall, the results support the main computational claim: the indexed bound guides partitions that remain much smaller than the vehicle-level model while providing tighter deterministic loss guarantees.
 
-A small heterogeneous collection may be added as a compact supplementary illustration if needed. A full factorial robustness study, a separate headway-sensitivity study, and \(N=60\) are optional extensions and do not form part of the evidence required for the present conclusions.
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.32\textwidth]{results/frontier_experiments/scalability_checkpointed/paper_scalability/dimension_reduction_by_scale.png}
+  \includegraphics[width=0.32\textwidth]{results/frontier_experiments/scalability_checkpointed/paper_scalability/optimality_rate_by_scale.png}
+  \includegraphics[width=0.32\textwidth]{results/frontier_experiments/scalability_checkpointed/paper_scalability/mip_gap_by_scale.png}
+  \caption{Controlled scalability summaries over \(N\in\{20,30,40\}\): mean downstream dimension reduction, optimality rate within the \(30\)-second limit, and mean terminal MIP gap. The proposed method retains large dimension reductions while keeping lower fixed-time gaps than the release-threshold baseline at \(N=30\) and \(N=40\).}
+  \label{fig:scalability-quality}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.47\textwidth]{results/frontier_experiments/scalability_checkpointed/paper_scalability/runtime_by_scale.png}
+  \includegraphics[width=0.47\textwidth]{results/frontier_experiments/scalability_checkpointed/paper_scalability/nodes_by_scale.png}
+  \caption{End-to-end wall time and branch-and-bound nodes for the controlled scalability study. Vehicle-level scheduling is consistently the hardest model class, while all reduced methods remain substantially smaller and solve more often within the fixed time limit.}
+  \label{fig:scalability-runtime}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \caption{Fair dimension-budget comparison in the controlled scalability study. Each reduced method respects the same prescribed ordering-variable budget \(C(\Pi)\le \bar C\).}
+  \label{tab:fair-comparison}
+  \begin{tabular}{cccccc}
+    \toprule
+    \(N\) & Method & Mean \(C(\Pi)\) & Reduction & Opt. rate & Mean \(B_{\mathrm{idx}}(\Pi)\) \\
+    \midrule
+    20 & Proposed & 41.64 & 72.24\% & 1.000 & 1.76 \\
+    20 & Fixed size & 39.00 & 74.00\% & 1.000 & 9.60 \\
+    20 & Threshold & 48.00 & 68.00\% & 0.992 & 2.75 \\
+    30 & Proposed & 88.78 & 73.65\% & 0.750 & 4.90 \\
+    30 & Fixed size & 67.50 & 79.97\% & 0.917 & 20.21 \\
+    30 & Threshold & 107.27 & 68.17\% & 0.633 & 6.06 \\
+    40 & Proposed & 141.26 & 76.46\% & 0.275 & 5.46 \\
+    40 & Fixed size & 126.00 & 79.00\% & 0.250 & 22.75 \\
+    40 & Threshold & 175.24 & 70.79\% & 0.350 & 7.76 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The present manuscript therefore uses the \(N=20/30/40\) controlled study as the main large-instance evidence. Earlier pilot and stress-test directories are retained for development traceability but are not used in the reported manuscript summaries.
