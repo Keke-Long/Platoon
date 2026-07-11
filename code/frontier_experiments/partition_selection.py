@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -39,6 +40,9 @@ class PartitionSelectionResult:
     scaled_indexed_bound: int | None = None
     total_platoons: int | None = None
     platoons_by_approach: tuple[int, ...] | None = None
+    runtime_seconds: float | None = None
+    model_construction_seconds: float | None = None
+    end_to_end_seconds: float | None = None
 
     def to_json(self) -> dict[str, object]:
         return {
@@ -55,6 +59,9 @@ class PartitionSelectionResult:
             "platoons_by_approach": list(self.platoons_by_approach)
             if self.platoons_by_approach is not None
             else None,
+            "runtime_seconds": self.runtime_seconds,
+            "model_construction_seconds": self.model_construction_seconds,
+            "end_to_end_seconds": self.end_to_end_seconds,
         }
 
 
@@ -65,6 +72,9 @@ def _result_from_partition(
     partition: Partition,
     scaled_loss_budget: int | None = None,
     ordering_budget: int | None = None,
+    runtime_seconds: float | None = None,
+    model_construction_seconds: float | None = None,
+    end_to_end_seconds: float | None = None,
 ) -> PartitionSelectionResult:
     metrics = partition_metrics(instance, partition)
     objective = (
@@ -84,6 +94,9 @@ def _result_from_partition(
         scaled_indexed_bound=metrics.scaled_indexed_bound,
         total_platoons=metrics.total_platoons,
         platoons_by_approach=metrics.platoons_by_approach,
+        runtime_seconds=runtime_seconds,
+        model_construction_seconds=model_construction_seconds,
+        end_to_end_seconds=end_to_end_seconds,
     )
 
 
@@ -92,6 +105,7 @@ def solve_loss_budget_enum(
     scaled_loss_budget: int,
     max_platoon_size: int | None = None,
 ) -> PartitionSelectionResult:
+    start_time = time.perf_counter()
     best: Partition | None = None
     best_key: tuple[int, int, tuple[tuple[int, ...], ...]] | None = None
     for partition in enumerate_partitions(instance.counts):
@@ -111,13 +125,20 @@ def solve_loss_budget_enum(
             status="INFEASIBLE",
             partition=None,
             scaled_loss_budget=scaled_loss_budget,
+            runtime_seconds=time.perf_counter() - start_time,
+            model_construction_seconds=0.0,
+            end_to_end_seconds=time.perf_counter() - start_time,
         )
+    elapsed = time.perf_counter() - start_time
     return _result_from_partition(
         "loss_budget",
         "enum",
         instance,
         best,
         scaled_loss_budget=scaled_loss_budget,
+        runtime_seconds=elapsed,
+        model_construction_seconds=0.0,
+        end_to_end_seconds=elapsed,
     )
 
 
@@ -126,6 +147,7 @@ def solve_size_budget_enum(
     ordering_budget: int,
     max_platoon_size: int | None = None,
 ) -> PartitionSelectionResult:
+    start_time = time.perf_counter()
     best: Partition | None = None
     best_key: tuple[int, int, tuple[tuple[int, ...], ...]] | None = None
     for partition in enumerate_partitions(instance.counts):
@@ -146,13 +168,20 @@ def solve_size_budget_enum(
             status="INFEASIBLE",
             partition=None,
             ordering_budget=ordering_budget,
+            runtime_seconds=time.perf_counter() - start_time,
+            model_construction_seconds=0.0,
+            end_to_end_seconds=time.perf_counter() - start_time,
         )
+    elapsed = time.perf_counter() - start_time
     return _result_from_partition(
         "size_budget",
         "enum",
         instance,
         best,
         ordering_budget=ordering_budget,
+        runtime_seconds=elapsed,
+        model_construction_seconds=0.0,
+        end_to_end_seconds=elapsed,
     )
 
 
@@ -170,6 +199,7 @@ def _build_gurobi_model(
     max_platoon_size: int | None,
     name: str,
 ):
+    start_time = time.perf_counter()
     gp, GRB = _import_gurobi()
     env = gp.Env(empty=True)
     env.setParam("OutputFlag", 0)
@@ -229,7 +259,8 @@ def _build_gurobi_model(
                     dimension_expr += product_var
 
     model.update()
-    return gp, GRB, model, cuts, scaled_bound_expr, dimension_expr
+    construction_seconds = time.perf_counter() - start_time
+    return gp, GRB, model, cuts, scaled_bound_expr, dimension_expr, construction_seconds
 
 
 def _partition_from_gurobi_solution(instance: Instance, cuts) -> Partition:
@@ -250,7 +281,8 @@ def solve_loss_budget_gurobi(
     max_platoon_size: int | None = None,
     time_limit: float | None = None,
 ) -> PartitionSelectionResult:
-    gp, GRB, model, cuts, scaled_bound_expr, dimension_expr = _build_gurobi_model(
+    total_start = time.perf_counter()
+    gp, GRB, model, cuts, scaled_bound_expr, dimension_expr, construction_seconds = _build_gurobi_model(
         instance,
         max_platoon_size,
         "loss_budget_partition_selection",
@@ -263,7 +295,21 @@ def solve_loss_budget_gurobi(
     )
     if time_limit is not None:
         model.Params.TimeLimit = time_limit
-    model.optimize()
+    try:
+        model.optimize()
+    except gp.GurobiError as exc:
+        end_to_end = time.perf_counter() - total_start
+        return PartitionSelectionResult(
+            mode="loss_budget",
+            solver="gurobi",
+            status=f"GUROBI_ERROR_{exc.errno}",
+            partition=None,
+            scaled_loss_budget=scaled_loss_budget,
+            runtime_seconds=float(getattr(model, "Runtime", 0.0)),
+            model_construction_seconds=construction_seconds,
+            end_to_end_seconds=end_to_end,
+        )
+    end_to_end = time.perf_counter() - total_start
     if model.Status != GRB.OPTIMAL:
         return PartitionSelectionResult(
             mode="loss_budget",
@@ -271,6 +317,9 @@ def solve_loss_budget_gurobi(
             status=str(model.Status),
             partition=None,
             scaled_loss_budget=scaled_loss_budget,
+            runtime_seconds=float(model.Runtime),
+            model_construction_seconds=construction_seconds,
+            end_to_end_seconds=end_to_end,
         )
     partition = _partition_from_gurobi_solution(instance, cuts)
     return _result_from_partition(
@@ -279,6 +328,9 @@ def solve_loss_budget_gurobi(
         instance,
         partition,
         scaled_loss_budget=scaled_loss_budget,
+        runtime_seconds=float(model.Runtime),
+        model_construction_seconds=construction_seconds,
+        end_to_end_seconds=end_to_end,
     )
 
 
@@ -288,7 +340,8 @@ def solve_size_budget_gurobi(
     max_platoon_size: int | None = None,
     time_limit: float | None = None,
 ) -> PartitionSelectionResult:
-    gp, GRB, model, cuts, scaled_bound_expr, dimension_expr = _build_gurobi_model(
+    total_start = time.perf_counter()
+    gp, GRB, model, cuts, scaled_bound_expr, dimension_expr, construction_seconds = _build_gurobi_model(
         instance,
         max_platoon_size,
         "size_budget_partition_selection",
@@ -301,7 +354,21 @@ def solve_size_budget_gurobi(
     )
     if time_limit is not None:
         model.Params.TimeLimit = time_limit
-    model.optimize()
+    try:
+        model.optimize()
+    except gp.GurobiError as exc:
+        end_to_end = time.perf_counter() - total_start
+        return PartitionSelectionResult(
+            mode="size_budget",
+            solver="gurobi",
+            status=f"GUROBI_ERROR_{exc.errno}",
+            partition=None,
+            ordering_budget=ordering_budget,
+            runtime_seconds=float(getattr(model, "Runtime", 0.0)),
+            model_construction_seconds=construction_seconds,
+            end_to_end_seconds=end_to_end,
+        )
+    end_to_end = time.perf_counter() - total_start
     if model.Status != GRB.OPTIMAL:
         return PartitionSelectionResult(
             mode="size_budget",
@@ -309,6 +376,9 @@ def solve_size_budget_gurobi(
             status=str(model.Status),
             partition=None,
             ordering_budget=ordering_budget,
+            runtime_seconds=float(model.Runtime),
+            model_construction_seconds=construction_seconds,
+            end_to_end_seconds=end_to_end,
         )
     partition = _partition_from_gurobi_solution(instance, cuts)
     return _result_from_partition(
@@ -317,6 +387,9 @@ def solve_size_budget_gurobi(
         instance,
         partition,
         ordering_budget=ordering_budget,
+        runtime_seconds=float(model.Runtime),
+        model_construction_seconds=construction_seconds,
+        end_to_end_seconds=end_to_end,
     )
 
 

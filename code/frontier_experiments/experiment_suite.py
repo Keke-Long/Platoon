@@ -424,7 +424,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--partition-solver", choices=("gurobi", "enum", "auto"), default="gurobi")
     parser.add_argument("--threads", type=int)
     parser.add_argument("--loss-budget-fraction", type=float, default=0.5)
-    parser.add_argument("--output-dir", default="../../results/frontier_experiments/paper_core_30")
+    parser.add_argument("--output-dir", default="../../results/frontier_experiments/pilot_30")
     return parser
 
 

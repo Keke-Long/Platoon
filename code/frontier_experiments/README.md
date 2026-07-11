@@ -75,7 +75,7 @@ python experiment_suite.py \
   --replications 30 \
   --time-limit 5 \
   --partition-solver gurobi \
-  --output-dir ../../results/frontier_experiments/paper_core_30
+  --output-dir ../../results/frontier_experiments/pilot_30
 ```
 
 This produces:
@@ -90,9 +90,35 @@ summary.csv
 Generate review plots from the suite output:
 
 ```bash
-python plot_suite.py ../../results/frontier_experiments/paper_core_30
+python plot_suite.py ../../results/frontier_experiments/pilot_30
 ```
 
 The suite covers the dimension-loss frontier, comparisons with vehicle-level,
 fixed-size, fixed-threshold, and bound-aware partitions, and downstream Gurobi
 runtime metrics for each selected partition.
+
+Run the fair dimension-target scalability suite:
+
+```bash
+python scalability_suite.py \
+  --n-values 20,30,40,60 \
+  --l-values 3,4 \
+  --demand-patterns balanced,unbalanced \
+  --arrival-modes uniform,poisson,bursty \
+  --targets 0.25,0.5,0.75,0.9 \
+  --reps-per-cell 30 \
+  --time-limit 30 \
+  --threads 1 \
+  --output-dir ../../results/frontier_experiments/scalability_full
+```
+
+For a fast pilot that still spans all listed sizes and scenario classes, use
+`--reps-per-cell 1` and keep the output directory named `scalability_pilot`.
+The recorded end-to-end time is
+
+```text
+T_total = T_partition + T_model_construction + T_downstream
+```
+
+where partition time is nonzero for the proposed bound-aware partition and
+zero for rule-based fixed-size and threshold baselines.

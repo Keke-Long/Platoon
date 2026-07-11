@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,8 @@ class ScheduleResult:
     best_bound: float | None
     mip_gap: float | None
     runtime_seconds: float
+    model_construction_seconds: float
+    end_to_end_seconds: float
     node_count: float
     time_to_first_feasible: float | None
     sol_count: int
@@ -50,6 +53,8 @@ class ScheduleResult:
             "best_bound": self.best_bound,
             "mip_gap": self.mip_gap,
             "runtime_seconds": self.runtime_seconds,
+            "model_construction_seconds": self.model_construction_seconds,
+            "end_to_end_seconds": self.end_to_end_seconds,
             "node_count": self.node_count,
             "time_to_first_feasible": self.time_to_first_feasible,
             "sol_count": self.sol_count,
@@ -114,6 +119,7 @@ def solve_downstream_schedule(
     vehicle. Internal vehicles pass at fixed hF spacing.
     """
 
+    total_start = time.perf_counter()
     gp, GRB = _import_gurobi()
     env = gp.Env(empty=True)
     env.setParam("OutputFlag", 0)
@@ -173,6 +179,8 @@ def solve_downstream_schedule(
         for offset, vehicle in enumerate(unit.vehicles):
             total_delay_expr += start[unit] + offset * instance.hF - releases[vehicle]
     model.setObjective(total_delay_expr, GRB.MINIMIZE)
+    model.update()
+    construction_seconds = time.perf_counter() - total_start
 
     first_feasible_time: list[float | None] = [None]
 
@@ -180,7 +188,28 @@ def solve_downstream_schedule(
         if where == GRB.Callback.MIPSOL and first_feasible_time[0] is None:
             first_feasible_time[0] = model_cb.cbGet(GRB.Callback.RUNTIME)
 
-    model.optimize(callback)
+    try:
+        model.optimize(callback)
+    except gp.GurobiError as exc:
+        end_to_end_seconds = time.perf_counter() - total_start
+        return ScheduleResult(
+            status=f"GUROBI_ERROR_{exc.errno}",
+            objective_total_delay=None,
+            objective_average_delay=None,
+            best_bound=None,
+            mip_gap=None,
+            runtime_seconds=float(getattr(model, "Runtime", 0.0)),
+            model_construction_seconds=construction_seconds,
+            end_to_end_seconds=end_to_end_seconds,
+            node_count=float(getattr(model, "NodeCount", 0.0)),
+            time_to_first_feasible=first_feasible_time[0],
+            sol_count=0,
+            ordering_variables=ordering_variables(partition),
+            total_platoons=sum(platoon_counts(partition)),
+            platoons_by_approach=platoon_counts(partition),
+            partition=partition,
+        )
+    end_to_end_seconds = time.perf_counter() - total_start
     sol_count = int(model.SolCount)
     objective = float(model.ObjVal) if sol_count else None
     best_bound = float(model.ObjBound) if sol_count or model.Status == GRB.TIME_LIMIT else None
@@ -192,6 +221,8 @@ def solve_downstream_schedule(
         best_bound=best_bound,
         mip_gap=gap,
         runtime_seconds=float(model.Runtime),
+        model_construction_seconds=construction_seconds,
+        end_to_end_seconds=end_to_end_seconds,
         node_count=float(model.NodeCount),
         time_to_first_feasible=first_feasible_time[0],
         sol_count=sol_count,
