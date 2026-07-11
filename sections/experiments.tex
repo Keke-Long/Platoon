@@ -33,23 +33,19 @@ Comparisons will control either the theoretical loss budget or the downstream mo
 
 \subsection{Scalability and traffic conditions}
 
-The large-instance experiments will vary:
-\begin{itemize}
-  \item the number of approaches and vehicles;
-  \item balanced and unbalanced approach demand;
-  \item Poisson, uniform, and bursty arrivals;
-  \item the ratio \(\hS/\hF\);
-  \item the maximum platoon size; and
-  \item downstream solver time limits.
-\end{itemize}
+The first completed scalability study fixes \(L=4\), balanced demand, Poisson arrivals, \(\hF=1\), \(\hS=2\), and a downstream time limit of \(30\) seconds with one Gurobi thread per model. Each size uses \(30\) independently generated instances. The completed sizes are \(N\in\{20,30,40\}\); the \(N=60\) case is reserved for later extension because the current three sizes already show the main computational transition.
 
-Reported computational measures will include the number of platoons, number of ordering variables, Gurobi runtime, branch-and-bound node count, time to first feasible solution, and objective quality at fixed time limits.
+The reported measures are the reduced-model ordering-variable count \(C(\Pi)\), end-to-end wall time \(T_{\mathrm{partition}}+T_{\mathrm{downstream}}\), branch-and-bound node count, fixed-time MIP gap, and incumbent objective value when the downstream model reaches the time limit. For \(N=20\), the vehicle-level model proves optimality in \(5\) of the \(30\) instances, while the reduced models solve \(359\) of \(360\) method-instance combinations to proven optimality. For \(N=30\), the vehicle-level model reaches the time limit in all \(30\) instances, but the reduced models still prove optimality in \(276\) of \(360\) method-instance combinations. For \(N=40\), the vehicle-level model again reaches the time limit in all \(30\) instances, and the reduced models prove optimality in \(105\) of \(360\) method-instance combinations.
+
+The proposed bound-aware partition preserves a substantial dimension reduction across all three sizes. The mean ordering-variable counts are \(41.64\) at \(N=20\), \(88.78\) at \(N=30\), and \(141.26\) at \(N=40\), compared with vehicle-level counts \(150\), \(337\), and \(600\), respectively. This corresponds to mean dimension reductions \(72.24\%\), \(73.65\%\), and \(76.46\%\). The same runs show that fixed-size platooning typically produces the smallest reduced model, whereas the proposed method yields the smallest theoretical loss guarantee. At \(N=30\), for example, the mean indexed bounds are \(20.21\) for fixed size, \(6.06\) for the release-threshold baseline, and \(4.90\) for the proposed partition. At \(N=40\), the corresponding means are \(22.75\), \(7.76\), and \(5.46\).
+
+These results support the paper's main computational claim: the indexed bound is useful not because it always minimizes the reduced model dimension, but because it selects partitions that remain much smaller than the vehicle-level model while providing substantially tighter deterministic loss guarantees.
 
 \subsection{Pending implementation decisions}
 
 \begin{itemize}
-  \item Exact MILP representation of the partition decision.
-  \item Discrete sets of acceptable loss budgets \(\varepsilon\) and size budgets \(\overline C\).
-  \item Number of Monte Carlo replications and confidence intervals.
-  \item Whether the original vehicle-level model can prove optimality within each time limit.
+  \item Complete the robustness study at fixed \(N=30\) with varying demand balance and arrival processes.
+  \item Complete the headway-sensitivity study under the same checkpointed experiment pipeline.
+  \item Decide whether a later \(N=60\) extension is needed beyond the already observed \(N=20/30/40\) trend.
+  \item Integrate the finalized tables and figures into the manuscript layout.
 \end{itemize}

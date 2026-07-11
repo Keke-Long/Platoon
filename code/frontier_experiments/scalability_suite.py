@@ -320,6 +320,7 @@ def record_method(
         "actual_average_gap": actual_gap,
         "actual_gap_le_indexed_bound": gap_within_bound,
         "vehicle_level_average_delay": vehicle_average_delay,
+        "vehicle_level_incumbent_average_delay": vehicle_schedule.objective_average_delay,
         "vehicle_level_status": vehicle_schedule.status,
         "vehicle_level_mip_gap": vehicle_schedule.mip_gap,
         "vehicle_level_nodes": vehicle_schedule.node_count,
@@ -609,6 +610,10 @@ def vehicle_level_rows(rows: list[dict[str, object]]) -> list[dict[str, object]]
                 "max_platoon_size": row["max_platoon_size"],
                 "vehicle_level_ordering_variables": row["vehicle_level_ordering_variables"],
                 "vehicle_level_average_delay": row["vehicle_level_average_delay"],
+                "vehicle_level_incumbent_average_delay": row.get(
+                    "vehicle_level_incumbent_average_delay",
+                    row.get("vehicle_level_average_delay"),
+                ),
                 "vehicle_level_status": row["vehicle_level_status"],
                 "vehicle_level_mip_gap": row["vehicle_level_mip_gap"],
                 "vehicle_level_nodes": row["vehicle_level_nodes"],
@@ -640,6 +645,7 @@ def summarize_vehicle_level(rows: list[dict[str, object]]) -> list[dict[str, obj
             return [float(row[field]) for row in group if row.get(field) not in (None, "")]
 
         mean_delay, ci_delay = mean_ci95(values("vehicle_level_average_delay"))
+        mean_incumbent_delay, ci_incumbent_delay = mean_ci95(values("vehicle_level_incumbent_average_delay"))
         mean_gap, ci_gap = mean_ci95(values("vehicle_level_mip_gap"))
         mean_nodes, ci_nodes = mean_ci95(values("vehicle_level_nodes"))
         mean_construction, ci_construction = mean_ci95(values("vehicle_level_model_construction_seconds"))
@@ -656,6 +662,8 @@ def summarize_vehicle_level(rows: list[dict[str, object]]) -> list[dict[str, obj
                 "optimal_case_count": sum(1 for row in group if row["vehicle_level_status"] == "OPTIMAL"),
                 "mean_vehicle_level_average_delay": mean_delay,
                 "ci95_vehicle_level_average_delay": ci_delay,
+                "mean_vehicle_level_incumbent_average_delay": mean_incumbent_delay,
+                "ci95_vehicle_level_incumbent_average_delay": ci_incumbent_delay,
                 "mean_vehicle_level_mip_gap": mean_gap,
                 "ci95_vehicle_level_mip_gap": ci_gap,
                 "mean_vehicle_level_nodes": mean_nodes,
