@@ -133,10 +133,13 @@ The recorded end-to-end time is
 T_total = T_partition + T_downstream_wall
 ```
 
-where partition time is nonzero for the proposed bound-aware partition and
-zero for rule-based fixed-size and threshold baselines. The downstream wall
-time includes model construction and Gurobi optimization. Vehicle-level runtime
-is recorded separately for each traffic instance.
+where partition time is measured as wall time for every method. For the
+proposed bound-aware method this includes the partition-selection Gurobi solve;
+for fixed-size and threshold baselines it includes heuristic partition
+construction and feasible-dimension selection. The downstream wall time
+includes model construction and Gurobi optimization. Vehicle-level runtime is
+recorded separately for each traffic instance, and `vehicle_level_summary.csv`
+contains the deduplicated vehicle-level aggregates.
 
 Aggregate completed batches with:
 

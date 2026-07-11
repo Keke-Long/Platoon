@@ -6,6 +6,7 @@ import importlib.util
 import inspect
 import sys
 import traceback
+import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +33,8 @@ def main() -> int:
                 continue
             try:
                 func()
+            except unittest.SkipTest as exc:
+                print(f"SKIPPED {path.name}::{name} ({exc})")
             except Exception:
                 failed += 1
                 print(f"FAILED {path.name}::{name}")
@@ -45,4 +48,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

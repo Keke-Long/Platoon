@@ -104,6 +104,7 @@ def method_partitions(
     scenario: Scenario,
     scaled_loss_budget: int,
     partition_solver: str,
+    time_limit: float | None,
 ) -> dict[str, Partition]:
     return {
         "vehicle_level": singleton_partition(instance.counts),
@@ -125,6 +126,7 @@ def method_partitions(
             scaled_loss_budget=scaled_loss_budget,
             max_platoon_size=scenario.max_platoon_size,
             solver=partition_solver,
+            time_limit=time_limit,
         ),
     }
 
@@ -206,6 +208,7 @@ def frontier_rows_for_instance(
             budget,
             max_platoon_size=scenario.max_platoon_size,
             solver=config.partition_solver,  # type: ignore[arg-type]
+            time_limit=config.time_limit,
         )
         if result.partition is not None:
             selected.append(("loss_budget", budget, result.partition))
@@ -215,6 +218,7 @@ def frontier_rows_for_instance(
             budget,
             max_platoon_size=scenario.max_platoon_size,
             solver=config.partition_solver,  # type: ignore[arg-type]
+            time_limit=config.time_limit,
         )
         if result.partition is not None:
             selected.append(("size_budget", budget, result.partition))
@@ -303,6 +307,16 @@ def summarize(rows: list[dict[str, object]]) -> list[dict[str, object]]:
         mean_bound, ci_bound = mean_ci95(bound)
         mean_dimension, ci_dimension = mean_ci95(dimension)
         mean_reduction, ci_reduction = mean_ci95(reduction)
+        actual_gap_case_count = sum(1 for row in group_rows if row.get("actual_average_gap") is not None)
+        all_actual_gaps_within_bound: str | bool
+        if actual_gap_case_count == 0:
+            all_actual_gaps_within_bound = "N/A"
+        else:
+            all_actual_gaps_within_bound = all(
+                bool(row.get("actual_gap_le_indexed_bound"))
+                for row in group_rows
+                if row.get("actual_average_gap") is not None
+            )
         summary.append(
             {
                 "scenario": scenario,
@@ -320,11 +334,8 @@ def summarize(rows: list[dict[str, object]]) -> list[dict[str, object]]:
                 "ci95_ordering_variables": ci_dimension,
                 "mean_dimension_reduction_fraction": mean_reduction,
                 "ci95_dimension_reduction_fraction": ci_reduction,
-                "all_actual_gaps_within_bound": all(
-                    bool(row.get("actual_gap_le_indexed_bound"))
-                    for row in group_rows
-                    if row.get("actual_average_gap") is not None
-                ),
+                "actual_gap_case_count": actual_gap_case_count,
+                "all_actual_gaps_within_bound": all_actual_gaps_within_bound,
             }
         )
     return summary
@@ -389,6 +400,7 @@ def run_suite(config: SuiteConfig) -> dict[str, object]:
             scenario,
             scaled_loss_budget,
             config.partition_solver,
+            config.time_limit,
         )
         for method, partition in partitions.items():
             all_rows.append(

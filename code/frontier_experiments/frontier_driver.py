@@ -40,6 +40,7 @@ class FrontierConfig:
     max_total_for_exact_gap: int
     seed: int
     arrival_mode: str
+    time_limit: float | None
 
 
 def parse_int_tuple(value: str) -> tuple[int, ...]:
@@ -184,6 +185,7 @@ def generate_frontier(config: FrontierConfig, output_dir: Path) -> dict[str, obj
             budget,
             config.max_platoon_size,
             solver=config.solver,  # type: ignore[arg-type]
+            time_limit=config.time_limit,
         )
         row = result.to_json()
         if result.partition is not None:
@@ -197,6 +199,7 @@ def generate_frontier(config: FrontierConfig, output_dir: Path) -> dict[str, obj
             budget,
             config.max_platoon_size,
             solver=config.solver,  # type: ignore[arg-type]
+            time_limit=config.time_limit,
         )
         row = result.to_json()
         if result.partition is not None:
@@ -255,6 +258,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--solver", choices=("auto", "gurobi", "enum"), default="auto")
     parser.add_argument("--skip-actual-gap", action="store_true")
     parser.add_argument("--max-total-for-exact-gap", type=int, default=9)
+    parser.add_argument("--time-limit", type=float)
     parser.add_argument("--output-dir", default="../../results/frontier_experiments/smoke")
     return parser
 
@@ -282,6 +286,7 @@ def main() -> int:
         max_total_for_exact_gap=args.max_total_for_exact_gap,
         seed=args.seed,
         arrival_mode=args.arrival_mode,
+        time_limit=args.time_limit,
     )
     payload = generate_frontier(config, Path(args.output_dir))
     print(json.dumps({
@@ -296,4 +301,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

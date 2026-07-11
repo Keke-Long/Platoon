@@ -12,6 +12,7 @@ FILES = (
     "fair_dimension_comparison.csv",
     "complete_frontier.csv",
     "summary.csv",
+    "vehicle_level_summary.csv",
 )
 
 
@@ -55,6 +56,7 @@ def aggregate(root: Path) -> dict[str, object]:
                     "rows": len(payload.get("rows", [])),
                     "frontier_rows": len(payload.get("frontier_rows", [])),
                     "summary_rows": len(payload.get("summary", [])),
+                    "vehicle_level_summary_rows": len(payload.get("vehicle_level_summary", [])),
                     "status": status,
                 }
             )
@@ -90,4 +92,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

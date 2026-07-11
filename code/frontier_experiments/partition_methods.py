@@ -57,12 +57,14 @@ def bound_aware_loss_budget_partition(
     scaled_loss_budget: int,
     max_platoon_size: int | None,
     solver: str = "gurobi",
+    time_limit: float | None = None,
 ) -> Partition:
     result = solve_loss_budget(
         instance,
         scaled_loss_budget,
         max_platoon_size=max_platoon_size,
         solver=solver,  # type: ignore[arg-type]
+        time_limit=time_limit,
     )
     if result.partition is None:
         return singleton_partition(instance.counts)
@@ -74,14 +76,15 @@ def bound_aware_size_budget_partition(
     ordering_budget: int,
     max_platoon_size: int | None,
     solver: str = "gurobi",
+    time_limit: float | None = None,
 ) -> Partition:
     result = solve_size_budget(
         instance,
         ordering_budget,
         max_platoon_size=max_platoon_size,
         solver=solver,  # type: ignore[arg-type]
+        time_limit=time_limit,
     )
     if result.partition is None:
         return singleton_partition(instance.counts)
     return result.partition
-
