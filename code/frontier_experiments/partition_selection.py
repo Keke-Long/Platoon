@@ -171,7 +171,10 @@ def _build_gurobi_model(
     name: str,
 ):
     gp, GRB = _import_gurobi()
-    model = gp.Model(name)
+    env = gp.Env(empty=True)
+    env.setParam("OutputFlag", 0)
+    env.start()
+    model = gp.Model(name, env=env)
     cuts = {}
     for approach, count in enumerate(instance.counts, start=1):
         for boundary in range(1, count):
@@ -369,4 +372,3 @@ def solve_size_budget(
         )
     except RuntimeError:
         return solve_size_budget_enum(instance, ordering_budget, max_platoon_size)
-
