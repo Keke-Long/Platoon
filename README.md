@@ -14,14 +14,14 @@ Compile `notes.tex` to obtain a separate research record containing the proof au
 Files under `notes/` are intentionally excluded from the compiled manuscript:
 
 - `research_log.tex`: research decisions and audit findings.
-- `proof_development.tex`: development record for the index-free precursor.
+- `proof_development.tex`: historical proof-development record.
 - `rejected_results.tex`: invalid results, counterexamples, and superseded claims.
 - `formal_proof_audit.md`: analytical audit of the repair proof.
-- `indexed_bound_derivation.md`: refinement from the index-free to the FIFO-indexed bound.
+- `indexed_bound_derivation.md`: derivation of the FIFO-indexed bound.
 
 ## Status rule
 
-The FIFO-indexed optimality-gap bound is established analytically in `sections/theoretical_analysis.tex`. The existing verification code and archived runs evaluate the earlier index-free bound. Do not describe the indexed bound as computationally verified until the code has been updated and the deterministic and random-exact suites have been rerun.
+The FIFO-indexed optimality-gap bound is established analytically in `sections/theoretical_analysis.tex` and has been checked by the indexed deterministic and random-exact verification suite. It is the only loss bound used in the manuscript.
 
 ## Recommended workflow
 
