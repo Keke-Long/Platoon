@@ -24,8 +24,8 @@ from metrics import (  # noqa: E402
     vehicle_level_ordering_variables,
 )
 from model import Instance, optimum_for_sequences, partition_label, scaled_indexed_bound  # noqa: E402
-from partition_methods import RuleMethod, form_rule_based_platoons  # noqa: E402
-from scheduling_milp import solve_downstream_schedule  # noqa: E402
+from partition_methods import PlatoonFormationResult, RuleMethod, form_rule_based_platoons  # noqa: E402
+from scheduling_milp import ScheduleResult, solve_downstream_schedule  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -42,6 +42,7 @@ class BasicComparisonConfig:
     time_limit: float
     threads: int
     max_exact_total: int
+    formation_repetitions: int
     output_dir: str
 
 
@@ -136,19 +137,24 @@ def row_for_method(
     max_platoon_size: int | None,
     exact_np_average: Fraction | None,
     np_schedule_average: float | None,
+    formation: PlatoonFormationResult | None = None,
+    schedule: ScheduleResult | None = None,
 ) -> dict[str, object]:
-    formation = form_rule_based_platoons(
-        instance,
-        method,
-        threshold=threshold,
-        max_platoon_size=max_platoon_size,
-    )
-    schedule = solve_downstream_schedule(
-        instance,
-        formation.partition,
-        time_limit=config.time_limit,
-        threads=config.threads,
-    )
+    if formation is None:
+        formation = form_rule_based_platoons(
+            instance,
+            method,
+            threshold=threshold,
+            max_platoon_size=max_platoon_size,
+            timing_repetitions=config.formation_repetitions,
+        )
+    if schedule is None:
+        schedule = solve_downstream_schedule(
+            instance,
+            formation.partition,
+            time_limit=config.time_limit,
+            threads=config.threads,
+        )
     reference_average: float | None = None
     reference_source = None
     if exact_np_average is not None:
@@ -193,6 +199,7 @@ def row_for_method(
         "ordering_variable_count": ordering_variables(formation.partition),
         "vehicle_level_ordering_variable_count": vehicle_level_ordering_variables(instance.counts),
         "formation_time_ms": formation.formation_time_ms,
+        "formation_repetitions": config.formation_repetitions,
         "model_build_time_s": schedule.model_construction_seconds,
         "solve_time_s": schedule.runtime_seconds,
         "end_to_end_time_s": formation.formation_time_ms / 1000.0 + schedule.end_to_end_seconds,
@@ -216,7 +223,11 @@ def run_replication(
 ) -> list[dict[str, object]]:
     instance, seed = instance_for_replication(config, n_value, replication)
     exact_average = exact_np_average_delay(instance, config.max_exact_total)
-    np_formation = form_rule_based_platoons(instance, "NP")
+    np_formation = form_rule_based_platoons(
+        instance,
+        "NP",
+        timing_repetitions=config.formation_repetitions,
+    )
     np_schedule = solve_downstream_schedule(
         instance,
         np_formation.partition,
@@ -230,10 +241,8 @@ def run_replication(
     )
     rows: list[dict[str, object]] = []
     for method, threshold, max_platoon_size in method_inputs(config):
-        if method == "NP":
-            schedule_average_reference = np_schedule_average
-        else:
-            schedule_average_reference = np_schedule_average
+        precomputed_formation = np_formation if method == "NP" else None
+        precomputed_schedule = np_schedule if method == "NP" else None
         rows.append(
             row_for_method(
                 config,
@@ -244,7 +253,9 @@ def run_replication(
                 threshold,
                 max_platoon_size,
                 exact_average,
-                schedule_average_reference,
+                np_schedule_average,
+                formation=precomputed_formation,
+                schedule=precomputed_schedule,
             )
         )
     return rows
@@ -337,6 +348,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--time-limit", type=float, default=10.0)
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--max-exact-total", type=int, default=10)
+    parser.add_argument("--formation-repetitions", type=int, default=20)
     parser.add_argument("--output-dir", default="../../results/rule_based_experiments/basic_smoke")
     return parser
 
@@ -356,6 +368,7 @@ def main() -> int:
         time_limit=args.time_limit,
         threads=args.threads,
         max_exact_total=args.max_exact_total,
+        formation_repetitions=args.formation_repetitions,
         output_dir=args.output_dir,
     )
     payload = run(config)

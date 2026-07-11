@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass
 from fractions import Fraction
 from itertools import product
 from pathlib import Path
+from statistics import median
 
 VERIFY_DIR = Path(__file__).resolve().parents[1] / "exhaustive_verification"
 if str(VERIFY_DIR) not in sys.path:
@@ -38,6 +39,7 @@ class TheoryConfig:
     max_release: int
     thresholds: tuple[int, ...]
     max_platoon_sizes: tuple[int, ...]
+    formation_repetitions: int
     output_dir: str
 
 
@@ -88,12 +90,14 @@ def row_for_case(
     instance: Instance,
     threshold: int,
     max_platoon_size: int,
+    formation_repetitions: int,
 ) -> dict[str, object]:
     formation = form_rule_based_platoons(
         instance,
         "PP",
         threshold=threshold,
         max_platoon_size=max_platoon_size,
+        timing_repetitions=formation_repetitions,
     )
     unrestricted = optimum_for_sequences(
         enumerate_fifo_sequences(instance.counts),
@@ -132,6 +136,7 @@ def row_for_case(
         "number_of_platoons": sum(len(blocks) for blocks in formation.partition),
         "ordering_variable_count": ordering_variables(formation.partition),
         "formation_time_ms": formation.formation_time_ms,
+        "formation_repetitions": formation_repetitions,
         "scaled_actual_optimality_gap": scaled_gap,
         "actual_optimality_gap": fraction_label(Fraction(scaled_gap, instance.N)),
         "scaled_partition_specific_upper_bound": scaled_partition_bound,
@@ -154,15 +159,68 @@ def summarize(rows: list[dict[str, object]]) -> list[dict[str, object]]:
     summary: list[dict[str, object]] = []
     for (threshold, max_platoon_size), group in sorted(groups.items()):
         count = len(group)
+        scaled_gaps = [int(row["scaled_actual_optimality_gap"]) for row in group]
+        scaled_partition_bounds = [
+            int(row["scaled_partition_specific_upper_bound"]) for row in group
+        ]
+        scaled_rule_bounds = [int(row["scaled_rule_level_upper_bound"]) for row in group]
+        n_values = [int(row["N"]) for row in group]
+        actual_gaps = [
+            scaled_gap / n_value
+            for scaled_gap, n_value in zip(scaled_gaps, n_values, strict=True)
+        ]
+        partition_bounds = [
+            scaled_bound / n_value
+            for scaled_bound, n_value in zip(scaled_partition_bounds, n_values, strict=True)
+        ]
+        rule_bounds = [
+            scaled_bound / n_value
+            for scaled_bound, n_value in zip(scaled_rule_bounds, n_values, strict=True)
+        ]
+        valid_cases = sum(1 for row in group if row["bound_chain_valid"])
         summary.append(
             {
                 "threshold": threshold,
                 "max_platoon_size": max_platoon_size,
                 "cases": count,
-                "valid_cases": sum(1 for row in group if row["bound_chain_valid"]),
-                "mean_scaled_actual_gap": sum(int(row["scaled_actual_optimality_gap"]) for row in group) / count,
-                "mean_scaled_partition_bound": sum(int(row["scaled_partition_specific_upper_bound"]) for row in group) / count,
-                "mean_scaled_rule_bound": sum(int(row["scaled_rule_level_upper_bound"]) for row in group) / count,
+                "valid_cases": valid_cases,
+                "violation_rate": (count - valid_cases) / count,
+                "actual_equals_partition_bound_cases": sum(
+                    1
+                    for gap, bound in zip(scaled_gaps, scaled_partition_bounds, strict=True)
+                    if gap == bound
+                ),
+                "partition_equals_rule_bound_cases": sum(
+                    1
+                    for partition_bound, rule_bound in zip(
+                        scaled_partition_bounds,
+                        scaled_rule_bounds,
+                        strict=True,
+                    )
+                    if partition_bound == rule_bound
+                ),
+                "full_chain_equality_cases": sum(
+                    1
+                    for gap, partition_bound, rule_bound in zip(
+                        scaled_gaps,
+                        scaled_partition_bounds,
+                        scaled_rule_bounds,
+                        strict=True,
+                    )
+                    if gap == partition_bound == rule_bound
+                ),
+                "mean_actual_gap": sum(actual_gaps) / count,
+                "median_actual_gap": median(actual_gaps),
+                "mean_partition_specific_upper_bound": sum(partition_bounds) / count,
+                "median_partition_specific_upper_bound": median(partition_bounds),
+                "mean_rule_level_upper_bound": sum(rule_bounds) / count,
+                "median_rule_level_upper_bound": median(rule_bounds),
+                "mean_scaled_actual_gap": sum(scaled_gaps) / count,
+                "median_scaled_actual_gap": median(scaled_gaps),
+                "mean_scaled_partition_bound": sum(scaled_partition_bounds) / count,
+                "median_scaled_partition_bound": median(scaled_partition_bounds),
+                "mean_scaled_rule_bound": sum(scaled_rule_bounds) / count,
+                "median_scaled_rule_bound": median(scaled_rule_bounds),
                 "mean_number_of_platoons": sum(int(row["number_of_platoons"]) for row in group) / count,
                 "mean_ordering_variable_count": sum(int(row["ordering_variable_count"]) for row in group) / count,
             }
@@ -198,7 +256,15 @@ def run(config: TheoryConfig) -> dict[str, object]:
     for instance_id, instance in enumerate(instances(config)):
         for threshold in config.thresholds:
             for max_platoon_size in config.max_platoon_sizes:
-                rows.append(row_for_case(instance_id, instance, threshold, max_platoon_size))
+                rows.append(
+                    row_for_case(
+                        instance_id,
+                        instance,
+                        threshold,
+                        max_platoon_size,
+                        config.formation_repetitions,
+                    )
+                )
     summary = summarize(rows)
     violations = [row for row in rows if not row["bound_chain_valid"]]
     payload = {
@@ -225,6 +291,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-release", type=int, default=3)
     parser.add_argument("--thresholds", default="0,1,2,3")
     parser.add_argument("--max-platoon-sizes", default="1,2,3,4")
+    parser.add_argument("--formation-repetitions", type=int, default=20)
     parser.add_argument("--output-dir", default="../../results/rule_based_experiments/theory_smoke")
     return parser
 
@@ -238,6 +305,7 @@ def main() -> int:
         max_release=args.max_release,
         thresholds=parse_int_tuple(args.thresholds),
         max_platoon_sizes=parse_int_tuple(args.max_platoon_sizes),
+        formation_repetitions=args.formation_repetitions,
         output_dir=args.output_dir,
     )
     payload = run(config)

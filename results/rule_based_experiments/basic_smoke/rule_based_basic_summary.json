@@ -15,6 +15,7 @@
     "time_limit": 10.0,
     "threads": 1,
     "max_exact_total": 10,
+    "formation_repetitions": 20,
     "output_dir": "results/rule_based_experiments/basic_smoke"
   },
   "row_count": 12,
@@ -29,8 +30,8 @@
       "actual_gap_case_count": 2,
       "mean_number_of_platoons": 4.0,
       "mean_ordering_variable_count": 6.0,
-      "mean_formation_time_ms": 0.007957220077514648,
-      "mean_solve_time_s": 0.001983046531677246,
+      "mean_formation_time_ms": 0.003255,
+      "mean_solve_time_s": 0.001920938491821289,
       "mean_terminal_mip_gap": 0.0,
       "mean_node_count": 2.0
     },
@@ -44,8 +45,8 @@
       "actual_gap_case_count": 2,
       "mean_number_of_platoons": 8.0,
       "mean_ordering_variable_count": 24.0,
-      "mean_formation_time_ms": 0.0066747888922691345,
-      "mean_solve_time_s": 0.017845988273620605,
+      "mean_formation_time_ms": 0.00097925,
+      "mean_solve_time_s": 0.018777012825012207,
       "mean_terminal_mip_gap": 0.0,
       "mean_node_count": 58.0
     },
@@ -59,8 +60,8 @@
       "actual_gap_case_count": 2,
       "mean_number_of_platoons": 4.0,
       "mean_ordering_variable_count": 6.0,
-      "mean_formation_time_ms": 0.00396091490983963,
-      "mean_solve_time_s": 0.0019109249114990234,
+      "mean_formation_time_ms": 0.002266,
+      "mean_solve_time_s": 0.0018705129623413086,
       "mean_terminal_mip_gap": 0.0,
       "mean_node_count": 2.0
     },
@@ -74,8 +75,8 @@
       "actual_gap_case_count": 2,
       "mean_number_of_platoons": 4.0,
       "mean_ordering_variable_count": 6.0,
-      "mean_formation_time_ms": 0.011151190847158432,
-      "mean_solve_time_s": 0.003954648971557617,
+      "mean_formation_time_ms": 0.00377325,
+      "mean_solve_time_s": 0.004145979881286621,
       "mean_terminal_mip_gap": 0.0,
       "mean_node_count": 16.0
     },
@@ -89,8 +90,8 @@
       "actual_gap_case_count": 2,
       "mean_number_of_platoons": 12.0,
       "mean_ordering_variable_count": 54.0,
-      "mean_formation_time_ms": 0.006209127604961395,
-      "mean_solve_time_s": 0.49136650562286377,
+      "mean_formation_time_ms": 0.0018705,
+      "mean_solve_time_s": 0.5008854866027832,
       "mean_terminal_mip_gap": 0.0,
       "mean_node_count": 3146.0
     },
@@ -104,8 +105,8 @@
       "actual_gap_case_count": 2,
       "mean_number_of_platoons": 8.0,
       "mean_ordering_variable_count": 24.0,
-      "mean_formation_time_ms": 0.012032687664031982,
-      "mean_solve_time_s": 0.033361077308654785,
+      "mean_formation_time_ms": 0.00386825,
+      "mean_solve_time_s": 0.03346753120422363,
       "mean_terminal_mip_gap": 0.0,
       "mean_node_count": 202.5
     }

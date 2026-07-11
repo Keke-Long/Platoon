@@ -19,11 +19,8 @@ if str(VERIFY_DIR) not in sys.path:
 
 from model import Instance, Partition, partition_label, scaled_indexed_bound  # noqa: E402
 from metrics import fraction_label, ordering_variables, partition_metrics, vehicle_level_ordering_variables  # noqa: E402
-from partition_methods import (  # noqa: E402
-    bound_aware_loss_budget_partition,
-    fixed_size_partition,
-    release_gap_threshold_partition,
-)
+from legacy_partition_methods import bound_aware_loss_budget_partition  # noqa: E402
+from partition_methods import fixed_size_partition, release_gap_threshold_partition  # noqa: E402
 from partition_selection import solve_loss_budget, solve_size_budget  # noqa: E402
 from scheduling_milp import ScheduleResult, singleton_partition, solve_downstream_schedule  # noqa: E402
 

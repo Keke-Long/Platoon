@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 import time
 from dataclasses import dataclass
+from statistics import median
 from pathlib import Path
 from typing import Literal
 
@@ -97,6 +98,7 @@ def form_rule_based_platoons(
     method: RuleMethod,
     threshold: int | None = None,
     max_platoon_size: int | None = None,
+    timing_repetitions: int = 1,
 ) -> PlatoonFormationResult:
     """Form NP, CHP, or PP platoons by direct linear scanning.
 
@@ -104,28 +106,34 @@ def form_rule_based_platoons(
     optimization code and does not enumerate candidate partitions.
     """
 
-    start = time.perf_counter()
-    if method == "NP":
-        partition = no_platooning_partition(instance.counts)
-        resolved_threshold = None
-        resolved_max_platoon_size = 1
-    elif method == "CHP":
-        if threshold is None:
-            raise ValueError("CHP requires threshold")
-        partition = critical_headway_platooning(instance, threshold)
-        resolved_threshold = threshold
-        resolved_max_platoon_size = None
-    elif method == "PP":
-        if threshold is None:
-            raise ValueError("PP requires threshold")
-        if max_platoon_size is None:
-            raise ValueError("PP requires max_platoon_size")
-        partition = proposed_platooning(instance, threshold, max_platoon_size)
-        resolved_threshold = threshold
-        resolved_max_platoon_size = max_platoon_size
-    else:
+    if timing_repetitions <= 0:
+        raise ValueError("timing_repetitions must be positive")
+
+    def build() -> tuple[Partition, int | None, int | None]:
+        if method == "NP":
+            return no_platooning_partition(instance.counts), None, 1
+        if method == "CHP":
+            if threshold is None:
+                raise ValueError("CHP requires threshold")
+            return critical_headway_platooning(instance, threshold), threshold, None
+        if method == "PP":
+            if threshold is None:
+                raise ValueError("PP requires threshold")
+            if max_platoon_size is None:
+                raise ValueError("PP requires max_platoon_size")
+            return proposed_platooning(instance, threshold, max_platoon_size), threshold, max_platoon_size
         raise ValueError(f"unknown rule-based method: {method}")
-    elapsed_ms = (time.perf_counter() - start) * 1000.0
+
+    timings_ns: list[int] = []
+    partition: Partition | None = None
+    resolved_threshold: int | None = None
+    resolved_max_platoon_size: int | None = None
+    for _ in range(timing_repetitions):
+        start_ns = time.perf_counter_ns()
+        partition, resolved_threshold, resolved_max_platoon_size = build()
+        timings_ns.append(time.perf_counter_ns() - start_ns)
+    assert partition is not None
+    elapsed_ms = median(timings_ns) / 1_000_000.0
     return PlatoonFormationResult(
         method=method,
         partition=partition,
@@ -133,45 +141,3 @@ def form_rule_based_platoons(
         threshold=resolved_threshold,
         max_platoon_size=resolved_max_platoon_size,
     )
-
-
-def bound_aware_loss_budget_partition(
-    instance: Instance,
-    scaled_loss_budget: int,
-    max_platoon_size: int | None,
-    solver: str = "gurobi",
-    time_limit: float | None = None,
-) -> Partition:
-    from partition_selection import solve_loss_budget  # noqa: PLC0415
-
-    result = solve_loss_budget(
-        instance,
-        scaled_loss_budget,
-        max_platoon_size=max_platoon_size,
-        solver=solver,  # type: ignore[arg-type]
-        time_limit=time_limit,
-    )
-    if result.partition is None:
-        return no_platooning_partition(instance.counts)
-    return result.partition
-
-
-def bound_aware_size_budget_partition(
-    instance: Instance,
-    ordering_budget: int,
-    max_platoon_size: int | None,
-    solver: str = "gurobi",
-    time_limit: float | None = None,
-) -> Partition:
-    from partition_selection import solve_size_budget  # noqa: PLC0415
-
-    result = solve_size_budget(
-        instance,
-        ordering_budget,
-        max_platoon_size=max_platoon_size,
-        solver=solver,  # type: ignore[arg-type]
-        time_limit=time_limit,
-    )
-    if result.partition is None:
-        return no_platooning_partition(instance.counts)
-    return result.partition
