@@ -146,7 +146,11 @@ def solve_and_record(
     )
     metrics = partition_metrics(instance, partition)
     actual_gap = None
-    if schedule.objective_average_delay is not None and vehicle_average_delay is not None:
+    if (
+        schedule.status == "OPTIMAL"
+        and schedule.objective_average_delay is not None
+        and vehicle_average_delay is not None
+    ):
         actual_gap = schedule.objective_average_delay - vehicle_average_delay
     return {
         "experiment_group": "comparison_runtime",
@@ -229,7 +233,11 @@ def frontier_rows_for_instance(
         )
         metrics = partition_metrics(instance, partition)
         actual_gap = None
-        if schedule.objective_average_delay is not None and vehicle_average_delay is not None:
+        if (
+            schedule.status == "OPTIMAL"
+            and schedule.objective_average_delay is not None
+            and vehicle_average_delay is not None
+        ):
             actual_gap = schedule.objective_average_delay - vehicle_average_delay
         rows.append(
             {
@@ -371,7 +379,11 @@ def run_suite(config: SuiteConfig) -> dict[str, object]:
             time_limit=config.time_limit,
             threads=config.threads,
         )
-        vehicle_average_delay = vehicle_schedule.objective_average_delay
+        vehicle_average_delay = (
+            vehicle_schedule.objective_average_delay
+            if vehicle_schedule.status == "OPTIMAL"
+            else None
+        )
         partitions = method_partitions(
             instance,
             scenario,

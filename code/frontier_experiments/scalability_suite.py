@@ -41,6 +41,7 @@ class ScalabilityConfig:
     threads: int
     output_dir: str
     frontier_instance_limit: int
+    frontier_budget_count: int
 
 
 @dataclass(frozen=True)
@@ -136,19 +137,51 @@ def target_ordering_budget(instance: Instance, reduction_target: float) -> int:
     return max(1, round(c0 * (1.0 - reduction_target)))
 
 
-def choose_closest_dimension(
+def choose_largest_feasible_dimension(
     candidates: Iterable[tuple[str, Partition]],
     target_c: int,
 ) -> tuple[str, Partition]:
-    best: tuple[tuple[int, int, str], str, Partition] | None = None
+    best_feasible: tuple[tuple[int, str], str, Partition] | None = None
+    smallest: tuple[tuple[int, str], str, Partition] | None = None
     for label, partition in candidates:
         c_pi = ordering_variables(partition)
-        key = (abs(c_pi - target_c), c_pi, label)
-        if best is None or key < best[0]:
-            best = (key, label, partition)
-    if best is None:
-        raise ValueError("at least one candidate partition is required")
-    return best[1], best[2]
+        smallest_key = (c_pi, label)
+        if smallest is None or smallest_key < smallest[0]:
+            smallest = (smallest_key, label, partition)
+        if c_pi <= target_c:
+            key = (-c_pi, label)
+            if best_feasible is None or key < best_feasible[0]:
+                best_feasible = (key, label, partition)
+    if best_feasible is not None:
+        return best_feasible[1], best_feasible[2]
+    raise ValueError("at least one candidate partition is required")
+
+
+def sampled_budgets(min_budget: int, max_budget: int, count: int) -> list[int]:
+    if count <= 0 or min_budget >= max_budget:
+        return [min_budget]
+    values = {
+        round(min_budget + (max_budget - min_budget) * step / count)
+        for step in range(count + 1)
+    }
+    values.add(min_budget)
+    values.add(max_budget)
+    return sorted(values)
+
+
+def min_budget_for_max_platoon_size(instance: Instance, max_platoon_size: int) -> int:
+    aggressive = tuple(
+        tuple(
+            [max_platoon_size] * (count // max_platoon_size)
+            + ([count % max_platoon_size] if count % max_platoon_size else [])
+        )
+        for count in instance.counts
+    )
+    return ordering_variables(aggressive)
+
+
+def is_small_frontier_instance(instance: Instance) -> bool:
+    return instance.N <= 20
 
 
 def fixed_size_candidates(instance: Instance, max_platoon_size: int) -> list[tuple[str, Partition]]:
@@ -192,6 +225,7 @@ def record_method(
     replication: int,
     target: float,
     target_c: int,
+    raw_target_c: int,
     method_family: str,
     method_detail: str,
     partition: Partition,
@@ -199,6 +233,7 @@ def record_method(
     partition_model_construction_time: float,
     partition_optimization_time: float,
     vehicle_average_delay: float | None,
+    vehicle_schedule,
     config: ScalabilityConfig,
 ) -> dict[str, object]:
     schedule = solve_downstream_schedule(
@@ -210,13 +245,19 @@ def record_method(
     metrics = partition_metrics(instance, partition)
     theoretical_bound = float(Fraction(metrics.scaled_indexed_bound, instance.N))
     actual_gap = None
-    if schedule.objective_average_delay is not None and vehicle_average_delay is not None:
+    if (
+        schedule.status == "OPTIMAL"
+        and vehicle_schedule.status == "OPTIMAL"
+        and schedule.objective_average_delay is not None
+        and vehicle_average_delay is not None
+    ):
         actual_gap = schedule.objective_average_delay - vehicle_average_delay
     gap_within_bound = None if actual_gap is None else actual_gap <= theoretical_bound + 1e-7
     return {
         "scenario": scenario.name,
         "replication": replication,
         "target_dimension_reduction": target,
+        "raw_target_ordering_budget": raw_target_c,
         "target_ordering_budget": target_c,
         "method_family": method_family,
         "method_detail": method_detail,
@@ -239,6 +280,13 @@ def record_method(
         "actual_average_gap": actual_gap,
         "actual_gap_le_indexed_bound": gap_within_bound,
         "vehicle_level_average_delay": vehicle_average_delay,
+        "vehicle_level_status": vehicle_schedule.status,
+        "vehicle_level_mip_gap": vehicle_schedule.mip_gap,
+        "vehicle_level_nodes": vehicle_schedule.node_count,
+        "vehicle_level_time_to_first_feasible": vehicle_schedule.time_to_first_feasible,
+        "vehicle_level_model_construction_seconds": vehicle_schedule.model_construction_seconds,
+        "vehicle_level_downstream_optimization_seconds": vehicle_schedule.runtime_seconds,
+        "vehicle_level_wall_time_seconds": vehicle_schedule.end_to_end_seconds,
         "objective_average_delay": schedule.objective_average_delay,
         "status": schedule.status,
         "mip_gap": schedule.mip_gap,
@@ -250,7 +298,7 @@ def record_method(
         "model_construction_seconds": schedule.model_construction_seconds,
         "downstream_optimization_seconds": schedule.runtime_seconds,
         "end_to_end_seconds": (
-            partition_time + schedule.model_construction_seconds + schedule.runtime_seconds
+            partition_time + schedule.end_to_end_seconds
         ),
     }
 
@@ -262,18 +310,14 @@ def complete_frontier_rows(
     config: ScalabilityConfig,
 ) -> list[dict[str, object]]:
     c0 = vehicle_level_ordering_variables(instance.counts)
-    min_c = ordering_variables(
-        tuple(
-            tuple(
-                [config.max_platoon_size] * (count // config.max_platoon_size)
-                + ([count % config.max_platoon_size] if count % config.max_platoon_size else [])
-            )
-            for count in instance.counts
-        )
-    )
+    min_c = min_budget_for_max_platoon_size(instance, config.max_platoon_size)
     rows: list[dict[str, object]] = []
     last_pair: tuple[int | None, int | None] = (None, None)
-    for budget in range(min_c, c0 + 1):
+    if is_small_frontier_instance(instance):
+        budgets = range(min_c, c0 + 1)
+    else:
+        budgets = sampled_budgets(min_c, c0, config.frontier_budget_count)
+    for budget in budgets:
         result = solve_size_budget(
             instance,
             budget,
@@ -437,9 +481,17 @@ def run(config: ScalabilityConfig) -> dict[str, object]:
                 time_limit=config.time_limit,
                 threads=config.threads,
             )
-            vehicle_average_delay = vehicle_schedule.objective_average_delay
+            vehicle_average_delay = (
+                vehicle_schedule.objective_average_delay
+                if vehicle_schedule.status == "OPTIMAL"
+                else None
+            )
             for target in config.targets:
-                target_c = target_ordering_budget(instance, target)
+                raw_target_c = target_ordering_budget(instance, target)
+                target_c = max(
+                    raw_target_c,
+                    min_budget_for_max_platoon_size(instance, config.max_platoon_size),
+                )
 
                 proposed_result, proposed_partition = solve_partition_proposed(
                     instance,
@@ -453,6 +505,7 @@ def run(config: ScalabilityConfig) -> dict[str, object]:
                         replication,
                         target,
                         target_c,
+                        raw_target_c,
                         "proposed_bound_aware",
                         "min_Bidx_under_C_budget",
                         proposed_partition,
@@ -460,11 +513,12 @@ def run(config: ScalabilityConfig) -> dict[str, object]:
                         proposed_result.model_construction_seconds or 0.0,
                         proposed_result.runtime_seconds or 0.0,
                         vehicle_average_delay,
+                        vehicle_schedule,
                         config,
                     )
                 )
 
-                fixed_label, fixed_partition = choose_closest_dimension(
+                fixed_label, fixed_partition = choose_largest_feasible_dimension(
                     fixed_size_candidates(instance, config.max_platoon_size),
                     target_c,
                 )
@@ -475,6 +529,7 @@ def run(config: ScalabilityConfig) -> dict[str, object]:
                         replication,
                         target,
                         target_c,
+                        raw_target_c,
                         "fixed_size_closest_dimension",
                         fixed_label,
                         fixed_partition,
@@ -482,11 +537,12 @@ def run(config: ScalabilityConfig) -> dict[str, object]:
                         0.0,
                         0.0,
                         vehicle_average_delay,
+                        vehicle_schedule,
                         config,
                     )
                 )
 
-                threshold_label, threshold_partition = choose_closest_dimension(
+                threshold_label, threshold_partition = choose_largest_feasible_dimension(
                     threshold_candidates(instance, config.max_platoon_size),
                     target_c,
                 )
@@ -497,6 +553,7 @@ def run(config: ScalabilityConfig) -> dict[str, object]:
                         replication,
                         target,
                         target_c,
+                        raw_target_c,
                         "threshold_closest_dimension",
                         threshold_label,
                         threshold_partition,
@@ -504,11 +561,12 @@ def run(config: ScalabilityConfig) -> dict[str, object]:
                         0.0,
                         0.0,
                         vehicle_average_delay,
+                        vehicle_schedule,
                         config,
                     )
                 )
 
-            if len(frontier_rows) < config.frontier_instance_limit:
+            if len(frontier_rows) < config.frontier_instance_limit and is_small_frontier_instance(instance):
                 frontier_rows.extend(complete_frontier_rows(instance, scenario, replication, config))
         print(f"completed {scenario_index + 1}/{len(scenario_list)} {scenario.name}", flush=True)
         write_current_outputs()
@@ -531,6 +589,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--time-limit", type=float, default=30.0)
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--frontier-instance-limit", type=int, default=2)
+    parser.add_argument("--frontier-budget-count", type=int, default=12)
     parser.add_argument("--output-dir", default="../../results/frontier_experiments/scalability_pilot")
     return parser
 
@@ -552,6 +611,7 @@ def main() -> int:
         threads=args.threads,
         output_dir=args.output_dir,
         frontier_instance_limit=args.frontier_instance_limit,
+        frontier_budget_count=args.frontier_budget_count,
     )
     started = time.perf_counter()
     payload = run(config)

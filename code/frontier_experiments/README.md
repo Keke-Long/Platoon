@@ -97,11 +97,31 @@ The suite covers the dimension-loss frontier, comparisons with vehicle-level,
 fixed-size, fixed-threshold, and bound-aware partitions, and downstream Gurobi
 runtime metrics for each selected partition.
 
-Run the fair dimension-target scalability suite:
+Run the fair dimension-target scalability suite. The recommended paper design
+uses three smaller scenario families rather than the full Cartesian grid.
+
+Scalability fixes `L=4`, balanced demand, and Poisson arrivals while varying
+`N`:
 
 ```bash
-python scalability_suite.py \
+python run_scalability_batches.py \
   --n-values 20,30,40,60 \
+  --l-values 4 \
+  --demand-patterns balanced \
+  --arrival-modes poisson \
+  --targets 0.25,0.5,0.75,0.9 \
+  --reps-per-cell 30 \
+  --time-limit 30 \
+  --threads 1 \
+  --resume \
+  --output-dir ../../results/frontier_experiments/scalability_final
+```
+
+Robustness fixes `N=30` and varies approaches, demand balance, and arrivals:
+
+```bash
+python run_scalability_batches.py \
+  --n-values 30 \
   --l-values 3,4 \
   --demand-patterns balanced,unbalanced \
   --arrival-modes uniform,poisson,bursty \
@@ -109,33 +129,48 @@ python scalability_suite.py \
   --reps-per-cell 30 \
   --time-limit 30 \
   --threads 1 \
-  --output-dir ../../results/frontier_experiments/scalability_full
+  --resume \
+  --output-dir ../../results/frontier_experiments/robustness_final
 ```
 
-For a fast pilot that still spans all listed sizes and scenario classes, use
-`--reps-per-cell 1` and keep the output directory named `scalability_pilot`.
-The recorded end-to-end time is
-
-```text
-T_total = T_partition + T_model_construction + T_downstream
-```
-
-where partition time is nonzero for the proposed bound-aware partition and
-zero for rule-based fixed-size and threshold baselines.
-
-For long full runs, split the grid into independent scenario batches:
+Headway sensitivity fixes one representative scenario and varies `hS/hF`:
 
 ```bash
 python run_scalability_batches.py \
+  --n-values 30 \
+  --l-values 4 \
+  --demand-patterns balanced \
+  --arrival-modes poisson \
+  --hS-values 2,3,4 \
+  --targets 0.25,0.5,0.75,0.9 \
   --reps-per-cell 30 \
   --time-limit 30 \
   --threads 1 \
   --resume \
-  --output-dir ../../results/frontier_experiments/scalability_full_wls
+  --output-dir ../../results/frontier_experiments/headway_final
+```
 
+For a smoke test, use `--reps-per-cell 2` on a single scenario and keep the
+output directory clearly named as a smoke result.
+The recorded end-to-end time is
+
+```text
+T_total = T_partition + T_downstream_wall
+```
+
+where partition time is nonzero for the proposed bound-aware partition and
+zero for rule-based fixed-size and threshold baselines. The downstream wall
+time includes model construction and Gurobi optimization. Vehicle-level runtime
+is recorded separately for each traffic instance.
+
+Aggregate completed batches with:
+
+```bash
 python aggregate_scalability_batches.py \
-  ../../results/frontier_experiments/scalability_full_wls
+  ../../results/frontier_experiments/scalability_final
 ```
 
 The batch runner writes each scenario under `batches/<scenario>/` and updates a
-manifest after every completed scenario.
+manifest after every completed scenario. Complete integer-budget frontiers are
+generated only for small representative instances; larger instances use sampled
+frontier budgets.

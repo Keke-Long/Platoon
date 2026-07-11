@@ -9,6 +9,9 @@ if str(VERIFY_DIR) not in sys.path:
 
 from model import Instance  # noqa: E402
 from scheduling_milp import solve_downstream_schedule, units_from_partition
+from enumerate_partitions import enumerate_partitions  # noqa: E402
+from enumerate_sequences import enumerate_platoon_sequences  # noqa: E402
+from model import optimum_for_sequences  # noqa: E402
 
 
 def test_units_from_partition() -> None:
@@ -32,3 +35,19 @@ def test_platoon_internal_release_slack_does_not_delay_early_vehicles() -> None:
     assert result.status == "OPTIMAL"
     assert result.objective_total_delay is not None
     assert round(result.objective_total_delay) == 0
+
+
+def test_downstream_milp_matches_exact_enumeration_on_small_instance() -> None:
+    instance = Instance(counts=(2, 2), releases=((0, 3), (1, 2)), hF=1, hS=2)
+    for partition in enumerate_partitions(instance.counts):
+        exact = optimum_for_sequences(
+            enumerate_platoon_sequences(partition),
+            instance.release_map,
+            instance.hF,
+            instance.hS,
+            keep_all=False,
+        )
+        milp = solve_downstream_schedule(instance, partition, time_limit=5, threads=1)
+        assert milp.status == "OPTIMAL"
+        assert milp.objective_total_delay is not None
+        assert round(milp.objective_total_delay) == exact.total_delay
