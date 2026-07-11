@@ -5,9 +5,9 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{enumitem}
-\ifelsevierclass\else
-\usepackage[margin=1in]{geometry}
-\fi
+% Compact draft layout to provide more horizontal space for figures.
+% The publisher's final production template may override these dimensions.
+\usepackage[left=0.65in,right=0.65in,top=0.70in,bottom=0.70in]{geometry}
 
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 \setlength{\emergencystretch}{1em}
