@@ -9,6 +9,32 @@ import os
 import statistics
 from pathlib import Path
 
+FIGSIZE = (4.8, 3.2)
+LABEL_FONTSIZE = 11
+TICK_FONTSIZE = 10
+LEGEND_FONTSIZE = 11
+GRID_ALPHA = 0.24
+
+METHOD_COLORS = {
+    "proposed_bound_aware": "#7FAF9A",
+    "fixed_size_closest_dimension": "#B7A07A",
+    "threshold_closest_dimension": "#9C8FAE",
+}
+
+METHOD_EDGES = {
+    "proposed_bound_aware": "#557C69",
+    "fixed_size_closest_dimension": "#7D6B4A",
+    "threshold_closest_dimension": "#6F6480",
+}
+
+METHOD_HATCHES = {
+    "proposed_bound_aware": "///",
+    "fixed_size_closest_dimension": "\\\\\\",
+    "threshold_closest_dimension": "...",
+}
+
+VEHICLE_LINE = "#5B616B"
+VEHICLE_MARKER_FACE = "#D9D4CC"
 
 METHODS = (
     "proposed_bound_aware",
@@ -95,14 +121,14 @@ def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
         writer.writerows(rows)
 
 
-def plot_grouped_bars(output_path: Path, data: list[dict[str, object]], field: str, ylabel: str, title: str) -> None:
+def plot_grouped_bars(output_path: Path, data: list[dict[str, object]], field: str, ylabel: str) -> None:
     os.environ.setdefault("MPLCONFIGDIR", str(output_path.parent / ".mplconfig"))
     import matplotlib.pyplot as plt
 
     scenarios = sorted({str(row["scenario"]) for row in data}, key=lambda name: int(name[1:]))
     x = list(range(len(scenarios)))
     width = 0.22
-    fig, ax = plt.subplots(figsize=(7.2, 4.2))
+    fig, ax = plt.subplots(figsize=FIGSIZE)
     for index, method in enumerate(METHODS):
         subset = [row for row in data if row["method_family"] == method]
         subset_by_scenario = {str(row["scenario"]): row for row in subset}
@@ -111,15 +137,19 @@ def plot_grouped_bars(output_path: Path, data: list[dict[str, object]], field: s
             [float(subset_by_scenario[scenario][field]) for scenario in scenarios],
             width=width,
             label=METHOD_LABELS[method],
+            color=METHOD_COLORS[method],
+            edgecolor=METHOD_EDGES[method],
+            linewidth=0.9,
+            hatch=METHOD_HATCHES[method],
         )
     ax.set_xticks(x)
-    ax.set_xticklabels(scenarios)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)
-    ax.grid(axis="y", linewidth=0.4, alpha=0.4)
-    ax.legend(frameon=False)
+    ax.set_xticklabels(scenarios, fontsize=TICK_FONTSIZE)
+    ax.set_ylabel(ylabel, fontsize=LABEL_FONTSIZE)
+    ax.tick_params(axis="y", labelsize=TICK_FONTSIZE)
+    ax.grid(axis="y", linewidth=0.5, alpha=GRID_ALPHA)
+    ax.legend(frameon=False, fontsize=LEGEND_FONTSIZE)
     fig.tight_layout()
-    fig.savefig(output_path, dpi=220)
+    fig.savefig(output_path, dpi=300)
     plt.close(fig)
 
 
@@ -130,7 +160,7 @@ def plot_dimension_reduction(output_path: Path, data: list[dict[str, object]], v
     scenarios = sorted({str(row["scenario"]) for row in data}, key=lambda name: int(name[1:]))
     x = list(range(len(scenarios)))
     width = 0.22
-    fig, ax = plt.subplots(figsize=(7.2, 4.2))
+    fig, ax = plt.subplots(figsize=FIGSIZE)
     for index, method in enumerate(METHODS):
         subset = [row for row in data if row["method_family"] == method]
         subset_by_scenario = {str(row["scenario"]): row for row in subset}
@@ -139,24 +169,31 @@ def plot_dimension_reduction(output_path: Path, data: list[dict[str, object]], v
             [float(subset_by_scenario[scenario]["mean_ordering_variables"]) for scenario in scenarios],
             width=width,
             label=METHOD_LABELS[method],
+            color=METHOD_COLORS[method],
+            edgecolor=METHOD_EDGES[method],
+            linewidth=0.9,
+            hatch=METHOD_HATCHES[method],
         )
     vehicle_by_scenario = {str(row["scenario"]): row for row in vehicle_rows}
     ax.plot(
         x,
         [float(vehicle_by_scenario[scenario]["vehicle_level_ordering_variables"]) for scenario in scenarios],
-        color="black",
+        color=VEHICLE_LINE,
         marker="o",
-        linewidth=1.2,
+        markerfacecolor=VEHICLE_MARKER_FACE,
+        markeredgecolor=VEHICLE_LINE,
+        markersize=5.5,
+        linewidth=1.8,
         label="Vehicle level",
     )
     ax.set_xticks(x)
-    ax.set_xticklabels(scenarios)
-    ax.set_ylabel("Mean ordering variables")
-    ax.set_title("Dimension reduction across problem sizes")
-    ax.grid(axis="y", linewidth=0.4, alpha=0.4)
-    ax.legend(frameon=False, ncol=2)
+    ax.set_xticklabels(scenarios, fontsize=TICK_FONTSIZE)
+    ax.set_ylabel("Mean ordering variables", fontsize=LABEL_FONTSIZE)
+    ax.tick_params(axis="y", labelsize=TICK_FONTSIZE)
+    ax.grid(axis="y", linewidth=0.5, alpha=GRID_ALPHA)
+    ax.legend(frameon=False, ncol=2, fontsize=LEGEND_FONTSIZE)
     fig.tight_layout()
-    fig.savefig(output_path, dpi=220)
+    fig.savefig(output_path, dpi=300)
     plt.close(fig)
 
 
@@ -186,10 +223,10 @@ def build_artifacts(output_dir: Path, scenario_dirs: dict[str, Path]) -> dict[st
     )
 
     plot_dimension_reduction(output_dir / "dimension_reduction_by_scale.png", data, vehicle_rows)
-    plot_grouped_bars(output_dir / "optimality_rate_by_scale.png", data, "optimality_rate", "Optimality rate", "Reduced-model optimality rate")
-    plot_grouped_bars(output_dir / "mip_gap_by_scale.png", data, "mean_mip_gap", "Mean MIP gap", "Reduced-model MIP gap under 30-second limit")
-    plot_grouped_bars(output_dir / "runtime_by_scale.png", data, "mean_end_to_end_seconds", "Mean end-to-end seconds", "End-to-end runtime across problem sizes")
-    plot_grouped_bars(output_dir / "nodes_by_scale.png", data, "mean_nodes", "Mean branch-and-bound nodes", "Branch-and-bound nodes across problem sizes")
+    plot_grouped_bars(output_dir / "optimality_rate_by_scale.png", data, "optimality_rate", "Optimality rate")
+    plot_grouped_bars(output_dir / "mip_gap_by_scale.png", data, "mean_mip_gap", "Mean MIP gap")
+    plot_grouped_bars(output_dir / "runtime_by_scale.png", data, "mean_end_to_end_seconds", "Mean end-to-end seconds")
+    plot_grouped_bars(output_dir / "nodes_by_scale.png", data, "mean_nodes", "Mean branch-and-bound nodes")
 
     payload = {
         "scenario_count": len(scenario_dirs),

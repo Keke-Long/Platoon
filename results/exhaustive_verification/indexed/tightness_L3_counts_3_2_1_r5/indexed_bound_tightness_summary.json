@@ -1,5 +1,5 @@
 {
-  "partition_rows": "../../results/exhaustive_verification/indexed/tightness_L3_counts_3_2_1_r5/indexed_partition_rows.csv",
+  "partition_rows": "results/exhaustive_verification/indexed/tightness_L3_counts_3_2_1_r5/indexed_partition_rows.csv",
   "instance_count": 21168,
   "common_budgets": [
     3,

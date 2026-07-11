@@ -13,6 +13,18 @@ from statistics import quantiles
 
 import matplotlib.pyplot as plt
 
+FIGSIZE = (4.8, 3.2)
+LABEL_FONTSIZE = 11
+TICK_FONTSIZE = 10
+LEGEND_FONTSIZE = 11
+ANNOTATION_FONTSIZE = 10
+GRID_ALPHA = 0.24
+
+BOUND_FILL = "#B7CDBE"
+BOUND_EDGE = "#6B8F7C"
+ORACLE_FILL = "#D4B4A7"
+ORACLE_EDGE = "#9A6A5C"
+
 
 @dataclass(frozen=True)
 class PartitionRow:
@@ -191,42 +203,38 @@ def main() -> int:
     oracle_q3 = [quartiles([float(value) for value in oracle_curve[budget]])[1] for budget in budgets]
 
     plt.style.use("seaborn-v0_8-whitegrid")
-    fig, ax = plt.subplots(figsize=(4.8, 3.3))
-    bound_fill = "mediumaquamarine"
-    bound_edge = "seagreen"
-    oracle_edge = "#8b0000"
-    oracle_fill = "#c76b54"
-    ax.fill_between(budgets, bound_q1, bound_q3, color=bound_fill, alpha=0.25)
-    ax.fill_between(budgets, oracle_q1, oracle_q3, color=oracle_fill, alpha=0.18)
+    fig, ax = plt.subplots(figsize=FIGSIZE)
+    ax.fill_between(budgets, bound_q1, bound_q3, color=BOUND_FILL, alpha=0.22)
+    ax.fill_between(budgets, oracle_q1, oracle_q3, color=ORACLE_FILL, alpha=0.18)
     ax.plot(
         budgets,
         bound_means,
-        color=bound_edge,
+        color=BOUND_EDGE,
         linewidth=2.0,
         marker="o",
         markersize=5.5,
-        markerfacecolor=bound_fill,
-        markeredgecolor=bound_edge,
+        markerfacecolor=BOUND_FILL,
+        markeredgecolor=BOUND_EDGE,
         label="Bound-selected",
     )
     ax.plot(
         budgets,
         oracle_means,
-        color=oracle_edge,
+        color=ORACLE_EDGE,
         linewidth=2.0,
         linestyle="--",
         marker="s",
         markersize=5.2,
-        markerfacecolor=oracle_fill,
-        markeredgecolor=oracle_edge,
+        markerfacecolor=ORACLE_FILL,
+        markeredgecolor=ORACLE_EDGE,
         label="Actual-gap oracle",
     )
-    ax.set_xlabel(r"Dimension budget $\bar C$", fontsize=11)
-    ax.set_ylabel(r"Actual optimality gap $G(\Pi)$", fontsize=11)
+    ax.set_xlabel(r"Dimension budget $\bar C$", fontsize=LABEL_FONTSIZE)
+    ax.set_ylabel(r"Actual optimality gap $G(\Pi)$", fontsize=LABEL_FONTSIZE)
     ax.set_xticks(budgets)
-    ax.tick_params(axis="both", labelsize=11)
-    ax.legend(frameon=False, fontsize=11, loc="upper right")
-    ax.grid(True, alpha=0.3)
+    ax.tick_params(axis="both", labelsize=TICK_FONTSIZE)
+    ax.legend(frameon=False, fontsize=LEGEND_FONTSIZE, loc="upper right")
+    ax.grid(True, alpha=GRID_ALPHA, linewidth=0.5)
 
     mean_regret = Fraction(regret_sum, len(selection_rows) * n)
     annotation = "\n".join(
@@ -243,7 +251,7 @@ def main() -> int:
         transform=ax.transAxes,
         va="top",
         ha="left",
-        fontsize=11,
+        fontsize=ANNOTATION_FONTSIZE,
         bbox={"facecolor": "white", "edgecolor": "#cccccc", "alpha": 0.9, "boxstyle": "round,pad=0.3"},
     )
     fig.tight_layout()

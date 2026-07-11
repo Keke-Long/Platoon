@@ -8,6 +8,17 @@ import os
 from fractions import Fraction
 from pathlib import Path
 
+FIGSIZE = (4.8, 3.2)
+LABEL_FONTSIZE = 11
+TICK_FONTSIZE = 10
+LEGEND_FONTSIZE = 11
+GRID_ALPHA = 0.24
+
+BOUND_COLOR = "#6B8F7C"
+BOUND_MARKER = "#B7CDBE"
+ACTUAL_COLOR = "#9A6A5C"
+ACTUAL_MARKER = "#D4B4A7"
+REFERENCE_COLOR = "#7A7F87"
 
 def parse_fraction(value: object) -> float | None:
     if value is None:
@@ -50,25 +61,39 @@ def plot_frontier(input_path: Path, output_path: Path) -> None:
         for row in rows
     ]
 
-    fig, ax = plt.subplots(figsize=(6.2, 4.1))
-    ax.plot(x_values, bound_values, marker="o", linewidth=1.8, label="Indexed loss bound")
+    fig, ax = plt.subplots(figsize=FIGSIZE)
+    ax.plot(
+        x_values,
+        bound_values,
+        marker="o",
+        markersize=5.2,
+        markerfacecolor=BOUND_MARKER,
+        markeredgecolor=BOUND_COLOR,
+        color=BOUND_COLOR,
+        linewidth=1.9,
+        label="Indexed loss bound",
+    )
     if all(value is not None for value in actual_values):
         ax.plot(
             x_values,
             [float(value) for value in actual_values],
             marker="s",
-            linewidth=1.4,
+            markersize=5.0,
+            markerfacecolor=ACTUAL_MARKER,
+            markeredgecolor=ACTUAL_COLOR,
+            color=ACTUAL_COLOR,
+            linewidth=1.7,
             label="Actual optimality gap",
         )
-    ax.axvline(c0, color="0.35", linestyle="--", linewidth=1.0, label="Vehicle-level dimension")
-    ax.set_xlabel("Ordering variables C(Pi)")
-    ax.set_ylabel("Average delay loss")
-    ax.set_title("Dimension-loss frontier")
-    ax.grid(True, linewidth=0.4, alpha=0.4)
-    ax.legend(frameon=False)
+    ax.axvline(c0, color=REFERENCE_COLOR, linestyle="--", linewidth=1.0, label="Vehicle-level dimension")
+    ax.set_xlabel("Ordering variables C(Pi)", fontsize=LABEL_FONTSIZE)
+    ax.set_ylabel("Average delay loss", fontsize=LABEL_FONTSIZE)
+    ax.tick_params(axis="both", labelsize=TICK_FONTSIZE)
+    ax.grid(True, linewidth=0.5, alpha=GRID_ALPHA)
+    ax.legend(frameon=False, fontsize=LEGEND_FONTSIZE)
     fig.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, dpi=200)
+    fig.savefig(output_path, dpi=300)
     plt.close(fig)
 
 
@@ -88,4 +113,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
