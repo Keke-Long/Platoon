@@ -1,0 +1,984 @@
+{
+  "replication": 24,
+  "instance_seed": 5281668653312619495,
+  "scenario": {
+    "name": "N30_L4_balanced_poisson_hS2",
+    "counts": [
+      8,
+      8,
+      7,
+      7
+    ],
+    "demand_pattern": "balanced",
+    "arrival_mode": "poisson",
+    "hF": 1,
+    "hS": 2,
+    "max_release": 60
+  },
+  "rows": [
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.25,
+      "raw_target_ordering_budget": 253,
+      "target_ordering_budget": 253,
+      "method_family": "proposed_bound_aware",
+      "method_detail": "min_Bidx_under_C_budget",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          1,
+          1,
+          1,
+          2,
+          1,
+          2
+        ],
+        [
+          1,
+          4,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          3,
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          1,
+          2,
+          1
+        ]
+      ],
+      "total_platoons": 20,
+      "platoons_by_approach": [
+        6,
+        5,
+        4,
+        5
+      ],
+      "ordering_variables": 149,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.5578635014836796,
+      "scaled_indexed_bound": 0,
+      "indexed_bound": 0.0,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.633333333333334,
+      "status": "TIME_LIMIT",
+      "mip_gap": 0.39984931020942727,
+      "nodes": 72086.0,
+      "time_to_first_feasible": 0.001650094985961914,
+      "partition_time_seconds": 0.010665124282240868,
+      "partition_model_construction_seconds": 0.007572712376713753,
+      "partition_optimization_seconds": 0.0029239654541015625,
+      "model_construction_seconds": 0.00595980416983366,
+      "downstream_optimization_seconds": 30.00018000602722,
+      "end_to_end_seconds": 30.016857628710568
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.25,
+      "raw_target_ordering_budget": 253,
+      "target_ordering_budget": 253,
+      "method_family": "fixed_size_closest_dimension",
+      "method_detail": "fixed_size_2",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          2,
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          2,
+          1
+        ]
+      ],
+      "total_platoons": 16,
+      "platoons_by_approach": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "ordering_variables": 96,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.7151335311572701,
+      "scaled_indexed_bound": 792,
+      "indexed_bound": 26.4,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.8,
+      "status": "OPTIMAL",
+      "mip_gap": 0.0,
+      "nodes": 95100.0,
+      "time_to_first_feasible": 0.001107931137084961,
+      "partition_time_seconds": 1.6184523701667786e-05,
+      "partition_model_construction_seconds": 1.6184523701667786e-05,
+      "partition_optimization_seconds": 0.0,
+      "model_construction_seconds": 0.0056489454582333565,
+      "downstream_optimization_seconds": 25.247175931930542,
+      "end_to_end_seconds": 25.252898165024817
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.25,
+      "raw_target_ordering_budget": 253,
+      "target_ordering_budget": 253,
+      "method_family": "threshold_closest_dimension",
+      "method_detail": "release_gap_threshold_0",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          2,
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          2,
+          1,
+          2,
+          1
+        ]
+      ],
+      "total_platoons": 25,
+      "platoons_by_approach": [
+        7,
+        7,
+        6,
+        5
+      ],
+      "ordering_variables": 233,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.3086053412462908,
+      "scaled_indexed_bound": 0,
+      "indexed_bound": 0.0,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.766666666666667,
+      "status": "TIME_LIMIT",
+      "mip_gap": 0.5901482612446595,
+      "nodes": 31829.0,
+      "time_to_first_feasible": 0.002257108688354492,
+      "partition_time_seconds": 4.219450056552887e-05,
+      "partition_model_construction_seconds": 4.219450056552887e-05,
+      "partition_optimization_seconds": 0.0,
+      "model_construction_seconds": 0.008318337611854076,
+      "downstream_optimization_seconds": 30.000200986862183,
+      "end_to_end_seconds": 30.00861570239067
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.5,
+      "raw_target_ordering_budget": 168,
+      "target_ordering_budget": 168,
+      "method_family": "proposed_bound_aware",
+      "method_detail": "min_Bidx_under_C_budget",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          1,
+          1,
+          1,
+          2,
+          1,
+          2
+        ],
+        [
+          1,
+          4,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          3,
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          1,
+          2,
+          1
+        ]
+      ],
+      "total_platoons": 20,
+      "platoons_by_approach": [
+        6,
+        5,
+        4,
+        5
+      ],
+      "ordering_variables": 149,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.5578635014836796,
+      "scaled_indexed_bound": 0,
+      "indexed_bound": 0.0,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.633333333333334,
+      "status": "TIME_LIMIT",
+      "mip_gap": 0.40033123400017423,
+      "nodes": 71791.0,
+      "time_to_first_feasible": 0.0016589164733886719,
+      "partition_time_seconds": 0.011685837060213089,
+      "partition_model_construction_seconds": 0.008063393644988537,
+      "partition_optimization_seconds": 0.0034580230712890625,
+      "model_construction_seconds": 0.006532811559736729,
+      "downstream_optimization_seconds": 30.000482082366943,
+      "end_to_end_seconds": 30.018754625692964
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.5,
+      "raw_target_ordering_budget": 168,
+      "target_ordering_budget": 168,
+      "method_family": "fixed_size_closest_dimension",
+      "method_detail": "fixed_size_2",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          2,
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          2,
+          1
+        ]
+      ],
+      "total_platoons": 16,
+      "platoons_by_approach": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "ordering_variables": 96,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.7151335311572701,
+      "scaled_indexed_bound": 792,
+      "indexed_bound": 26.4,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.8,
+      "status": "OPTIMAL",
+      "mip_gap": 0.0,
+      "nodes": 95100.0,
+      "time_to_first_feasible": 0.0011019706726074219,
+      "partition_time_seconds": 1.6796402633190155e-05,
+      "partition_model_construction_seconds": 1.6796402633190155e-05,
+      "partition_optimization_seconds": 0.0,
+      "model_construction_seconds": 0.005632399581372738,
+      "downstream_optimization_seconds": 25.23892116546631,
+      "end_to_end_seconds": 25.244625916704535
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.5,
+      "raw_target_ordering_budget": 168,
+      "target_ordering_budget": 168,
+      "method_family": "threshold_closest_dimension",
+      "method_detail": "release_gap_threshold_1",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          1,
+          1,
+          1,
+          2,
+          1,
+          2
+        ],
+        [
+          1,
+          4,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          3,
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          1,
+          2,
+          1
+        ]
+      ],
+      "total_platoons": 20,
+      "platoons_by_approach": [
+        6,
+        5,
+        4,
+        5
+      ],
+      "ordering_variables": 149,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.5578635014836796,
+      "scaled_indexed_bound": 0,
+      "indexed_bound": 0.0,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.633333333333334,
+      "status": "TIME_LIMIT",
+      "mip_gap": 0.3998104283578915,
+      "nodes": 72112.0,
+      "time_to_first_feasible": 0.0018091201782226562,
+      "partition_time_seconds": 0.00010178331285715103,
+      "partition_model_construction_seconds": 0.00010178331285715103,
+      "partition_optimization_seconds": 0.0,
+      "model_construction_seconds": 0.006998004391789436,
+      "downstream_optimization_seconds": 30.000109910964966,
+      "end_to_end_seconds": 30.007263182662427
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.75,
+      "raw_target_ordering_budget": 84,
+      "target_ordering_budget": 84,
+      "method_family": "proposed_bound_aware",
+      "method_detail": "min_Bidx_under_C_budget",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          2,
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          1,
+          2
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          1,
+          2,
+          1,
+          2,
+          1
+        ]
+      ],
+      "total_platoons": 15,
+      "platoons_by_approach": [
+        4,
+        4,
+        2,
+        5
+      ],
+      "ordering_variables": 82,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.7566765578635015,
+      "scaled_indexed_bound": 143,
+      "indexed_bound": 4.766666666666667,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.633333333333334,
+      "status": "OPTIMAL",
+      "mip_gap": 0.0,
+      "nodes": 67408.0,
+      "time_to_first_feasible": 0.0010821819305419922,
+      "partition_time_seconds": 0.011048042215406895,
+      "partition_model_construction_seconds": 0.007744050584733486,
+      "partition_optimization_seconds": 0.0031311511993408203,
+      "model_construction_seconds": 0.00496806763112545,
+      "downstream_optimization_seconds": 17.92997717857361,
+      "end_to_end_seconds": 17.946047687903047
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.75,
+      "raw_target_ordering_budget": 84,
+      "target_ordering_budget": 84,
+      "method_family": "fixed_size_closest_dimension",
+      "method_detail": "fixed_size_3",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          3,
+          3,
+          2
+        ],
+        [
+          3,
+          3,
+          2
+        ],
+        [
+          3,
+          3,
+          1
+        ],
+        [
+          3,
+          3,
+          1
+        ]
+      ],
+      "total_platoons": 12,
+      "platoons_by_approach": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "ordering_variables": 54,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.8397626112759644,
+      "scaled_indexed_bound": 759,
+      "indexed_bound": 25.3,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.866666666666666,
+      "status": "OPTIMAL",
+      "mip_gap": 0.0,
+      "nodes": 2846.0,
+      "time_to_first_feasible": 0.23500299453735352,
+      "partition_time_seconds": 4.1513703763484955e-05,
+      "partition_model_construction_seconds": 4.1513703763484955e-05,
+      "partition_optimization_seconds": 0.0,
+      "model_construction_seconds": 0.005231855437159538,
+      "downstream_optimization_seconds": 0.5084569454193115,
+      "end_to_end_seconds": 0.5137791493907571
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.75,
+      "raw_target_ordering_budget": 84,
+      "target_ordering_budget": 84,
+      "method_family": "threshold_closest_dimension",
+      "method_detail": "release_gap_threshold_3",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          3,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          1,
+          2
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          1,
+          2,
+          4
+        ]
+      ],
+      "total_platoons": 12,
+      "platoons_by_approach": [
+        3,
+        4,
+        2,
+        3
+      ],
+      "ordering_variables": 53,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.8427299703264095,
+      "scaled_indexed_bound": 293,
+      "indexed_bound": 9.766666666666667,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.633333333333334,
+      "status": "OPTIMAL",
+      "mip_gap": 0.0,
+      "nodes": 7220.0,
+      "time_to_first_feasible": 0.000843048095703125,
+      "partition_time_seconds": 3.6034733057022095e-05,
+      "partition_model_construction_seconds": 3.6034733057022095e-05,
+      "partition_optimization_seconds": 0.0,
+      "model_construction_seconds": 0.00458829291164875,
+      "downstream_optimization_seconds": 0.8296449184417725,
+      "end_to_end_seconds": 0.8343199156224728
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.9,
+      "raw_target_ordering_budget": 34,
+      "target_ordering_budget": 34,
+      "method_family": "proposed_bound_aware",
+      "method_detail": "min_Bidx_under_C_budget",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          3,
+          2,
+          3
+        ],
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      "total_platoons": 9,
+      "platoons_by_approach": [
+        3,
+        2,
+        2,
+        2
+      ],
+      "ordering_variables": 30,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.9109792284866469,
+      "scaled_indexed_bound": 793,
+      "indexed_bound": 26.433333333333334,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 7.866666666666666,
+      "status": "OPTIMAL",
+      "mip_gap": 0.0,
+      "nodes": 918.0,
+      "time_to_first_feasible": 0.0007131099700927734,
+      "partition_time_seconds": 0.057091351598501205,
+      "partition_model_construction_seconds": 0.007356173358857632,
+      "partition_optimization_seconds": 0.04956793785095215,
+      "model_construction_seconds": 0.004477345384657383,
+      "downstream_optimization_seconds": 0.08722400665283203,
+      "end_to_end_seconds": 0.14885014295578003
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.9,
+      "raw_target_ordering_budget": 34,
+      "target_ordering_budget": 34,
+      "method_family": "fixed_size_closest_dimension",
+      "method_detail": "fixed_size_4",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "total_platoons": 8,
+      "platoons_by_approach": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "ordering_variables": 24,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.9287833827893175,
+      "scaled_indexed_bound": 1080,
+      "indexed_bound": 36.0,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 9.066666666666666,
+      "status": "OPTIMAL",
+      "mip_gap": 0.0,
+      "nodes": 417.0,
+      "time_to_first_feasible": 0.0005691051483154297,
+      "partition_time_seconds": 1.4843419194221497e-05,
+      "partition_model_construction_seconds": 1.4843419194221497e-05,
+      "partition_optimization_seconds": 0.0,
+      "model_construction_seconds": 0.0036001503467559814,
+      "downstream_optimization_seconds": 0.0422670841217041,
+      "end_to_end_seconds": 0.04592627286911011
+    },
+    {
+      "scenario": "N30_L4_balanced_poisson_hS2",
+      "replication": 24,
+      "target_dimension_reduction": 0.9,
+      "raw_target_ordering_budget": 34,
+      "target_ordering_budget": 34,
+      "method_family": "threshold_closest_dimension",
+      "method_detail": "release_gap_threshold_6",
+      "N": 30,
+      "L": 4,
+      "counts": [
+        8,
+        8,
+        7,
+        7
+      ],
+      "demand_pattern": "balanced",
+      "arrival_mode": "poisson",
+      "hF": 1,
+      "hS": 2,
+      "max_platoon_size": 4,
+      "partition": [
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          2,
+          2
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "total_platoons": 9,
+      "platoons_by_approach": [
+        2,
+        3,
+        2,
+        2
+      ],
+      "ordering_variables": 30,
+      "vehicle_level_ordering_variables": 337,
+      "dimension_reduction_fraction": 0.9109792284866469,
+      "scaled_indexed_bound": 914,
+      "indexed_bound": 30.466666666666665,
+      "actual_average_gap": null,
+      "actual_gap_le_indexed_bound": null,
+      "vehicle_level_average_delay": null,
+      "vehicle_level_status": "TIME_LIMIT",
+      "vehicle_level_mip_gap": 0.6723155199001581,
+      "vehicle_level_nodes": 18860.0,
+      "vehicle_level_time_to_first_feasible": 0.002811908721923828,
+      "vehicle_level_model_construction_seconds": 0.009510018862783909,
+      "vehicle_level_downstream_optimization_seconds": 30.00041699409485,
+      "vehicle_level_wall_time_seconds": 30.00997866690159,
+      "objective_average_delay": 9.066666666666666,
+      "status": "OPTIMAL",
+      "mip_gap": 0.0,
+      "nodes": 783.0,
+      "time_to_first_feasible": 0.0006029605865478516,
+      "partition_time_seconds": 9.44528728723526e-05,
+      "partition_model_construction_seconds": 9.44528728723526e-05,
+      "partition_optimization_seconds": 0.0,
+      "model_construction_seconds": 0.004523023962974548,
+      "downstream_optimization_seconds": 0.0744631290435791,
+      "end_to_end_seconds": 0.07912346068769693
+    }
+  ],
+  "frontier_rows": [],
+  "wall_time_seconds": 220.25335412379354
+}

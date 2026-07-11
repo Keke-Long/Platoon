@@ -1,0 +1,19 @@
+{
+  "batch_count": 1,
+  "batches": [
+    {
+      "batch": "N20_L4_balanced_poisson_hS2",
+      "rows": 360,
+      "frontier_rows": 5,
+      "summary_rows": 12,
+      "vehicle_level_summary_rows": 1,
+      "status": "DONE"
+    }
+  ],
+  "row_counts": {
+    "fair_dimension_comparison.csv": 360,
+    "complete_frontier.csv": 5,
+    "summary.csv": 12,
+    "vehicle_level_summary.csv": 1
+  }
+}

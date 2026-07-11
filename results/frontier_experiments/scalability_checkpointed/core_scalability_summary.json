@@ -1,0 +1,38 @@
+[
+  {
+    "scenario": "N20",
+    "vehicle_C": 150,
+    "vehicle_statuses": "{\"OPTIMAL\": 5, \"TIME_LIMIT\": 25}",
+    "reduced_statuses": "{\"OPTIMAL\": 359, \"TIME_LIMIT\": 1}",
+    "proposed_statuses": "{\"OPTIMAL\": 120}",
+    "proposed_mean_C": 41.6417,
+    "proposed_mean_dimension_reduction": 0.7224,
+    "proposed_mean_bound": 1.7642,
+    "proposed_mean_end_to_end_seconds": 0.5478,
+    "vehicle_mean_mip_gap": 0.3012
+  },
+  {
+    "scenario": "N30",
+    "vehicle_C": 337,
+    "vehicle_statuses": "{\"TIME_LIMIT\": 30}",
+    "reduced_statuses": "{\"OPTIMAL\": 276, \"TIME_LIMIT\": 84}",
+    "proposed_statuses": "{\"OPTIMAL\": 90, \"TIME_LIMIT\": 30}",
+    "proposed_mean_C": 88.7833,
+    "proposed_mean_dimension_reduction": 0.7365,
+    "proposed_mean_bound": 4.8992,
+    "proposed_mean_end_to_end_seconds": 11.3715,
+    "vehicle_mean_mip_gap": 0.6395
+  },
+  {
+    "scenario": "N40",
+    "vehicle_C": 600,
+    "vehicle_statuses": "{\"TIME_LIMIT\": 30}",
+    "reduced_statuses": "{\"OPTIMAL\": 105, \"TIME_LIMIT\": 255}",
+    "proposed_statuses": "{\"OPTIMAL\": 33, \"TIME_LIMIT\": 87}",
+    "proposed_mean_C": 141.2583,
+    "proposed_mean_dimension_reduction": 0.7646,
+    "proposed_mean_bound": 5.4556,
+    "proposed_mean_end_to_end_seconds": 23.0254,
+    "vehicle_mean_mip_gap": 0.7741
+  }
+]

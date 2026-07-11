@@ -1,0 +1,4 @@
+scenario,vehicle_C,vehicle_statuses,reduced_statuses,proposed_statuses,proposed_mean_C,proposed_mean_dimension_reduction,proposed_mean_bound,proposed_mean_end_to_end_seconds,vehicle_mean_mip_gap
+N20,150,"{""OPTIMAL"": 5, ""TIME_LIMIT"": 25}","{""OPTIMAL"": 359, ""TIME_LIMIT"": 1}","{""OPTIMAL"": 120}",41.6417,0.7224,1.7642,0.5478,0.3012
+N30,337,"{""TIME_LIMIT"": 30}","{""OPTIMAL"": 276, ""TIME_LIMIT"": 84}","{""OPTIMAL"": 90, ""TIME_LIMIT"": 30}",88.7833,0.7365,4.8992,11.3715,0.6395
+N40,600,"{""TIME_LIMIT"": 30}","{""OPTIMAL"": 105, ""TIME_LIMIT"": 255}","{""OPTIMAL"": 33, ""TIME_LIMIT"": 87}",141.2583,0.7646,5.4556,23.0254,0.7741
