@@ -4,24 +4,26 @@
 
 This repository develops a performance-guaranteed dimension-reduction framework for vehicle scheduling at general conflict areas. Platooning is a preprocessing operation that reduces the dimension of a downstream scheduling MILP. Gurobi remains responsible for solving the partition-selection and scheduling models. This project does not aim to develop a new MILP solver.
 
-## Source of truth
+## Repository structure and source of truth
 
-Before performing theoretical or computational work, read these files in order:
+The only official manuscript entry point is `paper/main.tex`. All formal paper sources must remain under `paper/`; do not create duplicate manuscript files at the repository root.
 
-1. `EXPERIMENT_HANDOFF.md`
-2. `sections/formulation.tex`
-3. `sections/theoretical_analysis.tex`
-4. `notes/proof_development.tex`
-5. `notes/formal_proof_audit.md`
-6. `notes/indexed_bound_derivation.md`
-7. `notes/rejected_results.tex`
-8. `notes/research_log.tex`
+Before theoretical or computational work, read these files in order:
+
+1. `paper/sections/formulation.tex`
+2. `paper/sections/theoretical_analysis.tex`
+3. `notes/proof_development.tex`
+4. `notes/formal_proof_audit.md`
+5. `notes/indexed_bound_derivation.md`
+6. `notes/rejected_results.tex`
+7. `notes/research_log.tex`
+8. the relevant README under `code/`
 
 The FIFO-indexed optimality-gap bound is the only loss bound used in the manuscript. Its analytical proof and indexed verification results are current. Historical precursor materials may remain in research notes and archived code, but must not be reintroduced into the manuscript.
 
-## Current task boundary
+## Branch policy
 
-The next computational task is implementation and exhaustive verification of the FIFO-indexed bound. Do not modify verification code or launch new runs until the user explicitly starts that stage.
+`main` is the only official stable version. Keep at most one active working branch. Merge a completed and validated task promptly, then delete its branch. Merged pull requests and Git history preserve the purpose and implementation record.
 
 ## Mathematical implementation requirements
 
@@ -35,13 +37,12 @@ The next computational task is implementation and exhaustive verification of the
 
 ## Coding requirements
 
-- Place verification code under `code/exhaustive_verification/`.
+- Keep verification code under `code/exhaustive_verification/`.
 - Use Python 3.11 or later.
 - Do not include emoji in code, logs, or generated reports.
-- Keep the exact model implementation separate from experiment drivers.
-- Add unit tests for sequence enumeration, partition enumeration, completion-time recursion, objective calculation, and bound calculation.
+- Keep exact model implementation separate from experiment drivers.
 - Record random seeds and parameter ranges.
-- Save machine-readable results under `results/exhaustive_verification/`.
+- Save machine-readable results under `results/`.
 - Do not commit virtual environments, caches, LaTeX build files, or large temporary enumerations.
 
 ## Stop conditions
@@ -59,8 +60,4 @@ If no counterexample is found, report only that the tested domain passed. Numeri
 
 ## Manuscript protection
 
-The user approved promotion of the FIFO-indexed result to a formal theorem. Preserve rejected arguments and counterexamples in `notes/rejected_results.tex`, and do not change the theorem's assumptions or formula without a new proof audit.
-
-## Verification commands
-
-Once the verification package exists, document reproducible commands in `code/exhaustive_verification/README.md`. Run the full test suite before reporting completion.
+Preserve rejected arguments and counterexamples in `notes/rejected_results.tex`. Do not change the theorem's assumptions or formula without a new proof audit. Compile `paper/main.tex` after every meaningful manuscript edit and run the relevant test suite before reporting completion.
