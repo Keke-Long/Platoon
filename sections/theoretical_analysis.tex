@@ -195,19 +195,6 @@ B_{\mathrm{idx}}(\Pi)
 }.
 \label{eq:indexed-partition-bound}
 \end{equation}
-Furthermore, this bound dominates the index-free bound
-\begin{equation}
-B_{\mathrm{idx}}(\Pi)
-\le
-B_0(\Pi)
-:=
-\sum_{e\in\mathcal{E}_{\Pi}}
-\pospart{
-\pospart{d_e-\hF}
--\frac{2(\hS-\hF)}{N}
-}.
-\label{eq:index-free-bound}
-\end{equation}
 \end{theorem}
 
 \begin{proof}
@@ -251,8 +238,6 @@ M_e\pospart{d_e-\hF}-2(\hS-\hF)
 \end{equation}
 Adding the nonnegative terms for links outside \(\mathcal Q\) proves the
 upper bound. The lower bound follows from feasible-space restriction.
-Finally, \(0<\alpha_e<1\), so termwise monotonicity proves
-\(B_{\mathrm{idx}}(\Pi)\le B_0(\Pi)\).
 \end{proof}
 
 \begin{corollary}[Index-dependent zero-loss condition]
