@@ -1,31 +1,28 @@
 # Performance-Guaranteed Platoon Scheduling
 
-This is an Overleaf-ready LaTeX project for the Transportation Research Part B manuscript.
+This repository contains the manuscript, verification code, experiment code, results, and research notes for the platoon-scheduling project.
 
-For Codex-based exhaustive verification, begin with `AGENTS.md` and `EXPERIMENT_HANDOFF.md`. These two files provide the complete handoff without requiring access to the original ChatGPT conversation.
+## Official manuscript
 
-## Main manuscript
+The only official paper source is under `paper/`.
 
-Compile `main.tex`. Formal paper sections are stored under `sections/`.
-Compile `notes.tex` to obtain a separate research record containing the proof audit, candidate derivation, rejected results, and counterexamples.
+```bash
+cd paper
+latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+```
+
+The manuscript entry point is `paper/main.tex`. Its sections, bibliography, preamble, and figures are all stored inside `paper/`. Do not create a second manuscript copy at the repository root.
 
 ## Research notes
 
-Files under `notes/` are intentionally excluded from the compiled manuscript:
+Compile `notes.tex` from the repository root to obtain the separate proof-development record. It reuses the current formal formulation and theorem from `paper/sections/`, then adds the historical files under `notes/`.
 
-- `research_log.tex`: research decisions and audit findings.
-- `proof_development.tex`: historical proof-development record.
-- `rejected_results.tex`: invalid results, counterexamples, and superseded claims.
-- `formal_proof_audit.md`: analytical audit of the repair proof.
-- `indexed_bound_derivation.md`: derivation of the FIFO-indexed bound.
+Files under `notes/` are intentionally excluded from the formal manuscript.
 
-## Status rule
+## Verification and experiments
 
-The FIFO-indexed optimality-gap bound is established analytically in `sections/theoretical_analysis.tex` and has been checked by the indexed deterministic and random-exact verification suite. It is the only loss bound used in the manuscript.
+For Codex-based work, begin with `AGENTS.md` and the relevant README under `code/`. Machine-readable outputs are stored under `results/`.
 
-## Recommended workflow
+## Branch policy
 
-1. Update research notes during proof development.
-2. Promote only verified results into `sections/`.
-3. Compile `main.tex` after every meaningful edit.
-4. Use Overleaf history or Git for version control.
+`main` is the only official stable version. Use at most one short-lived working branch for an active task. After validation, merge it into `main` and delete the branch. Do not retain completed `agent/...` branches as permanent records because Git history and merged pull requests already preserve that context.
