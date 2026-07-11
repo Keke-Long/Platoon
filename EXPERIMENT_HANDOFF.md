@@ -1,6 +1,6 @@
 # Exhaustive Verification Handoff
 
-> **Status update.** The index-free bound documented below has passed the archived deterministic and random-exact checks and has been proved under the stated assumptions. The manuscript now uses the strictly sharper FIFO-indexed bound
+> **Historical status.** This handoff records the earlier index-free verification stage. The current manuscript uses the strictly sharper FIFO-indexed bound
 > \[
 > B_{\mathrm{idx}}(\Pi)=
 > \sum_{e\in\mathcal E_\Pi}
@@ -9,7 +9,7 @@
 > -\frac{2(h^S-h^F)}{N}
 > \right]_+.
 > \]
-> Here \(i_e\) is the one-based FIFO index of the predecessor vehicle in internal link \(e\). See `sections/theoretical_analysis.tex` and `notes/indexed_bound_derivation.md`. The verification code has not yet been updated for this refinement; the remainder of this handoff describes the archived index-free verification stage.
+> Here \(i_e\) is the one-based FIFO index of the predecessor vehicle in internal link \(e\). The current proof is in `paper/sections/theoretical_analysis.tex`, the derivation record is in `notes/indexed_bound_derivation.md`, and the updated verifier is under `code/exhaustive_verification/`. The remainder of this file is retained only as a historical handoff for the archived index-free stage.
 
 ## 1. Immediate goal
 
