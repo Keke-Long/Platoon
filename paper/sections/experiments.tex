@@ -15,6 +15,17 @@ and checked
 \end{equation}
 The verification found no violation in the tested domain and included positive equality cases. These calculations verify the implementation and illustrate tightness; the general validity of the bound follows from the analytical proof in Section~\ref{sec:theory}.
 
+\subsection{Practical tightness of the indexed bound}
+
+To evaluate whether minimizing \(B_{\mathrm{idx}}(\Pi)\) under a fixed dimension budget also selects partitions with small realized loss, we exhaustively enumerated all \(21{,}168\) exact instances with \(L=3\), queue counts \((3,2,1)\), \(\hF=1\), \(\hS\in\{2,3,4\}\), and nondecreasing integer release times in \(\{0,\ldots,5\}\). For each common budget \(\bar C\in\{3,5,7,8,11\}\), both selectors considered the same contiguous partitions satisfying \(C(\Pi)\le \bar C\); ties were broken first by the target objective, then by smaller \(C(\Pi)\), and finally by the deterministic partition enumeration order. Figure~\ref{fig:indexed-bound-tightness} shows that no bound violation occurred in this tested domain and that \(141\) positive equality cases occurred, so the indexed bound is sometimes attained exactly. At the same time, \(B_{\mathrm{idx}}(\Pi)\) remains a deterministic worst-case certificate rather than a predictor of the realized gap for every partition: the bound-selected curve stays close to the actual-gap oracle, with mean selection regret \(0.0045\), but does not coincide at every budget because instance-specific slack and compensating scheduling effects can make the realized loss smaller than the worst-case certificate.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.72\textwidth]{figures/indexed_bound_tightness.pdf}
+  \caption{Actual optimality gaps of bound-selected and oracle partitions under common dimension budgets. Lines show the mean across exact small instances, and shaded regions show the interquartile range. The indexed bound may be conservative for individual partitions, but minimizing it generally selects partitions with realized gaps close to the actual-gap oracle.}
+  \label{fig:indexed-bound-tightness}
+\end{figure}
+
 \subsection{Dimension-reduction comparisons}
 
 The computational comparisons include vehicle-level scheduling, fixed-size platooning, release-threshold platooning, and the proposed bound-aware partition. All partition methods are selected under the same downstream ordering-variable budget,

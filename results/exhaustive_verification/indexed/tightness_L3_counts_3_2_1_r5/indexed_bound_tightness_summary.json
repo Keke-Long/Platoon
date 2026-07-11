@@ -1,0 +1,30 @@
+{
+  "partition_rows": "../../results/exhaustive_verification/indexed/tightness_L3_counts_3_2_1_r5/indexed_partition_rows.csv",
+  "instance_count": 21168,
+  "common_budgets": [
+    3,
+    5,
+    7,
+    8,
+    11
+  ],
+  "violation_rate_fraction": "0/169344",
+  "positive_equality_cases": 141,
+  "selection_pair_count": 105840,
+  "mean_selection_regret": "713/158760",
+  "mean_selection_regret_decimal": 0.004491055681531872,
+  "bound_mean_gap_by_budget": {
+    "3": "19261/127008",
+    "5": "851/63504",
+    "7": "373/31752",
+    "8": "1/3528",
+    "11": "0"
+  },
+  "oracle_mean_gap_by_budget": {
+    "3": "19261/127008",
+    "5": "1/672",
+    "7": "1/672",
+    "8": "0",
+    "11": "0"
+  }
+}

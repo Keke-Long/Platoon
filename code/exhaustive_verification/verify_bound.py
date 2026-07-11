@@ -40,6 +40,8 @@ class SearchConfig:
     keep_all_optima: bool
     stop_on_counterexample: bool
     check_repair: bool
+    exact_counts: tuple[int, ...] | None = None
+    save_partition_rows: bool = False
 
 
 @dataclass
@@ -200,11 +202,65 @@ class BoundCounterexample:
         return data
 
 
+@dataclass(frozen=True)
+class PartitionResultRow:
+    instance_id: int
+    partition_index: int
+    counts: tuple[int, ...]
+    releases: tuple[tuple[int, ...], ...]
+    hF: int
+    hS: int
+    dimension_budget: int
+    partition: Partition
+    scaled_gap: int
+    scaled_indexed_bound: int
+    scaled_index_free_bound: int
+
+    @property
+    def N(self) -> int:
+        return sum(self.counts)
+
+    def to_csv_row(self) -> dict[str, object]:
+        return {
+            "instance_id": self.instance_id,
+            "partition_index": self.partition_index,
+            "L": len(self.counts),
+            "N": self.N,
+            "counts": json.dumps(list(self.counts), separators=(",", ":")),
+            "releases": json.dumps([list(row) for row in self.releases], separators=(",", ":")),
+            "hF": self.hF,
+            "hS": self.hS,
+            "dimension_budget": self.dimension_budget,
+            "partition": json.dumps(partition_label(self.partition), separators=(",", ":")),
+            "scaled_gap": self.scaled_gap,
+            "scaled_indexed_bound": self.scaled_indexed_bound,
+            "scaled_index_free_bound": self.scaled_index_free_bound,
+            "actual_gap": f"{self.scaled_gap}/{self.N}",
+            "indexed_bound": f"{self.scaled_indexed_bound}/{self.N}",
+            "index_free_bound": f"{self.scaled_index_free_bound}/{self.N}",
+        }
+
+
 def parse_int_list(value: str) -> tuple[int, ...]:
     return tuple(int(part.strip()) for part in value.split(",") if part.strip())
 
 
+def ordering_variables(partition: Partition) -> int:
+    platoon_counts = tuple(len(blocks) for blocks in partition)
+    return sum(
+        platoon_counts[left] * platoon_counts[right]
+        for left in range(len(platoon_counts))
+        for right in range(left + 1, len(platoon_counts))
+    )
+
+
 def count_vectors(config: SearchConfig) -> Iterator[tuple[int, ...]]:
+    if config.exact_counts is not None:
+        total = sum(config.exact_counts)
+        if total < 2 or total > config.max_total_vehicles:
+            raise ValueError("exact counts must satisfy 2 <= sum(counts) <= max_total_vehicles")
+        yield config.exact_counts
+        return
     for L in config.L_values:
         for counts in product(range(1, config.max_n + 1), repeat=L):
             total = sum(counts)
@@ -318,6 +374,10 @@ def write_summary_files(
         )
 
 
+def write_partition_rows_header(handle: csv.DictWriter) -> None:
+    handle.writeheader()
+
+
 def check_repair_trace(
     instance: Instance,
     partition: Partition,
@@ -351,84 +411,129 @@ def search(config: SearchConfig, output_dir: Path) -> tuple[SearchStats, BoundCo
     stats = SearchStats()
     first_counterexample: BoundCounterexample | None = None
     first_local_violation: dict[str, object] | None = None
-
-    for instance in instances(config):
-        stats.traffic_instances += 1
-        releases = instance.release_map
-        vehicle_sequences = tuple(enumerate_fifo_sequences(instance.counts))
-        delay_cache = {
-            sequence: total_delay(sequence, releases, instance.hF, instance.hS)
-            for sequence in vehicle_sequences
-        }
-        stats.vehicle_sequence_evaluations += len(vehicle_sequences)
-        unrestricted = optimum_for_sequences(
-            vehicle_sequences,
-            releases,
-            instance.hF,
-            instance.hS,
-            keep_all=config.keep_all_optima,
+    output_dir.mkdir(parents=True, exist_ok=True)
+    partition_writer: csv.DictWriter | None = None
+    partition_handle = None
+    if config.save_partition_rows:
+        partition_handle = (output_dir / "indexed_partition_rows.csv").open("w", newline="", encoding="utf-8")
+        partition_writer = csv.DictWriter(
+            partition_handle,
+            fieldnames=list(PartitionResultRow(
+                instance_id=0,
+                partition_index=0,
+                counts=(1, 1),
+                releases=((0,), (0,)),
+                hF=1,
+                hS=2,
+                dimension_budget=1,
+                partition=((1,), (1,)),
+                scaled_gap=0,
+                scaled_indexed_bound=0,
+                scaled_index_free_bound=0,
+            ).to_csv_row().keys()),
+            lineterminator="\n",
         )
+        write_partition_rows_header(partition_writer)
 
-        for partition in enumerate_partitions(instance.counts):
-            stats.partitions += 1
-            repair_result: RepairResult | None = None
-            if config.check_repair:
-                repair_result, first_local_violation = check_repair_trace(
-                    instance,
-                    partition,
-                    unrestricted,
-                )
-                stats.repair_traces_checked += 1
-                stats.repair_steps_checked += len(repair_result.records)
-                if first_local_violation is not None:
-                    stats.local_repair_violations += 1
-                    if config.stop_on_counterexample:
-                        write_summary_files(output_dir, config, stats, None, first_local_violation)
-                        return stats, None, first_local_violation
-
-            platoon, evaluated = optimum_from_cached_delays(
-                enumerate_platoon_sequences(partition),
-                delay_cache,
+    try:
+        for instance in instances(config):
+            stats.traffic_instances += 1
+            instance_id = stats.traffic_instances
+            releases = instance.release_map
+            vehicle_sequences = tuple(enumerate_fifo_sequences(instance.counts))
+            delay_cache = {
+                sequence: total_delay(sequence, releases, instance.hF, instance.hS)
+                for sequence in vehicle_sequences
+            }
+            stats.vehicle_sequence_evaluations += len(vehicle_sequences)
+            unrestricted = optimum_for_sequences(
+                vehicle_sequences,
+                releases,
+                instance.hF,
+                instance.hS,
                 keep_all=config.keep_all_optima,
             )
-            stats.platoon_sequence_evaluations += evaluated
-            scaled_gap = platoon.total_delay - unrestricted.total_delay
-            scaled_indexed = scaled_indexed_bound(instance, partition)
-            scaled_index_free = scaled_index_free_bound(instance, partition)
-            stats.record_case(scaled_gap, scaled_indexed, scaled_index_free)
 
-            if scaled_indexed > scaled_index_free:
-                stats.bound_dominance_violations += 1
-                first_counterexample = BoundCounterexample(
-                    instance=instance,
-                    partition=partition,
-                    unrestricted=unrestricted,
-                    platoon=platoon,
-                    scaled_gap=scaled_gap,
-                    scaled_indexed_bound=scaled_indexed,
-                    scaled_index_free_bound=scaled_index_free,
-                    repair_result=repair_result,
-                    violation_type="indexed_bound_dominance_violation",
-                )
-                if config.stop_on_counterexample:
-                    write_summary_files(output_dir, config, stats, first_counterexample, None)
-                    return stats, first_counterexample, None
+            for partition_index, partition in enumerate(enumerate_partitions(instance.counts)):
+                stats.partitions += 1
+                repair_result: RepairResult | None = None
+                if config.check_repair:
+                    repair_result, first_local_violation = check_repair_trace(
+                        instance,
+                        partition,
+                        unrestricted,
+                    )
+                    stats.repair_traces_checked += 1
+                    stats.repair_steps_checked += len(repair_result.records)
+                    if first_local_violation is not None:
+                        stats.local_repair_violations += 1
+                        if config.stop_on_counterexample:
+                            write_summary_files(output_dir, config, stats, None, first_local_violation)
+                            return stats, None, first_local_violation
 
-            if scaled_gap > scaled_indexed:
-                stats.indexed_bound_violations += 1
-                first_counterexample = BoundCounterexample(
-                    instance=instance,
-                    partition=partition,
-                    unrestricted=unrestricted,
-                    platoon=platoon,
-                    scaled_gap=scaled_gap,
-                    scaled_indexed_bound=scaled_indexed,
-                    scaled_index_free_bound=scaled_index_free,
-                    repair_result=repair_result,
+                platoon, evaluated = optimum_from_cached_delays(
+                    enumerate_platoon_sequences(partition),
+                    delay_cache,
+                    keep_all=config.keep_all_optima,
                 )
-                if config.stop_on_counterexample:
-                    write_summary_files(output_dir, config, stats, first_counterexample, None)
-                    return stats, first_counterexample, None
+                stats.platoon_sequence_evaluations += evaluated
+                scaled_gap = platoon.total_delay - unrestricted.total_delay
+                scaled_indexed = scaled_indexed_bound(instance, partition)
+                scaled_index_free = scaled_index_free_bound(instance, partition)
+                stats.record_case(scaled_gap, scaled_indexed, scaled_index_free)
+
+                if partition_writer is not None:
+                    partition_writer.writerow(
+                        PartitionResultRow(
+                            instance_id=instance_id,
+                            partition_index=partition_index,
+                            counts=instance.counts,
+                            releases=instance.releases,
+                            hF=instance.hF,
+                            hS=instance.hS,
+                            dimension_budget=ordering_variables(partition),
+                            partition=partition,
+                            scaled_gap=scaled_gap,
+                            scaled_indexed_bound=scaled_indexed,
+                            scaled_index_free_bound=scaled_index_free,
+                        ).to_csv_row()
+                    )
+
+                if scaled_indexed > scaled_index_free:
+                    stats.bound_dominance_violations += 1
+                    first_counterexample = BoundCounterexample(
+                        instance=instance,
+                        partition=partition,
+                        unrestricted=unrestricted,
+                        platoon=platoon,
+                        scaled_gap=scaled_gap,
+                        scaled_indexed_bound=scaled_indexed,
+                        scaled_index_free_bound=scaled_index_free,
+                        repair_result=repair_result,
+                        violation_type="indexed_bound_dominance_violation",
+                    )
+                    if config.stop_on_counterexample:
+                        write_summary_files(output_dir, config, stats, first_counterexample, None)
+                        return stats, first_counterexample, None
+
+                if scaled_gap > scaled_indexed:
+                    stats.indexed_bound_violations += 1
+                    first_counterexample = BoundCounterexample(
+                        instance=instance,
+                        partition=partition,
+                        unrestricted=unrestricted,
+                        platoon=platoon,
+                        scaled_gap=scaled_gap,
+                        scaled_indexed_bound=scaled_indexed,
+                        scaled_index_free_bound=scaled_index_free,
+                        repair_result=repair_result,
+                    )
+                    if config.stop_on_counterexample:
+                        write_summary_files(output_dir, config, stats, first_counterexample, None)
+                        return stats, first_counterexample, None
+    finally:
+        if partition_handle is not None:
+            partition_handle.close()
 
     write_summary_files(output_dir, config, stats, first_counterexample, first_local_violation)
     return stats, first_counterexample, first_local_violation
@@ -437,12 +542,14 @@ def search(config: SearchConfig, output_dir: Path) -> tuple[SearchStats, BoundCo
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--L", default="2,3", help="comma-separated approach counts")
+    parser.add_argument("--counts", default=None, help="fixed comma-separated vehicle counts by approach")
     parser.add_argument("--max-n", type=int, default=3)
     parser.add_argument("--max-total-vehicles", type=int, default=7)
     parser.add_argument("--max-release", type=int, default=4)
     parser.add_argument("--hF", type=int, default=1)
     parser.add_argument("--hS", default="2,3,4", help="comma-separated hS values")
     parser.add_argument("--output-dir", default="../../results/exhaustive_verification/indexed")
+    parser.add_argument("--save-partition-rows", action="store_true")
     parser.add_argument("--keep-one-optimum", action="store_true")
     parser.add_argument("--continue-after-counterexample", action="store_true")
     parser.add_argument("--skip-repair", action="store_true")
@@ -461,6 +568,8 @@ def main() -> int:
         keep_all_optima=not args.keep_one_optimum,
         stop_on_counterexample=not args.continue_after_counterexample,
         check_repair=not args.skip_repair,
+        exact_counts=parse_int_list(args.counts) if args.counts else None,
+        save_partition_rows=args.save_partition_rows,
     )
     stats, counterexample, local_violation = search(config, Path(args.output_dir))
     print(json.dumps(stats.to_json(config), indent=2))

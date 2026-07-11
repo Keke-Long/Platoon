@@ -10,6 +10,8 @@ python tests/run_tests.py
 python -m compileall .
 python verify_bound.py --L 2 --max-n 3 --max-total-vehicles 6 --max-release 4 --hS 2,3,4
 python random_verify.py --seed 20260710 --samples 1000 --max-n 5 --max-total-vehicles 10 --max-release 8 --partitions-per-instance 16
+python verify_bound.py --counts 3,2,1 --max-total-vehicles 6 --max-release 5 --hF 1 --hS 2,3,4 --keep-one-optimum --skip-repair --save-partition-rows --output-dir ../../results/exhaustive_verification/indexed/tightness_L3_counts_3_2_1_r5
+python plot_bound_tightness.py --partition-rows ../../results/exhaustive_verification/indexed/tightness_L3_counts_3_2_1_r5/indexed_partition_rows.csv --output-dir ../../results/exhaustive_verification/indexed/tightness_L3_counts_3_2_1_r5 --figure-name indexed_bound_tightness
 ```
 
 The primary scaled comparison is:
@@ -41,3 +43,5 @@ If an indexed global violation is found, the driver stops by default and writes 
 `random_verify.py` samples traffic instances and partitions reproducibly, without replacement within each sampled traffic instance. It still computes exact optima by enumerating all FIFO sequences for each sampled instance.
 
 `global_repair.py` implements the theorem's left-to-right repair algorithm and checks the repair trace invariants used by the proof.
+
+For the manuscript's practical-tightness figure, `verify_bound.py` can also save one row per evaluated partition via `--save-partition-rows`. The resulting CSV includes `instance_id`, `dimension_budget`, `partition`, `scaled_gap`, `scaled_indexed_bound`, and exact average-delay labels. `plot_bound_tightness.py` then compares, for each common budget, the partition selected by minimizing `B_idx(Pi)` against the actual-gap oracle under the same constraint `C(Pi) <= C_bar`, with deterministic tie-breaking by smaller `C(Pi)` and then by the enumeration order of `enumerate_partitions.py`.

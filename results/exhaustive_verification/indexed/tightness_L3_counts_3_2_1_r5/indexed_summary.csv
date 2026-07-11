@@ -1,0 +1,39 @@
+metric,value
+traffic_instances,21168
+partitions,169344
+vehicle_sequence_evaluations,1270080
+platoon_sequence_evaluations,3852576
+repair_traces_checked,0
+repair_steps_checked,0
+local_repair_violations,0
+indexed_bound_violations,0
+bound_dominance_violations,0
+indexed_zero_bound_cases,99840
+index_free_zero_bound_cases,96576
+indexed_positive_bound_cases,69504
+index_free_positive_bound_cases,72768
+max_gap_over_indexed_bound_num,3
+max_gap_over_indexed_bound_den,3
+max_gap_over_index_free_bound_num,8
+max_gap_over_index_free_bound_den,10
+min_indexed_bound_excess_scaled,0
+max_indexed_bound_excess_scaled,32
+min_index_free_bound_excess_scaled,0
+max_index_free_bound_excess_scaled,42
+total_scaled_indexed_bound,496776
+total_scaled_index_free_bound,715680
+max_scaled_bound_reduction,12
+positive_equality_cases,141
+zero_equality_cases,99840
+start_time,1783801830.2918468
+end_time,1783801842.5194623
+runtime_seconds,12.227615594863892
+max_gap_over_indexed_bound,3/3
+max_gap_over_index_free_bound,8/10
+total_equality_cases,99981
+aggregate_indexed_bound_reduction,1 - sum(B_idx)/sum(B_0)
+aggregate_indexed_bound_reduction_fraction,218904/715680
+config,"{""L_values"": [2, 3], ""check_repair"": false, ""exact_counts"": [3, 2, 1], ""hF"": 1, ""hS_values"": [2, 3, 4], ""keep_all_optima"": false, ""max_n"": 3, ""max_release"": 5, ""max_total_vehicles"": 6, ""save_partition_rows"": true, ""stop_on_counterexample"": true}"
+platform,"{""machine"": ""x86_64"", ""processor"": ""x86_64"", ""python"": ""3.12.9"", ""release"": ""6.8.0-52-generic"", ""system"": ""Linux""}"
+indexed_counterexample_found,False
+local_repair_violation_found,False
