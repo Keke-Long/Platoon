@@ -168,6 +168,8 @@ def run_instance(
             assert threshold is not None
             scaled_rule_bound = scaled_rule_level_bound(instance, threshold, max_platoon_size)
             rule_bound = rule_level_bound(instance, threshold, max_platoon_size)
+        ordering_count = ordering_variables(formation.partition)
+        vehicle_level_count = vehicle_level_ordering_variables(instance.counts)
         return {
             "seed": seed,
             "replication": replication,
@@ -183,12 +185,12 @@ def run_instance(
             "method": method,
             "partition": partition_label(formation.partition),
             "number_of_platoons": sum(len(blocks) for blocks in formation.partition),
-            "ordering_variable_count": ordering_variables(formation.partition),
-            "vehicle_level_ordering_variable_count": vehicle_level_ordering_variables(instance.counts),
+            "ordering_variable_count": ordering_count,
+            "vehicle_level_ordering_variable_count": vehicle_level_count,
             "dimension_reduction_ratio": (
-                1.0
-                - ordering_variables(formation.partition)
-                / vehicle_level_ordering_variables(instance.counts)
+                0.0
+                if vehicle_level_count == 0
+                else 1.0 - ordering_count / vehicle_level_count
             ),
             "formation_time_ms": formation.formation_time_ms,
             "formation_repetitions": config.formation_repetitions,
