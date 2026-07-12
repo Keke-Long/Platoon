@@ -97,8 +97,8 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - Plot type: line figure with two scientific panels: delay versus `delta` and delay versus arrival rate `lambda`.
 - Purpose: show that average vehicle delay increases with larger threshold or higher traffic density.
 - Compare: NP, CHP, PP.
-- `Pmax`: retained for PP in marker encoding; PP is not averaged across `Pmax`.
-- Aggregation: means over completed replications, stratified by `N`.
+- `Pmax`: averaged within PP for this presentation figure.
+- Aggregation: method-level means over delay-order-checkable rows, stratified by `N`; no uncertainty intervals are shown.
 
 ### Figure 9: `pp_time_and_scheduling_units.pdf`
 

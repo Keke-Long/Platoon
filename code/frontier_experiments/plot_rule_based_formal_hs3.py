@@ -497,36 +497,43 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
 def plot_delay_density(rows: list[dict[str, str]], output_dir: Path, *, write_png: bool = False) -> None:
     import matplotlib.pyplot as plt
 
-    n_values = unique_ints(rows, "N")
-    deltas = unique_ints([row for row in rows if row.get("method") != "NP"], "delta")
-    rates = unique_floats(rows, "arrival_rate")
-    pmax_values = unique_ints([row for row in rows if row.get("method") == "PP"], "Pmax")
+    checked_rows = [row for row in rows if row.get("method") == "PP" and row.get("delay_order_check_available") == "True"]
+    n_values = unique_ints(checked_rows, "N")
+    deltas = unique_ints(checked_rows, "delta")
+    rates = unique_floats(checked_rows, "arrival_rate")
     if not n_values or not deltas or not rates:
         return
+
+    def checked_delay_mean(method: str, *, n_value: int, delta: int | None = None, rate: float | None = None) -> float | None:
+        field = {
+            "NP": "np_optimal_objective",
+            "CHP": "matching_chp_objective",
+            "PP": "pp_optimal_objective",
+        }[method]
+        values: list[float] = []
+        for row in checked_rows:
+            if ivalue(row, "N") != n_value:
+                continue
+            if delta is not None and ivalue(row, "delta") != delta:
+                continue
+            if rate is not None and fvalue(row, "arrival_rate") != rate:
+                continue
+            value = fvalue(row, field)
+            if value is not None:
+                values.append(value)
+        return finite_mean(values)
+
     fig, axes = plt.subplots(len(n_values), 2, figsize=(10.4, max(3.2, 2.8 * len(n_values))), squeeze=False)
     for row_index, n_value in enumerate(n_values):
         ax = axes[row_index][0]
         panel_label(ax, f"({chr(ord('a') + 2 * row_index)}) N={n_value}")
-        np_values = metric_values(rows, "objective", n_value=n_value, method="NP")
-        np_mean, np_ci = mean_interval(np_values)
+        np_mean = checked_delay_mean("NP", n_value=n_value)
         if np_mean is not None:
-            yerr = [np_ci] * len(deltas) if np_ci is not None else None
-            ax.errorbar(deltas, [np_mean] * len(deltas), yerr=yerr, color=METHOD_COLORS["NP"], marker="x", label="NP", capsize=2)
-        chp_y: list[float | None] = []
-        chp_err: list[float] = []
-        for delta in deltas:
-            value, interval = mean_interval(metric_values(rows, "objective", n_value=n_value, method="CHP", delta=delta))
-            chp_y.append(value)
-            chp_err.append(interval or 0.0)
-        ax.errorbar(deltas, chp_y, yerr=chp_err, color=METHOD_COLORS["CHP"], marker="v", label="CHP", capsize=2)
-        for pmax in pmax_values:
-            y: list[float | None] = []
-            err: list[float] = []
-            for delta in deltas:
-                value, interval = mean_interval(metric_values(rows, "objective", n_value=n_value, method="PP", delta=delta, pmax=pmax))
-                y.append(value)
-                err.append(interval or 0.0)
-            ax.errorbar(deltas, y, yerr=err, color="#666666", marker=PMAX_MARKERS.get(pmax, "o"), label=f"PP Pmax={pmax}", capsize=2)
+            ax.plot(deltas, [np_mean] * len(deltas), color=METHOD_COLORS["NP"], marker="x", linewidth=1.4, label="NP")
+        chp_y = [checked_delay_mean("CHP", n_value=n_value, delta=delta) for delta in deltas]
+        pp_y = [checked_delay_mean("PP", n_value=n_value, delta=delta) for delta in deltas]
+        ax.plot(deltas, chp_y, color=METHOD_COLORS["CHP"], marker="v", linewidth=1.4, label="CHP")
+        ax.plot(deltas, pp_y, color=METHOD_COLORS["PP"], marker="o", linewidth=1.4, label="PP")
         ax.set_xlabel(r"Platooning threshold $\delta$")
         ax.set_ylabel("Average vehicle delay")
         ax.grid(True, linewidth=0.5, alpha=0.25)
@@ -534,39 +541,12 @@ def plot_delay_density(rows: list[dict[str, str]], output_dir: Path, *, write_pn
 
         ax = axes[row_index][1]
         panel_label(ax, f"({chr(ord('a') + 2 * row_index + 1)}) N={n_value}")
-        np_y: list[float | None] = []
-        np_err: list[float] = []
-        for rate in rates:
-            value, interval = mean_interval(metric_values(rows, "objective", n_value=n_value, method="NP", rate=rate))
-            np_y.append(value)
-            np_err.append(interval or 0.0)
-        ax.errorbar(rates, np_y, yerr=np_err, color=METHOD_COLORS["NP"], marker="x", label="NP", capsize=2)
-        for delta in deltas:
-            chp_rate_y: list[float | None] = []
-            chp_rate_err: list[float] = []
-            for rate in rates:
-                value, interval = mean_interval(metric_values(rows, "objective", n_value=n_value, method="CHP", delta=delta, rate=rate))
-                chp_rate_y.append(value)
-                chp_rate_err.append(interval or 0.0)
-            ax.errorbar(rates, chp_rate_y, yerr=chp_rate_err, color=DELTA_COLORS.get(delta, "#555555"), linestyle="--", marker="v", label=f"CHP delta={delta}", capsize=2)
-            for pmax in pmax_values:
-                pp_rate_y: list[float | None] = []
-                pp_rate_err: list[float] = []
-                for rate in rates:
-                    value, interval = mean_interval(metric_values(rows, "objective", n_value=n_value, method="PP", delta=delta, pmax=pmax, rate=rate))
-                    pp_rate_y.append(value)
-                    pp_rate_err.append(interval or 0.0)
-                ax.errorbar(
-                    rates,
-                    pp_rate_y,
-                    yerr=pp_rate_err,
-                    color=DELTA_COLORS.get(delta, "#555555"),
-                    marker=PMAX_MARKERS.get(pmax, "o"),
-                    linewidth=1.0,
-                    alpha=0.75,
-                    label=f"PP d={delta}, P={pmax}",
-                    capsize=2,
-                )
+        np_y = [checked_delay_mean("NP", n_value=n_value, rate=rate) for rate in rates]
+        chp_rate_y = [checked_delay_mean("CHP", n_value=n_value, rate=rate) for rate in rates]
+        pp_rate_y = [checked_delay_mean("PP", n_value=n_value, rate=rate) for rate in rates]
+        ax.plot(rates, np_y, color=METHOD_COLORS["NP"], marker="x", linewidth=1.4, label="NP")
+        ax.plot(rates, chp_rate_y, color=METHOD_COLORS["CHP"], marker="v", linewidth=1.4, label="CHP")
+        ax.plot(rates, pp_rate_y, color=METHOD_COLORS["PP"], marker="o", linewidth=1.4, label="PP")
         ax.set_xlabel(r"Arrival rate $\lambda$")
         ax.set_ylabel("Average vehicle delay")
         ax.grid(True, linewidth=0.5, alpha=0.25)
@@ -586,13 +566,11 @@ def plot_delay_density(rows: list[dict[str, str]], output_dir: Path, *, write_pn
         "pp_delay_vs_threshold_density",
         {
             "figure_number": 8,
-            "plot_type": "line figure",
-            "aggregation": "Panels are stratified by N. Delta panels average over arrival rates and replications within each N/method/delta/Pmax group. Arrival-rate panels average over replications within each N/method/delta/Pmax/rate group. PP is never averaged across Pmax.",
-            "uncertainty": "Error bars show approximate 95% mean intervals when at least two replications contribute to a plotted mean. Means are not jittered.",
+            "plot_type": "method-level mean line figure",
+            "aggregation": "Uses delay-order-checkable PP rows. Delta panels show one paired mean per method and delta; PP is averaged over Pmax, arrival rates, and replications at each delta. Arrival-rate panels show one paired mean per method and arrival rate; PP is averaged over delta, Pmax, and replications at each rate.",
+            "uncertainty": "Not shown in this presentation figure.",
             "n_values": n_values,
-            "pmax_values": pmax_values,
-            "delta_colors": DELTA_COLORS,
-            "pmax_markers": PMAX_MARKERS,
+            "method_colors": METHOD_COLORS,
         },
     )
     save_figure(fig, output_dir, "pp_delay_vs_threshold_density", write_png=write_png)
