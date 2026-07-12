@@ -18,7 +18,12 @@ if str(VERIFY_DIR) not in sys.path:
     sys.path.insert(0, str(VERIFY_DIR))
 
 from enumerate_sequences import enumerate_fifo_sequences, enumerate_platoon_sequences  # noqa: E402
-from metrics import ordering_variables, rule_level_bound, scaled_rule_level_bound  # noqa: E402
+from metrics import (  # noqa: E402
+    ordering_variables,
+    rule_level_bound,
+    scaled_rule_level_bound,
+    vehicle_level_ordering_variables,
+)
 from model import Instance, optimum_for_sequences, partition_label, scaled_indexed_bound  # noqa: E402
 from partition_methods import form_rule_based_platoons  # noqa: E402
 from scheduling_milp import solve_downstream_schedule  # noqa: E402
@@ -232,6 +237,10 @@ def run_case(
         "partition": partition_label(formation.partition),
         "number_of_platoons": sum(len(blocks) for blocks in formation.partition),
         "ordering_variable_count": ordering_variables(formation.partition),
+        "vehicle_level_ordering_variable_count": vehicle_level_ordering_variables(instance.counts),
+        "dimension_reduction_ratio": (
+            1.0 - ordering_variables(formation.partition) / vehicle_level_ordering_variables(instance.counts)
+        ),
         "formation_time_ms": formation.formation_time_ms,
         "formation_repetitions": config.formation_repetitions,
         "status": schedule_status,
@@ -288,7 +297,15 @@ def summarize(rows: list[dict[str, object]]) -> list[dict[str, object]]:
                 "threshold": threshold,
                 "max_platoon_size": max_platoon_size,
                 "cases": len(group),
+                "case_count": len(group),
                 "actual_gap_case_count": len(known_gap_rows),
+                "actual_gap_availability_rate": len(known_gap_rows) / len(group),
+                "np_optimality_rate": sum(
+                    1 for row in group if row.get("np_status") in ("OPTIMAL", "EXACT")
+                ) / len(group),
+                "pp_optimality_rate": sum(
+                    1 for row in group if row.get("status") in ("OPTIMAL", "EXACT")
+                ) / len(group),
                 "violation_count": len(known_gap_rows) - len(valid_rows),
                 "violation_rate": (
                     (len(known_gap_rows) - len(valid_rows)) / len(known_gap_rows)
