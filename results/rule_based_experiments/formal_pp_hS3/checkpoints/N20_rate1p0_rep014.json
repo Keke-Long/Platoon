@@ -1,0 +1,2352 @@
+{
+  "config": {
+    "seed": 20260712,
+    "reps": 20,
+    "n_values": [
+      20
+    ],
+    "approaches": 4,
+    "arrival_rates": [
+      0.4,
+      0.7,
+      1.0
+    ],
+    "thresholds": [
+      2,
+      4,
+      6,
+      8
+    ],
+    "max_platoon_sizes": [
+      2,
+      4,
+      6,
+      8
+    ],
+    "hF": 1,
+    "hS": 3,
+    "time_limit": 30.0,
+    "np_recovery_time_limit": 600.0,
+    "enable_np_recovery": false,
+    "threads": 12,
+    "formation_repetitions": 20,
+    "bound_output_dir": "../../results/rule_based_experiments/formal_bound_hS3",
+    "comparison_output_dir": "../../results/rule_based_experiments/formal_pp_hS3",
+    "recovery_output_dir": "../../results/rule_based_experiments/formal_np_recovery_600s_hS3",
+    "write_trajectory": true,
+    "trajectory_output_dir": "../../results/rule_based_experiments/formal_pp_hS3",
+    "representative_threshold": 4,
+    "representative_max_platoon_size": 4
+  },
+  "instance": {
+    "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+    "seed": 14803106607891353429,
+    "replication": 14,
+    "N": 20,
+    "arrival_rate": 1.0,
+    "counts": [
+      5,
+      5,
+      5,
+      5
+    ],
+    "releases": [
+      [
+        4,
+        7,
+        8,
+        8,
+        10
+      ],
+      [
+        2,
+        3,
+        4,
+        7,
+        8
+      ],
+      [
+        0,
+        2,
+        2,
+        3,
+        4
+      ],
+      [
+        2,
+        2,
+        4,
+        5,
+        8
+      ]
+    ]
+  },
+  "rows": [
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "NP",
+      "run_role": "initial_30s",
+      "threshold": null,
+      "delta": null,
+      "max_platoon_size": 1,
+      "Pmax": 1,
+      "partition": [
+        [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      ],
+      "number_of_platoons": 20,
+      "ordering_variable_count": 150,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.0,
+      "formation_time_ms": 0.001107,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 0.0,
+      "scaled_partition_specific_upper_bound": 0,
+      "rule_level_upper_bound": 0.0,
+      "scaled_rule_level_upper_bound": 0,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 3.583500862121582,
+      "model_construction_time_s": 0.006120519712567329,
+      "end_to_end_time_s": 3.5896750843452283,
+      "node_count": 59927.0,
+      "time_to_first_feasible_s": 0.001489877700805664,
+      "sol_count": 8,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": false,
+      "bound_valid": null,
+      "bound_slack": null,
+      "delay_order_check_available": false,
+      "np_pp_chp_delay_order_holds": null,
+      "matching_chp_objective": null,
+      "pp_optimal_objective": null
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "CHP",
+      "run_role": "initial_30s",
+      "threshold": 2,
+      "delta": 2,
+      "max_platoon_size": null,
+      "Pmax": null,
+      "partition": [
+        [
+          1,
+          4
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          5
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "number_of_platoons": 7,
+      "ordering_variable_count": 18,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.88,
+      "formation_time_ms": 0.001672,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 2.05,
+      "scaled_partition_specific_upper_bound": 41,
+      "rule_level_upper_bound": 14.25,
+      "scaled_rule_level_upper_bound": 285,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.99999999999307,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.010987043380737305,
+      "model_construction_time_s": 0.0046403128653764725,
+      "end_to_end_time_s": 0.015680778116294862,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.0014379024505615234,
+      "sol_count": 4,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": false,
+      "bound_valid": null,
+      "bound_slack": null,
+      "delay_order_check_available": false,
+      "np_pp_chp_delay_order_holds": null,
+      "matching_chp_objective": 8.8
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 2,
+      "delta": 2,
+      "max_platoon_size": 2,
+      "Pmax": 2,
+      "partition": [
+        [
+          1,
+          2,
+          2
+        ],
+        [
+          2,
+          1,
+          2
+        ],
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ]
+      ],
+      "number_of_platoons": 12,
+      "ordering_variable_count": 54,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.64,
+      "formation_time_ms": 0.004717,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 1.35,
+      "scaled_partition_specific_upper_bound": 27,
+      "rule_level_upper_bound": 7.5,
+      "scaled_rule_level_upper_bound": 150,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.11586689949035645,
+      "model_construction_time_s": 0.004777450114488602,
+      "end_to_end_time_s": 0.12069499384628964,
+      "node_count": 1948.0,
+      "time_to_first_feasible_s": 0.0008559226989746094,
+      "sol_count": 5,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 7.5,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 2,
+      "delta": 2,
+      "max_platoon_size": 4,
+      "Pmax": 4,
+      "partition": [
+        [
+          1,
+          4
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "number_of_platoons": 8,
+      "ordering_variable_count": 24,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.84,
+      "formation_time_ms": 0.0017325,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 2.05,
+      "scaled_partition_specific_upper_bound": 41,
+      "rule_level_upper_bound": 11.25,
+      "scaled_rule_level_upper_bound": 225,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.0220639705657959,
+      "model_construction_time_s": 0.0040837619453668594,
+      "end_to_end_time_s": 0.02619964467148304,
+      "node_count": 208.0,
+      "time_to_first_feasible_s": 0.0007650852203369141,
+      "sol_count": 4,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 11.25,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 2,
+      "delta": 2,
+      "max_platoon_size": 6,
+      "Pmax": 6,
+      "partition": [
+        [
+          1,
+          4
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          5
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "number_of_platoons": 7,
+      "ordering_variable_count": 18,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.88,
+      "formation_time_ms": 0.0042065,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 2.05,
+      "scaled_partition_specific_upper_bound": 41,
+      "rule_level_upper_bound": 12.0,
+      "scaled_rule_level_upper_bound": 240,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.99999999999307,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.0093841552734375,
+      "model_construction_time_s": 0.003911611624062061,
+      "end_to_end_time_s": 0.01334764221215868,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.0006902217864990234,
+      "sol_count": 4,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 12.0,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 2,
+      "delta": 2,
+      "max_platoon_size": 8,
+      "Pmax": 8,
+      "partition": [
+        [
+          1,
+          4
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          5
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "number_of_platoons": 7,
+      "ordering_variable_count": 18,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.88,
+      "formation_time_ms": 0.003911,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 2.05,
+      "scaled_partition_specific_upper_bound": 41,
+      "rule_level_upper_bound": 12.75,
+      "scaled_rule_level_upper_bound": 255,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.99999999999307,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.008533954620361328,
+      "model_construction_time_s": 0.0037314286455512047,
+      "end_to_end_time_s": 0.012312942561017037,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.0005578994750976562,
+      "sol_count": 4,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 12.75,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "CHP",
+      "run_role": "initial_30s",
+      "threshold": 4,
+      "delta": 4,
+      "max_platoon_size": null,
+      "Pmax": null,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.0014225,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 50.35,
+      "scaled_rule_level_upper_bound": 1007,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.0025358200073242188,
+      "model_construction_time_s": 0.0031924154609441757,
+      "end_to_end_time_s": 0.00577373653440237,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.0003998279571533203,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": false,
+      "bound_valid": null,
+      "bound_slack": null,
+      "delay_order_check_available": false,
+      "np_pp_chp_delay_order_holds": null,
+      "matching_chp_objective": 8.8
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 4,
+      "delta": 4,
+      "max_platoon_size": 2,
+      "Pmax": 2,
+      "partition": [
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ]
+      ],
+      "number_of_platoons": 12,
+      "ordering_variable_count": 54,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.64,
+      "formation_time_ms": 0.004622,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 3.95,
+      "scaled_partition_specific_upper_bound": 79,
+      "rule_level_upper_bound": 26.5,
+      "scaled_rule_level_upper_bound": 530,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.07241106033325195,
+      "model_construction_time_s": 0.005711632780730724,
+      "end_to_end_time_s": 0.07817883681013298,
+      "node_count": 1117.0,
+      "time_to_first_feasible_s": 0.0008881092071533203,
+      "sol_count": 5,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 26.5,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 4,
+      "delta": 4,
+      "max_platoon_size": 4,
+      "Pmax": 4,
+      "partition": [
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "number_of_platoons": 8,
+      "ordering_variable_count": 24,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.84,
+      "formation_time_ms": 0.001722,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 4.65,
+      "scaled_partition_specific_upper_bound": 93,
+      "rule_level_upper_bound": 39.75,
+      "scaled_rule_level_upper_bound": 795,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.023764848709106445,
+      "model_construction_time_s": 0.00400166679173708,
+      "end_to_end_time_s": 0.02781825045442295,
+      "node_count": 161.0,
+      "time_to_first_feasible_s": 0.00016379356384277344,
+      "sol_count": 6,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 39.75,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 4,
+      "delta": 4,
+      "max_platoon_size": 6,
+      "Pmax": 6,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.004532,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 42.4,
+      "scaled_rule_level_upper_bound": 848,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.002902984619140625,
+      "model_construction_time_s": 0.0036557549610733986,
+      "end_to_end_time_s": 0.006611628642255783,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.0004749298095703125,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 42.4,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 4,
+      "delta": 4,
+      "max_platoon_size": 8,
+      "Pmax": 8,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.004506,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 45.05,
+      "scaled_rule_level_upper_bound": 901,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.002804994583129883,
+      "model_construction_time_s": 0.00388907827436924,
+      "end_to_end_time_s": 0.0067413777864155765,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.00038313865661621094,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 45.05,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "CHP",
+      "run_role": "initial_30s",
+      "threshold": 6,
+      "delta": 6,
+      "max_platoon_size": null,
+      "Pmax": null,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.0016125,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 86.45,
+      "scaled_rule_level_upper_bound": 1729,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.0026199817657470703,
+      "model_construction_time_s": 0.003744048997759819,
+      "end_to_end_time_s": 0.006416517690467835,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.00038313865661621094,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": false,
+      "bound_valid": null,
+      "bound_slack": null,
+      "delay_order_check_available": false,
+      "np_pp_chp_delay_order_holds": null,
+      "matching_chp_objective": 8.8
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 6,
+      "delta": 6,
+      "max_platoon_size": 2,
+      "Pmax": 2,
+      "partition": [
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ]
+      ],
+      "number_of_platoons": 12,
+      "ordering_variable_count": 54,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.64,
+      "formation_time_ms": 0.004657,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 3.95,
+      "scaled_partition_specific_upper_bound": 79,
+      "rule_level_upper_bound": 45.5,
+      "scaled_rule_level_upper_bound": 910,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.07140707969665527,
+      "model_construction_time_s": 0.004370804876089096,
+      "end_to_end_time_s": 0.07582700663774682,
+      "node_count": 1117.0,
+      "time_to_first_feasible_s": 0.0008099079132080078,
+      "sol_count": 5,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 45.5,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 6,
+      "delta": 6,
+      "max_platoon_size": 4,
+      "Pmax": 4,
+      "partition": [
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "number_of_platoons": 8,
+      "ordering_variable_count": 24,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.84,
+      "formation_time_ms": 0.004597,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 4.65,
+      "scaled_partition_specific_upper_bound": 93,
+      "rule_level_upper_bound": 68.25,
+      "scaled_rule_level_upper_bound": 1365,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.023719072341918945,
+      "model_construction_time_s": 0.004032132215797901,
+      "end_to_end_time_s": 0.02780632301342201,
+      "node_count": 161.0,
+      "time_to_first_feasible_s": 0.0001621246337890625,
+      "sol_count": 6,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 68.25,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 6,
+      "delta": 6,
+      "max_platoon_size": 6,
+      "Pmax": 6,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.0044665,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 72.8,
+      "scaled_rule_level_upper_bound": 1456,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.002335071563720703,
+      "model_construction_time_s": 0.003953024744987488,
+      "end_to_end_time_s": 0.0063409235960402485,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.00045490264892578125,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 72.8,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 6,
+      "delta": 6,
+      "max_platoon_size": 8,
+      "Pmax": 8,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.004287,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 77.35,
+      "scaled_rule_level_upper_bound": 1547,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.002307891845703125,
+      "model_construction_time_s": 0.003792191855609417,
+      "end_to_end_time_s": 0.006152228574454308,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.00044083595275878906,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 77.35,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "CHP",
+      "run_role": "initial_30s",
+      "threshold": 8,
+      "delta": 8,
+      "max_platoon_size": null,
+      "Pmax": null,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.0041865,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 122.55,
+      "scaled_rule_level_upper_bound": 2451,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.003242969512939453,
+      "model_construction_time_s": 0.0039020273834466934,
+      "end_to_end_time_s": 0.00719305148361826,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.00038886070251464844,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": false,
+      "bound_valid": null,
+      "bound_slack": null,
+      "delay_order_check_available": false,
+      "np_pp_chp_delay_order_holds": null,
+      "matching_chp_objective": 8.8
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 8,
+      "delta": 8,
+      "max_platoon_size": 2,
+      "Pmax": 2,
+      "partition": [
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1
+        ]
+      ],
+      "number_of_platoons": 12,
+      "ordering_variable_count": 54,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.64,
+      "formation_time_ms": 0.004837,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 3.95,
+      "scaled_partition_specific_upper_bound": 79,
+      "rule_level_upper_bound": 64.5,
+      "scaled_rule_level_upper_bound": 1290,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.07063603401184082,
+      "model_construction_time_s": 0.0049875471740961075,
+      "end_to_end_time_s": 0.07567368418835353,
+      "node_count": 1117.0,
+      "time_to_first_feasible_s": 0.0008111000061035156,
+      "sol_count": 5,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 64.5,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 8,
+      "delta": 8,
+      "max_platoon_size": 4,
+      "Pmax": 4,
+      "partition": [
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "number_of_platoons": 8,
+      "ordering_variable_count": 24,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.84,
+      "formation_time_ms": 0.0043115,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 4.65,
+      "scaled_partition_specific_upper_bound": 93,
+      "rule_level_upper_bound": 96.75,
+      "scaled_rule_level_upper_bound": 1935,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 176.0,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.02346491813659668,
+      "model_construction_time_s": 0.004099384881556034,
+      "end_to_end_time_s": 0.027618334105121135,
+      "node_count": 161.0,
+      "time_to_first_feasible_s": 0.000164031982421875,
+      "sol_count": 6,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 96.75,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 8,
+      "delta": 8,
+      "max_platoon_size": 6,
+      "Pmax": 6,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.004457,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 103.2,
+      "scaled_rule_level_upper_bound": 2064,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.0027871131896972656,
+      "model_construction_time_s": 0.003968899138271809,
+      "end_to_end_time_s": 0.0068080599115319254,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.0004680156707763672,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 103.2,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    },
+    {
+      "instance_id": "N20_rate1p0_rep014_seed14803106607891353429",
+      "seed": 14803106607891353429,
+      "replication": 14,
+      "N": 20,
+      "L": 4,
+      "counts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "releases": [
+        [
+          4,
+          7,
+          8,
+          8,
+          10
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          2,
+          4,
+          5,
+          8
+        ]
+      ],
+      "arrival_rate": 1.0,
+      "h_F": 1,
+      "h_S": 3,
+      "method": "PP",
+      "run_role": "initial_30s",
+      "threshold": 8,
+      "delta": 8,
+      "max_platoon_size": 8,
+      "Pmax": 8,
+      "partition": [
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ],
+        [
+          5
+        ]
+      ],
+      "number_of_platoons": 4,
+      "ordering_variable_count": 6,
+      "vehicle_level_ordering_variable_count": 150,
+      "dimension_reduction_ratio": 0.96,
+      "formation_time_ms": 0.0014925,
+      "formation_repetitions": 20,
+      "partition_specific_upper_bound": 6.65,
+      "scaled_partition_specific_upper_bound": 133,
+      "rule_level_upper_bound": 109.65,
+      "scaled_rule_level_upper_bound": 2193,
+      "time_limit_s": 30.0,
+      "threads": 12,
+      "status": "OPTIMAL",
+      "objective": 8.8,
+      "objective_total_delay": 176.0,
+      "best_bound": 175.9999999999888,
+      "terminal_mip_gap": 0.0,
+      "solve_time_s": 0.0031709671020507812,
+      "model_construction_time_s": 0.0031713927164673805,
+      "end_to_end_time_s": 0.006386662423305512,
+      "node_count": 1.0,
+      "time_to_first_feasible_s": 0.0003859996795654297,
+      "sol_count": 2,
+      "np_30s_status": "OPTIMAL",
+      "np_30s_objective": 8.8,
+      "np_30s_terminal_mip_gap": 0.0,
+      "np_30s_solve_time_s": 3.583500862121582,
+      "np_recovery_status": null,
+      "np_recovery_objective": null,
+      "np_optimal_objective": 8.8,
+      "np_optimal_source": "initial_30s",
+      "matching_chp_objective": 8.8,
+      "pp_optimal_objective": 8.8,
+      "actual_optimality_gap": 0.0,
+      "bound_check_available": true,
+      "bound_slack": 109.65,
+      "bound_valid": true,
+      "delay_order_check_available": true,
+      "np_pp_chp_delay_order_holds": true
+    }
+  ],
+  "recovery_rows": [],
+  "trajectory_rows": []
+}
