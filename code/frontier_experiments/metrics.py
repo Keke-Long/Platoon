@@ -1,4 +1,4 @@
-"""Exact partition metrics used by dimension-loss frontier experiments."""
+"""Exact partition metrics used by the formal hS=3 platooning pipeline."""
 
 from __future__ import annotations
 

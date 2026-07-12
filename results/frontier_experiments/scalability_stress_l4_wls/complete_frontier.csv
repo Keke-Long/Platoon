@@ -1,5 +1,0 @@
-scenario,replication,N,L,ordering_budget,ordering_variables,vehicle_level_ordering_variables,dimension_reduction_fraction,scaled_indexed_bound,indexed_bound,partition,partition_time_seconds
-N20_L4_unbalanced_bursty_hS2,0,20,4,13,13,140,0.9071428571428571,374,18.7,"[[4, 4], [3, 3], [4], [2]]",0.007484087720513344
-N20_L4_unbalanced_bursty_hS2,0,20,4,17,17,140,0.8785714285714286,31,1.55,"[[4, 1, 3], [3, 3], [4], [2]]",0.00640636682510376
-N20_L4_unbalanced_bursty_hS2,0,20,4,22,22,140,0.8428571428571429,15,0.75,"[[1, 4, 3], [2, 1, 3], [4], [2]]",0.005970909260213375
-N20_L4_unbalanced_bursty_hS2,0,20,4,29,29,140,0.7928571428571428,0,0.0,"[[4, 1, 3], [2, 1, 3], [3, 1], [2]]",0.005725898779928684

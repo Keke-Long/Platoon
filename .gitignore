@@ -1,6 +1,9 @@
 # Local review archives
 *.zip
 
+# Experiment checkpoints are local resume artifacts.
+results/**/checkpoints/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -1,8 +1,8 @@
 """Formal hS=3 rule-based platooning experiments.
 
 This runner implements the frozen Chapter 5 NP/CHP/PP experiment grid without
-calling archived partition optimization, frontier, oracle, or budget-selection
-code. It checkpoints after every replication and rewrites aggregate outputs so
+calling archived partition optimization, oracle, or budget-selection code. It
+checkpoints after every replication and rewrites aggregate outputs so
 interrupted runs can resume without duplicating rows.
 """
 
@@ -142,12 +142,17 @@ def median_or_none(values: list[float]) -> float | None:
 
 
 def row_key(row: dict[str, Any]) -> tuple[Any, ...]:
+    def canonical(value: Any) -> str:
+        if value in (None, "", "NA"):
+            return "NA"
+        return str(value)
+
     return (
-        row.get("instance_id"),
-        row.get("method"),
-        row.get("threshold"),
-        row.get("max_platoon_size"),
-        row.get("run_role"),
+        canonical(row.get("instance_id")),
+        canonical(row.get("method")),
+        canonical(row.get("threshold")),
+        canonical(row.get("max_platoon_size")),
+        canonical(row.get("run_role")),
     )
 
 
@@ -480,6 +485,28 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
             )
 
 
+def parse_csv_value(value: str) -> Any:
+    if value == "":
+        return None
+    if value == "True":
+        return True
+    if value == "False":
+        return False
+    if value.startswith("[") or value.startswith("{"):
+        return json.loads(value)
+    return value
+
+
+def read_csv(path: Path) -> list[dict[str, Any]]:
+    if not path.exists() or path.stat().st_size == 0:
+        return []
+    with path.open(newline="", encoding="utf-8") as handle:
+        return [
+            {key: parse_csv_value(value) for key, value in row.items()}
+            for row in csv.DictReader(handle)
+        ]
+
+
 def summarize_comparison(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     groups: dict[tuple[Any, ...], list[dict[str, Any]]] = {}
     for row in rows:
@@ -601,10 +628,7 @@ def write_outputs(
 
     write_csv(comparison_dir / "formal_comparison_rows.csv", rows)
     write_csv(comparison_dir / "formal_comparison_summary.csv", comparison_summary)
-    write_csv(comparison_dir / "formal_rule_based_rows.csv", rows)
-    write_csv(comparison_dir / "formal_rule_based_summary.csv", comparison_summary)
     (comparison_dir / "formal_comparison_summary.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    (comparison_dir / "formal_rule_based_summary.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     write_csv(bound_dir / "formal_bound_rows.csv", pp_rows)
     write_csv(bound_dir / "formal_bound_checkable_rows.csv", [row for row in pp_rows if row.get("bound_check_available") is True])
@@ -641,6 +665,22 @@ def checkpoint_path(config: FormalHS3Config, n_value: int, arrival_rate: float, 
     return Path(config.comparison_output_dir) / "checkpoints" / f"N{n_value}_rate{rate_label}_rep{replication:03d}.json"
 
 
+def completed_from_rows(rows: list[dict[str, Any]]) -> set[tuple[int, float, int]]:
+    completed: set[tuple[int, float, int]] = set()
+    for row in rows:
+        if row.get("N") in (None, "") or row.get("arrival_rate") in (None, "") or row.get("replication") in (None, ""):
+            continue
+        completed.add((int(row["N"]), float(row["arrival_rate"]), int(row["replication"])))
+    return completed
+
+
+def load_existing_outputs(config: FormalHS3Config) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], set[tuple[int, float, int]]]:
+    rows = read_csv(Path(config.comparison_output_dir) / "formal_comparison_rows.csv")
+    recovery_rows = read_csv(Path(config.recovery_output_dir) / "formal_np_recovery_rows.csv")
+    trajectory_rows = read_csv(Path(config.trajectory_output_dir) / "gurobi_incumbent_trajectories.csv")
+    return rows, recovery_rows, trajectory_rows, completed_from_rows(rows)
+
+
 def load_checkpoints(config: FormalHS3Config) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], set[tuple[int, float, int]]]:
     rows: list[dict[str, Any]] = []
     recovery_rows: list[dict[str, Any]] = []
@@ -667,6 +707,27 @@ def write_checkpoint_atomic(path: Path, payload: dict[str, Any]) -> None:
     tmp_path.replace(path)
 
 
+def merge_rows_by_key(
+    existing_rows: list[dict[str, Any]],
+    new_rows: list[dict[str, Any]],
+    key_func,
+) -> list[dict[str, Any]]:
+    merged = {key_func(row): row for row in existing_rows}
+    for row in new_rows:
+        merged[key_func(row)] = row
+    return list(merged.values())
+
+
+def trajectory_key(row: dict[str, Any]) -> tuple[Any, ...]:
+    return (
+        row_key(row),
+        str(row.get("point_index")),
+        str(row.get("time_s")),
+        str(row.get("incumbent_objective")),
+        str(row.get("best_bound")),
+    )
+
+
 def run(
     config: FormalHS3Config,
     resume: bool,
@@ -674,9 +735,21 @@ def run(
     rep_start: int = 0,
     rep_end_exclusive: int | None = None,
     checkpoint_only: bool = False,
+    append_existing_outputs: bool = False,
 ) -> dict[str, Any]:
     Path(config.comparison_output_dir).mkdir(parents=True, exist_ok=True)
-    rows, recovery_rows, trajectory_rows, completed = load_checkpoints(config) if resume else ([], [], [], set())
+    rows: list[dict[str, Any]] = []
+    recovery_rows: list[dict[str, Any]] = []
+    trajectory_rows: list[dict[str, Any]] = []
+    completed: set[tuple[int, float, int]] = set()
+    if append_existing_outputs and not checkpoint_only:
+        rows, recovery_rows, trajectory_rows, completed = load_existing_outputs(config)
+    if resume:
+        checkpoint_rows, checkpoint_recovery_rows, checkpoint_trajectory_rows, checkpoint_completed = load_checkpoints(config)
+        rows = merge_rows_by_key(rows, checkpoint_rows, row_key)
+        recovery_rows = merge_rows_by_key(recovery_rows, checkpoint_recovery_rows, row_key)
+        trajectory_rows = merge_rows_by_key(trajectory_rows, checkpoint_trajectory_rows, trajectory_key)
+        completed |= checkpoint_completed
     rep_end = config.reps if rep_end_exclusive is None else rep_end_exclusive
     if rep_start < 0 or rep_end < rep_start or rep_end > config.reps:
         raise ValueError("replication range must satisfy 0 <= rep_start <= rep_end <= reps")
@@ -741,6 +814,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Write per-replication checkpoints only. Use for parallel chunks, then run a single aggregate pass.",
     )
+    parser.add_argument(
+        "--append-existing-outputs",
+        action="store_true",
+        help="Seed aggregation from existing formal CSV outputs before adding resumed checkpoints.",
+    )
     return parser
 
 
@@ -775,6 +853,7 @@ def main() -> int:
         rep_start=args.rep_start,
         rep_end_exclusive=args.rep_end_exclusive,
         checkpoint_only=args.checkpoint_only,
+        append_existing_outputs=args.append_existing_outputs,
     )
     print(json.dumps(payload, indent=2))
     if payload.get("checkpoint_only"):

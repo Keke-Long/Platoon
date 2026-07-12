@@ -1,2 +1,1 @@
-"""Dimension-loss frontier experiments for platoon partition selection."""
-
+"""Formal hS=3 rule-based platooning experiment pipeline."""

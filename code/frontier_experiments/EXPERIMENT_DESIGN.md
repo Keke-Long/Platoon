@@ -1,23 +1,19 @@
 # Rule-Based Platooning Experiment Design
 
-This file is the single source of truth for Chapter 5 of the manuscript and for all future formal experiment runs on branch `agent/restore-rule-based-platooning-clean`.
+This file defines the paper-facing Chapter 5 experiment design for the formal hS=3 NP/CHP/PP pipeline on branch `agent/restore-rule-based-platooning-clean`.
 
-Do not change the parameter grid, solver settings, figure definitions, or output meanings without first updating both this file and `paper/sections/experiments.tex`.
+Do not change the parameter grid, solver settings, figure definitions, or output meanings without updating both this file and `../../paper/sections/experiments.tex`.
 
-## Chapter 5 structure
+## Chapter 5 Structure
 
-Chapter 5 contains only two main subsections:
+Chapter 5 contains two studies:
 
-1. `5.1 Validation of the Rule-Level Upper Bound`
-   - `5.1.1 Experiment Setting`
-   - `5.1.2 Results`
-2. `5.2 Validation of the Proposed Platooning Method`
-   - `5.2.1 Experiment Setting`
-   - `5.2.2 Results`
+1. Validation of the rule-level upper bound.
+2. Validation of the proposed platooning method.
 
-## Shared traffic settings
+Both studies use the same generated traffic instances and formal grid.
 
-Both studies use:
+## Shared Traffic Settings
 
 - number of approaches: `L = 4`
 - total vehicles: `N in {20, 40, 60, 80}`
@@ -26,132 +22,58 @@ Both studies use:
 - arrival rates: `lambda in {0.4, 0.7, 1.0}` veh/s
 - minimum following headway: `hF = 1 s`
 - minimum switching headway: `hS = 3 s`
-- platooning thresholds: `delta in {2, 4, 6, 8} s`
+- platooning thresholds: `delta in {2, 4, 6, 8}` s
 - maximum platoon sizes: `Pmax in {2, 4, 6, 8}`
 - replications: `20`
 - Gurobi threads: `12`
-- reproducible instance seeds
+- deterministic instance seeds
 
 The same generated traffic instance must be reused by NP, CHP, and every PP parameter combination.
 
 ## Methods
 
-- `NP`: no platooning. Every vehicle remains an independent scheduling unit.
-- `CHP`: conventional critical-headway platooning. Consecutive same-approach vehicles join the same platoon when their release gap is no greater than `delta`. No maximum platoon-size cap is imposed.
-- `PP`: proposed platooning. The same threshold rule is used, but platoon size is capped by `Pmax`.
+- `NP`: no platooning; every vehicle remains an independent scheduling unit.
+- `CHP`: conventional critical-headway platooning using `delta` with no platoon-size cap.
+- `PP`: proposed platooning using `delta` and capped by `Pmax`.
 
-The active formal pipeline must not call the archived optimized-partition or dimension-budget methods.
+The active formal pipeline must not call archived optimized-partition, complete-frontier, sampled-budget, or dimension-budget methods.
 
-## 5.1 Validation of the rule-level upper bound
+## Bound Validation
 
-### Purpose
-
-Empirically check only
+The paper-facing validation target is:
 
 ```text
 G(Pi) <= Ghat(delta, Pmax)
 ```
 
-where
+where:
 
 ```text
-G(Pi) = D_PP - D_NP.
+G(Pi) = D_PP - D_NP
 ```
 
-Do not use the partition-specific bound as the paper-facing validation target. It may remain in internal diagnostic output.
+The partition-specific bound may remain in diagnostic output but is not the plotted or manuscript-facing validation target.
 
-### Solver protocol
+Bound checks are available only when both NP and PP are proven optimal. NP models that do not prove optimality in the initial 30-second run may be solved in a separate 600-second recovery stage. The recovery result may update `D_NP` for bound checking, but the initial 30-second NP status and metrics must remain preserved.
 
-- initial downstream time limit: `30 s` per model
-- NP recovery limit: `600 s` for unresolved NP models
-- Gurobi threads: `12`
-- PP must be proven optimal before its gap is used
-- NP must be proven optimal before `D_NP` is used
-- a bound check is available only when both NP and PP are proven optimal
-- the 600-second recovery result may update `D_NP` and the paper-facing gap check
-- the original 30-second NP status, incumbent, runtime, and MIP gap must remain preserved
-
-### Required row-level fields
-
-Each PP row used for 5.1 must contain:
-
-- instance identifiers and seed
-- `N`, `L`, `lambda`, `delta`, `Pmax`
-- stored counts and release times
-- `D_NP`
-- `D_PP`
-- `actual_optimality_gap`
-- `rule_level_upper_bound`
-- `bound_slack = rule_level_upper_bound - actual_optimality_gap`
-- `bound_check_available`
-- `bound_valid`
-- NP and PP statuses
-- original 30-second NP metrics
-- optional 600-second NP recovery metrics
-
-### Required summary statistics
-
-Report:
+Required summary statistics:
 
 - total PP rows
-- valid bound-check rows
-- unique instances with valid checks
-- coverage rate by `(N, lambda)`
-- violation count and violation rate
+- bound-checkable PP rows
+- unique checked instances
+- coverage by `(N, lambda)`
+- bound violation count and rate
 - mean and median actual gap
 - mean and median rule-level upper bound
 - mean, median, and minimum bound slack
 
-All manuscript claims must say `among checked cases` or equivalent when coverage is incomplete.
+Manuscript claims about realized gaps must specify that they apply to checked cases when coverage is incomplete.
 
-### Required figures
+## Method Validation
 
-#### Figure: `bound_validation_actual_vs_upper.pdf`
+The comparison study uses the initial 30-second downstream time limit for NP, CHP, and PP. NP is solved once per instance, CHP once per `delta`, and PP once per `(delta, Pmax)`.
 
-Purpose: show that every checked actual gap is below the rule-level upper bound.
-
-Requirements:
-
-- actual `G` and `Ghat` must both be visible
-- colors represent `delta`
-- marker shapes represent `Pmax`
-- show only rows with `bound_check_available = True`
-- state sample coverage in the caption or annotation
-- do not call the bound tight
-
-#### Figure: `experimental_tradeoff_solve_time_gap.pdf`
-
-Purpose: show the empirical computation-loss trade-off.
-
-Requirements:
-
-- horizontal axis: downstream solve time or a clearly defined computation metric
-- vertical axis: actual gap `G`
-- colors represent `delta`
-- marker shapes represent `Pmax`
-- include only cases with an exact actual gap
-- aggregate replications consistently and show uncertainty
-
-## 5.2 Validation of the proposed PP method
-
-### Purpose
-
-Compare NP, CHP, and PP under the same fixed computation budget and demonstrate that PP provides an intermediate performance-computation trade-off.
-
-### Solver protocol
-
-- downstream time limit: `30 s` per model
-- Gurobi threads: `12`
-- solve NP once per traffic instance
-- solve CHP once per `delta`
-- solve PP once per `(delta, Pmax)`
-- do not rerun NP or CHP redundantly inside the PP loop
-
-The 30-second results are the official computation-comparison results, even if longer NP recovery runs are later available.
-
-### Required metrics
-
-Report:
+Required metrics:
 
 - average vehicle delay or best incumbent objective
 - proven-optimal rate
@@ -164,105 +86,58 @@ Report:
 - ordering-variable count
 - dimension-reduction ratio
 
-Check
+The delay ordering
 
 ```text
 D_NP <= D_PP <= D_CHP
 ```
 
-only when the corresponding NP, PP, and CHP solutions are all proven optimal.
+is checked only when all three corresponding models are proven optimal.
 
-### Required figures
+## Figures
 
-#### Figure: `pp_delay_vs_threshold_density.pdf`
+All formal figures are generated by `plot_rule_based_formal_hs3.py`.
 
-Purpose: compare NP, CHP, and PP delay as platooning aggressiveness or traffic density increases.
+- `bound_validation_actual_vs_upper.pdf`: two-panel bound validation. Panel (a) plots actual `G` against rule-level `Ghat` with a `y=x` reference line. Panel (b) summarizes normalized utilization `G/Ghat` by `delta` and `Pmax`. Use only bound-checkable rows and state that the bound is valid but conservative.
+- `experimental_tradeoff_solve_time_gap.pdf`: mean downstream solve time versus mean actual `G`; `delta` is color and `Pmax` is marker; legend outside the plotting area.
+- `pp_delay_vs_threshold_density.pdf`: NP/CHP/PP delay results stratified by `N`; include uncertainty intervals or light bands where enough replications exist; legends outside plotting panels.
+- `pp_time_and_platoon_count.pdf`: solve-time panels on a logarithmic y-axis and platoon-count panels on a linear y-axis; preserve `delta` color and `Pmax` marker semantics.
+- `gurobi_solution_quality_over_time.pdf`: shared-instance incumbent trajectory for NP, CHP, and representative PP settings.
 
-Required panels:
+PDF is the default publication format. PNG previews are optional and generated only with `--write-png`.
 
-- panel (a): average delay versus `delta`
-- panel (b): average delay versus `lambda`
+## Output Directories
 
-The figure must clearly distinguish NP, CHP, and PP. When multiple PP sizes are shown, marker shapes represent `Pmax`.
-
-#### Figure: `pp_time_and_platoon_count.pdf`
-
-Purpose: explain why platooning reduces computation.
-
-Required content:
-
-- solve time versus `delta`
-- solve time versus `lambda`
-- number of platoons or scheduling units versus `delta`
-- number of platoons or scheduling units versus `lambda`
-
-A four-panel figure is preferred. The same aggregation rule must be used across methods.
-
-#### Figure: `gurobi_solution_quality_over_time.pdf`
-
-Purpose: show how quickly usable solutions are obtained under a limited time budget.
-
-Requirements:
-
-- plot best-found objective or normalized incumbent quality against wall-clock time
-- include NP, CHP, and representative PP settings
-- choose representative PP settings only after inspecting the formal grid
-- record incumbent trajectories through a Gurobi callback
-- do not reconstruct trajectories from terminal results
-- use the same traffic instance and solver environment for all curves
-
-## Paper-facing tables
-
-The manuscript must include:
-
-1. experiment-setting table for 5.1
-2. experiment-setting table for 5.2
-3. bound-validation summary table
-4. NP/CHP/PP performance summary table
-
-The final two tables are generated only after the formal runs are complete.
-
-## Output directories
-
-Use separate directories:
+The active formal result directories are:
 
 ```text
-results/rule_based_experiments/formal_bound_hS3
 results/rule_based_experiments/formal_pp_hS3
+results/rule_based_experiments/formal_bound_hS3
 results/rule_based_experiments/formal_np_recovery_600s_hS3
 results/rule_based_experiments/formal_figures_hS3
 ```
 
-Never overwrite the earlier `formal_unified` results. They remain an archived preliminary run with `hS = 2` and a different parameter grid.
+The paper-facing figure PDFs are copied to `paper/figures/`.
 
-## Execution requirements
+Checkpoint directories are local resume artifacts and must not be committed.
 
-All formal scripts must:
+## Execution Requirements
 
-- checkpoint after every completed replication or model
+Formal scripts must:
+
+- checkpoint after every completed replication
 - support resume
-- skip completed rows safely
-- save the full configuration manifest
-- preserve stored counts and release times
+- support checkpoint-only parallel chunks
+- support appending new checkpoints to existing aggregate CSV files
+- save full configuration manifests
+- preserve counts and release times
 - write deterministic instance identifiers
-- detect duplicate and missing replications
-- report Gurobi status, runtime, MIP gap, nodes, and incumbent
+- detect duplicate aggregate rows
+- report Gurobi status, runtime, MIP gap, nodes, and incumbent information
 - keep 30-second and 600-second NP metrics in separate fields
 
-## Figure style
+Only one process should write aggregate CSV/JSON outputs at a time. Parallel experiment execution must use `--checkpoint-only` chunks followed by a single aggregation pass.
 
-For figures involving the platooning parameters:
+## Current Repository State
 
-- different colors represent `delta`
-- different marker shapes represent `Pmax`
-- use the same color and marker mapping in every figure
-- use readable fonts and publication-quality vector output
-- save both PDF and PNG versions
-- do not use the old optimized-frontier figures
-
-## Current status
-
-- Chapter 5 structure and experiment settings are frozen in the manuscript.
-- Figure placeholders and final captions are present in `paper/sections/experiments.tex`.
-- The previous `formal_unified` run is preliminary evidence only because it used `hS = 2` and `delta = {2,3,4}`.
-- The new `hS = 3` formal experiments and final figures remain to be implemented and run.
+The committed aggregate files contain the completed initial formal run for `N={20,40}`. No committed `N=60`, `N=80`, or NP-recovery rows are part of the active formal results. The manuscript text describes the full formal design and should not describe the implementation process as unfinished.

@@ -1,35 +1,20 @@
 # Formal hS=3 Experiment Handoff
 
-This document records the current paper-facing formal experiment workflow for
-the rule-based platooning study. It is intended for project handoff and should
-be read together with `EXPERIMENT_DESIGN.md`, `README.md`, and
-`../../paper/sections/experiments.tex`.
+This document is the operational handoff for the active Chapter 5 experiment pipeline. It should be read with `EXPERIMENT_DESIGN.md`, `../../paper/main.tex`, and `../../paper/sections/experiments.tex`.
 
-## Paper-level role
+## Paper-Level Role
 
-The paper proves and evaluates a performance-guaranteed preprocessing method
-for vehicle scheduling at a general conflict area. The solver contribution is
-not a new MILP algorithm; Gurobi remains the downstream optimizer. The method
-reduces MILP dimension by grouping contiguous same-approach vehicles into
-platoons while controlling the scheduling-delay loss.
+The manuscript studies performance-guaranteed platooning as a preprocessing step for vehicle scheduling at a general conflict area. Gurobi remains the downstream MILP optimizer. The formal hS=3 pipeline evaluates whether the implemented rule-level bound is valid on checkable solved cases and how NP, CHP, and PP trade delay against model size.
 
-The proof result supported by this experiment is the FIFO-indexed platoon loss
-bound in `../../paper/sections/theoretical_analysis.tex`. For a contiguous
-platoon partition `Pi`, the manuscript proves
+The theorem being supported computationally is the FIFO-indexed loss bound in `../../paper/sections/theoretical_analysis.tex`:
 
 ```text
-0 <= G(Pi) <= Ghat(Pi),
+0 <= G(Pi) <= Ghat(Pi)
 ```
 
-where `G(Pi)` is the average-delay gap between the platoon-constrained optimum
-and the vehicle-level optimum, and `Ghat(Pi)` is the FIFO-indexed analytical
-upper bound. The formal hS=3 experiments do not prove the theorem; they check
-the implemented rule-level bound on solved instances and quantify the
-dimension/runtime/delay tradeoff.
+The experiments do not prove the theorem; they check the implementation on solved instances and report computation, delay, and dimension-reduction behavior.
 
-## Formal grid
-
-The frozen formal grid is:
+## Frozen Formal Grid
 
 ```text
 L = 4
@@ -40,89 +25,84 @@ hS = 3
 delta = {2, 4, 6, 8}
 Pmax = {2, 4, 6, 8}
 replications = 20
-threads = 12
+Gurobi threads = 12
 initial time limit = 30 seconds
 NP recovery time limit = 600 seconds, only when explicitly launched
 ```
 
-Do not change this grid for paper-facing formal runs. The current instruction
-is to run only the N=40 initial run next; do not launch N=60, N=80, or the
-600-second NP recovery until the N=40 initial run has been reviewed.
+Do not change this grid for paper-facing formal runs.
 
-## Main scripts
+## Active Files
 
-- `rule_based_formal_hs3.py`: formal NP/CHP/PP runner with checkpoint/resume.
+- `rule_based_formal_hs3.py`: formal NP/CHP/PP runner with checkpoint/resume and append aggregation.
 - `plot_rule_based_formal_hs3.py`: paper-facing formal figures A-E.
-- `partition_methods.py`: rule-based partition formation.
 - `scheduling_milp.py`: downstream Gurobi scheduling model.
-- `metrics.py`: ordering-variable counts and rule-level bound utilities.
-- `tests/test_plot_rule_based_formal_hs3.py`: plotting and trajectory-selection tests.
+- `partition_methods.py`: rule-based NP/CHP/PP partition formation.
+- `metrics.py`: ordering-variable and bound utilities.
+- `tests/run_tests.py`: local test entry point for the active pipeline.
 
-## Output directories
+Archived optimized-frontier, complete-frontier, dimension-budget, and older hS=2 workflows have been removed from the active code path.
+
+## Current Result State
+
+The committed formal aggregate files contain completed initial 30-second runs for `N={20,40}` only. `N=60`, `N=80`, and 600-second NP recovery are not present in the committed formal aggregates.
+
+Expected current aggregate checks:
 
 ```text
-results/rule_based_experiments/formal_pp_hS3/
+formal_comparison_rows.csv: N = {20, 40}
+formal_bound_rows.csv: N = {20, 40}
+initial instances: 120
+initial rows: 2520
+PP rows: 1920
+bound violations: 0
+delay-order failures among checked rows: 0
+```
+
+Checkpoint directories are local resume artifacts and are ignored by git. The cleanup tag `pre-handoff-cleanup-20260712` preserves the previous committed checkpoint state if an exact historical recovery point is ever needed.
+
+## Formal Result Directories
+
+```text
+../../results/rule_based_experiments/formal_pp_hS3/
+  config_manifest.json
   formal_comparison_rows.csv
   formal_comparison_summary.csv
+  formal_comparison_summary.json
   gurobi_incumbent_trajectories.csv
-  checkpoints/
 
-results/rule_based_experiments/formal_bound_hS3/
+../../results/rule_based_experiments/formal_bound_hS3/
+  config_manifest.json
   formal_bound_rows.csv
   formal_bound_checkable_rows.csv
   formal_bound_summary.json
 
-results/rule_based_experiments/formal_np_recovery_600s_hS3/
+../../results/rule_based_experiments/formal_np_recovery_600s_hS3/
+  config_manifest.json
   formal_np_recovery_rows.csv
   formal_np_recovery_summary.json
 
-results/rule_based_experiments/formal_figures_hS3/
-  bound_validation_actual_vs_upper.{pdf,png}
-  experimental_tradeoff_solve_time_gap.{pdf,png}
-  pp_delay_vs_threshold_density.{pdf,png}
-  pp_time_and_platoon_count.{pdf,png}
-  gurobi_solution_quality_over_time.{pdf,png}
+../../results/rule_based_experiments/formal_figures_hS3/
+  bound_validation_actual_vs_upper.pdf
+  experimental_tradeoff_solve_time_gap.pdf
+  pp_delay_vs_threshold_density.pdf
+  pp_time_and_platoon_count.pdf
+  gurobi_solution_quality_over_time.pdf
+  *_metadata.json
 ```
 
-Paper-facing copies of the formal figures are stored under `../../paper/figures/`.
+Paper-facing copies of the five formal PDFs live in `../../paper/figures/`.
 
-## Completed status
+## Running the Next Formal Scale
 
-The N=20 formal run is accepted and has been written into
-`../../paper/sections/experiments.tex` as preliminary N=20-only results.
+Do not launch `N=60`, `N=80`, or NP recovery until the current `N={20,40}` aggregate state is reviewed.
 
-Accepted N=20 statistics:
-
-```text
-PP bound-checkable rows: 960
-bound-check coverage: 100%
-bound violations: 0
-mean actual G: 0.331
-median actual G: 0.000
-mean Ghat: 52.200
-median Ghat: 45.275
-minimum slack: 6.950
-delay-order failures among checked rows: 0 / 960
-mean NP delay: 8.531
-mean PP delay: 8.862
-mean CHP delay: 8.977
-PP mean platoon count: 7.786
-PP mean ordering-variable count: 26.416
-PP mean dimension-reduction ratio: 82.4%
-```
-
-These numbers are N=20-only and must not be moved into the abstract or
-conclusion.
-
-## Current N=40 run
-
-The N=40 initial run was launched with checkpoint/resume enabled and NP
-recovery disabled:
+When `N=60` is approved, use checkpoint-only chunks so multiple processes do not write the aggregate CSV files at the same time. Example for one chunk:
 
 ```bash
 cd code/frontier_experiments
 python3 rule_based_formal_hs3.py \
-  --n-values 20,40 \
+  --n-values 60 \
   --approaches 4 \
   --arrival-rates 0.4,0.7,1.0 \
   --thresholds 2,4,6,8 \
@@ -134,97 +114,54 @@ python3 rule_based_formal_hs3.py \
   --threads 12 \
   --skip-np-recovery \
   --write-trajectory \
-  --resume
+  --resume \
+  --checkpoint-only \
+  --rep-start 0 \
+  --rep-end-exclusive 5
 ```
 
-Including `20,40` is intentional: the runner loads the accepted N=20
-checkpoints, skips them, and continues with missing N=40 replications while
-preserving aggregate outputs across N=20 and N=40.
-
-Progress can be checked with:
+After all approved `N=60` chunks finish, run a single aggregation pass that seeds from the existing `N={20,40}` CSV files and adds the new checkpoints:
 
 ```bash
-find ../../results/rule_based_experiments/formal_pp_hS3/checkpoints \
-  -maxdepth 1 -name 'N40_*.json' | wc -l
+cd code/frontier_experiments
+python3 rule_based_formal_hs3.py \
+  --n-values 20,40,60 \
+  --approaches 4 \
+  --arrival-rates 0.4,0.7,1.0 \
+  --thresholds 2,4,6,8 \
+  --max-platoon-sizes 2,4,6,8 \
+  --reps 20 \
+  --hF 1 \
+  --hS 3 \
+  --time-limit 30 \
+  --threads 12 \
+  --skip-np-recovery \
+  --write-trajectory \
+  --resume \
+  --append-existing-outputs
 ```
 
-There are 60 N=40 checkpoints expected: 3 arrival rates times 20
-replications. The runner rewrites aggregate CSV/JSON files after each completed
-replication, so these files are dirty while the run is active.
+Use the same pattern for `N=80` only after `N=60` has been reviewed.
 
-## Resume command
+## Figure Workflow
 
-If the process is interrupted, resume with the same command above. Do not
-delete checkpoints. The runner identifies completed replications from
-`formal_pp_hS3/checkpoints/`.
-
-## Figure workflow
-
-Regenerate formal figures with:
+Regenerate paper-facing figures with:
 
 ```bash
 cd code/frontier_experiments
 MPLBACKEND=Agg python3 plot_rule_based_formal_hs3.py
 ```
 
-Then copy the generated paper-facing figures from
-`../../results/rule_based_experiments/formal_figures_hS3/` to
-`../../paper/figures/`.
+The plotting script writes PDFs by default. PNG previews are optional and can be produced with `--write-png`.
 
-Figure E is provisional while only N=20 trajectories are available. After N=40
-finishes, the plotting script prefers an N>=40 instance where:
+Figure E selects a representative shared-instance trajectory from the available formal trajectory data. It should prefer an `N>=40` instance where NP has multiple incumbent updates or reaches the time limit and PP has at least two callback points. It should fall back to the older trajectory only if no better instance exists.
 
-```text
-NP has multiple incumbent updates or reaches the time limit;
-PP has at least two callback points;
-NP, CHP, and PP use the same traffic instance.
-```
-
-It falls back to the provisional N=20 trajectory only if no better instance is
-available.
-
-## Validation commands
-
-Plotting tests:
+## Validation Commands
 
 ```bash
-PYTHONPATH=code/frontier_experiments python3 -m pytest \
-  code/frontier_experiments/tests/test_plot_rule_based_formal_hs3.py
+python3 -m compileall code
+python3 code/frontier_experiments/tests/run_tests.py
+cd paper && latexmk -pdf -interaction=nonstopmode main.tex
 ```
 
-If `pytest` is not installed, the same tests can be run directly by loading the
-test module, as was done in the current environment.
-
-Syntax check:
-
-```bash
-python3 -m py_compile \
-  code/frontier_experiments/plot_rule_based_formal_hs3.py \
-  code/frontier_experiments/rule_based_formal_hs3.py \
-  code/frontier_experiments/tests/test_plot_rule_based_formal_hs3.py
-```
-
-Manuscript compile target:
-
-```bash
-cd paper
-latexmk -pdf -interaction=nonstopmode main.tex
-```
-
-In the current environment, both `latexmk` and `pdflatex` were unavailable, so
-the manuscript source was not locally compiled after the latest figure/text
-update.
-
-## Code cleanup priorities before handoff
-
-1. Keep `rule_based_formal_hs3.py` as the source of truth for the formal hS=3
-   runner until the current N=40 run finishes.
-2. Do not edit the frozen experiment grid or accepted N=20 data.
-3. Avoid parallel writers to the same output directory. If parallel execution
-   is needed, first add explicit chunk output directories or a safe merge step.
-4. After N=40 completes, commit the generated N=40 checkpoints and aggregate
-   outputs separately from any code cleanup commit.
-5. If more runtime reduction is needed, add a formal chunk runner for
-   `rule_based_formal_hs3.py` rather than launching multiple processes against
-   the same output directory.
-6. Keep plotting presentation changes separate from numerical data changes.
+If `latexmk` is unavailable, try `pdflatex main.tex` from `paper/` and report the tool limitation.

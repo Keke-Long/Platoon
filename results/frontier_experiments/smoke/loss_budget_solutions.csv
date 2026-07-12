@@ -1,2 +1,0 @@
-mode,solver,status,partition,scaled_loss_budget,ordering_budget,objective_value,ordering_variables,scaled_indexed_bound,total_platoons,platoons_by_approach,vehicle_level_ordering_variables,dimension_reduction_fraction,indexed_bound,actual_scaled_gap,actual_average_gap,gap_le_indexed_bound
-loss_budget,enum,OPTIMAL,"[[3], [3], [3]]",0,,3,3,0,3,"[1, 1, 1]",27,8/9,0,0,0,True

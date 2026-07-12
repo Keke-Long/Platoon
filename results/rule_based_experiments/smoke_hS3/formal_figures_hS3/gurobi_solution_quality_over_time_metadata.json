@@ -1,9 +1,0 @@
-{
-  "aggregation": "One selected instance only. Series are NP, CHP at representative delta, and PP at representative delta/Pmax from real callback rows.",
-  "instance_ids_present": [
-    "N20_rate0p4_rep000_seed2254167912808199683"
-  ],
-  "representative_delta": 4,
-  "representative_pmax": 4,
-  "selected_instance_id": "N20_rate0p4_rep000_seed2254167912808199683"
-}

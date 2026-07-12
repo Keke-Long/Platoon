@@ -131,7 +131,8 @@ def test_plot_trajectories_filters_to_selected_instance() -> None:
         metadata = json.loads((output_dir / "gurobi_solution_quality_over_time_metadata.json").read_text())
         assert metadata["selected_instance_id"] == "b"
         assert metadata["status"] == "provisional"
-        assert (output_dir / "gurobi_solution_quality_over_time.png").exists()
+        assert (output_dir / "gurobi_solution_quality_over_time.pdf").exists()
+        assert not (output_dir / "gurobi_solution_quality_over_time.png").exists()
 
 
 def test_missing_data_behavior() -> None:

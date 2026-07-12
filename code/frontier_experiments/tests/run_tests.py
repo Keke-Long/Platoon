@@ -1,4 +1,4 @@
-"""Minimal test runner for frontier experiment modules."""
+"""Minimal test runner for the formal hS=3 experiment modules."""
 
 from __future__ import annotations
 

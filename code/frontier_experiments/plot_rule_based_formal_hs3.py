@@ -273,10 +273,11 @@ def select_representative_instance(
     return complete[0] if complete else None
 
 
-def save_both(fig, output_dir: Path, stem: str) -> None:
+def save_figure(fig, output_dir: Path, stem: str, *, write_png: bool = False) -> None:
     fig.tight_layout()
     fig.savefig(output_dir / f"{stem}.pdf", bbox_inches="tight")
-    fig.savefig(output_dir / f"{stem}.png", dpi=300, bbox_inches="tight")
+    if write_png:
+        fig.savefig(output_dir / f"{stem}.png", dpi=300, bbox_inches="tight")
 
 
 def write_metadata(output_dir: Path, stem: str, metadata: dict[str, object]) -> None:
@@ -286,7 +287,7 @@ def write_metadata(output_dir: Path, stem: str, metadata: dict[str, object]) -> 
     )
 
 
-def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path) -> None:
+def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *, write_png: bool = False) -> None:
     import matplotlib.pyplot as plt
 
     rows = [row for row in bound_rows if row.get("bound_check_available") == "True"]
@@ -369,11 +370,11 @@ def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path) ->
     ax.grid(True, axis="y", linewidth=0.5, alpha=0.25)
     handles, legend_labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, legend_labels, frameon=False, fontsize=7, ncols=1, loc="center left", bbox_to_anchor=(1.0, 0.5))
-    save_both(fig, output_dir, "bound_validation_actual_vs_upper")
+    save_figure(fig, output_dir, "bound_validation_actual_vs_upper", write_png=write_png)
     plt.close(fig)
 
 
-def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path) -> None:
+def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_png: bool = False) -> None:
     import matplotlib.pyplot as plt
 
     rows = [row for row in bound_rows if row.get("bound_check_available") == "True"]
@@ -403,11 +404,11 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path) -> None:
     ax.set_ylabel("Actual G")
     ax.grid(True, linewidth=0.5, alpha=0.25)
     ax.legend(frameon=False, fontsize=8, ncols=2, loc="center left", bbox_to_anchor=(1.02, 0.5))
-    save_both(fig, output_dir, "experimental_tradeoff_solve_time_gap")
+    save_figure(fig, output_dir, "experimental_tradeoff_solve_time_gap", write_png=write_png)
     plt.close(fig)
 
 
-def plot_delay_density(rows: list[dict[str, str]], output_dir: Path) -> None:
+def plot_delay_density(rows: list[dict[str, str]], output_dir: Path, *, write_png: bool = False) -> None:
     import matplotlib.pyplot as plt
 
     n_values = unique_ints(rows, "N")
@@ -500,11 +501,11 @@ def plot_delay_density(rows: list[dict[str, str]], output_dir: Path) -> None:
             "pmax_markers": PMAX_MARKERS,
         },
     )
-    save_both(fig, output_dir, "pp_delay_vs_threshold_density")
+    save_figure(fig, output_dir, "pp_delay_vs_threshold_density", write_png=write_png)
     plt.close(fig)
 
 
-def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path) -> None:
+def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path, *, write_png: bool = False) -> None:
     import matplotlib.pyplot as plt
 
     n_values = unique_ints(rows, "N")
@@ -587,7 +588,7 @@ def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path) -> None:
             "pmax_markers": PMAX_MARKERS,
         },
     )
-    save_both(fig, output_dir, "pp_time_and_platoon_count")
+    save_figure(fig, output_dir, "pp_time_and_platoon_count", write_png=write_png)
     plt.close(fig)
 
 
@@ -597,6 +598,7 @@ def plot_trajectories(
     output_dir: Path,
     representative_delta: int = 4,
     representative_pmax: int = 4,
+    write_png: bool = False,
 ) -> None:
     import matplotlib.pyplot as plt
 
@@ -663,7 +665,7 @@ def plot_trajectories(
             "instance_ids_present": sorted({row.get("instance_id", "") for row in trajectory_rows if row.get("instance_id")}),
         },
     )
-    save_both(fig, output_dir, "gurobi_solution_quality_over_time")
+    save_figure(fig, output_dir, "gurobi_solution_quality_over_time", write_png=write_png)
     plt.close(fig)
 
 
@@ -674,6 +676,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-dir", type=Path, default=Path("../../results/rule_based_experiments/formal_figures_hS3"))
     parser.add_argument("--representative-threshold", type=int, default=4)
     parser.add_argument("--representative-max-platoon-size", type=int, default=4)
+    parser.add_argument("--write-png", action="store_true", help="Also write PNG previews. Formal runs write PDFs only by default.")
     return parser
 
 
@@ -696,16 +699,17 @@ def main() -> int:
     bound_rows = read_rows(args.bound_dir / "formal_bound_rows.csv")
     comparison_rows = read_rows(args.comparison_dir / "formal_comparison_rows.csv")
     trajectory_rows = read_rows(args.comparison_dir / "gurobi_incumbent_trajectories.csv")
-    plot_bound_validation(bound_rows, args.output_dir)
-    plot_tradeoff(bound_rows, args.output_dir)
-    plot_delay_density(comparison_rows, args.output_dir)
-    plot_time_platoons(comparison_rows, args.output_dir)
+    plot_bound_validation(bound_rows, args.output_dir, write_png=args.write_png)
+    plot_tradeoff(bound_rows, args.output_dir, write_png=args.write_png)
+    plot_delay_density(comparison_rows, args.output_dir, write_png=args.write_png)
+    plot_time_platoons(comparison_rows, args.output_dir, write_png=args.write_png)
     plot_trajectories(
         trajectory_rows,
         comparison_rows,
         args.output_dir,
         representative_delta=args.representative_threshold,
         representative_pmax=args.representative_max_platoon_size,
+        write_png=args.write_png,
     )
     print(args.output_dir)
     return 0

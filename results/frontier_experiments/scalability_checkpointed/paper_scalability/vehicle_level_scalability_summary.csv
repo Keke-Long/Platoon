@@ -1,4 +1,0 @@
-scenario,N,vehicle_level_ordering_variables,vehicle_statuses,vehicle_mean_wall_time_seconds,vehicle_mean_nodes,vehicle_mean_mip_gap,vehicle_optimal_case_count,vehicle_case_count
-N20,20,150,"{""OPTIMAL"": 5, ""TIME_LIMIT"": 25}",27.675628159412494,56669.3,0.30117173516479395,5,30
-N30,30,337,"{""TIME_LIMIT"": 30}",30.011717435096703,23263.066666666666,0.6395356004003536,0,30
-N40,40,600,"{""TIME_LIMIT"": 30}",30.01990985063215,12758.266666666666,0.7740598809582035,0,30
