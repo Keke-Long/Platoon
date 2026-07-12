@@ -44,6 +44,7 @@ class ScheduleResult:
     total_platoons: int
     platoons_by_approach: tuple[int, ...]
     partition: Partition
+    incumbent_trajectory: tuple[dict[str, float], ...] = ()
 
     def to_json(self) -> dict[str, object]:
         return {
@@ -62,6 +63,7 @@ class ScheduleResult:
             "total_platoons": self.total_platoons,
             "platoons_by_approach": list(self.platoons_by_approach),
             "partition": partition_label(self.partition),
+            "incumbent_trajectory": list(self.incumbent_trajectory),
         }
 
 
@@ -112,6 +114,7 @@ def solve_downstream_schedule(
     time_limit: float | None = None,
     mip_gap: float | None = None,
     threads: int | None = None,
+    collect_trajectory: bool = False,
 ) -> ScheduleResult:
     """Solve the platoon-constrained scheduling MILP.
 
@@ -190,10 +193,29 @@ def solve_downstream_schedule(
     construction_seconds = time.perf_counter() - total_start
 
     first_feasible_time: list[float | None] = [None]
+    incumbent_trajectory: list[dict[str, float]] = []
 
     def callback(model_cb, where):
-        if where == GRB.Callback.MIPSOL and first_feasible_time[0] is None:
-            first_feasible_time[0] = model_cb.cbGet(GRB.Callback.RUNTIME)
+        if where == GRB.Callback.MIPSOL:
+            runtime = float(model_cb.cbGet(GRB.Callback.RUNTIME))
+            objective = float(model_cb.cbGet(GRB.Callback.MIPSOL_OBJ))
+            best_bound = float(model_cb.cbGet(GRB.Callback.MIPSOL_OBJBND))
+            if first_feasible_time[0] is None:
+                first_feasible_time[0] = runtime
+            if collect_trajectory:
+                gap = None
+                if abs(objective) > 1e-12:
+                    gap = abs(objective - best_bound) / abs(objective)
+                incumbent_trajectory.append(
+                    {
+                        "time_s": runtime,
+                        "incumbent_total_delay": objective,
+                        "incumbent_average_delay": objective / instance.N,
+                        "best_bound_total_delay": best_bound,
+                        "best_bound_average_delay": best_bound / instance.N,
+                        "mip_gap": gap if gap is not None else 0.0,
+                    }
+                )
 
     try:
         model.optimize(callback)
@@ -215,6 +237,7 @@ def solve_downstream_schedule(
             total_platoons=sum(platoon_counts(partition)),
             platoons_by_approach=platoon_counts(partition),
             partition=partition,
+            incumbent_trajectory=tuple(incumbent_trajectory),
         )
     end_to_end_seconds = time.perf_counter() - total_start
     sol_count = int(model.SolCount)
@@ -240,4 +263,5 @@ def solve_downstream_schedule(
         total_platoons=sum(platoon_counts(partition)),
         platoons_by_approach=platoon_counts(partition),
         partition=partition,
+        incumbent_trajectory=tuple(incumbent_trajectory),
     )
