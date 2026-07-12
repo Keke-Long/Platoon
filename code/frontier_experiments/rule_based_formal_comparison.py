@@ -309,11 +309,15 @@ def run(config: FormalComparisonConfig) -> dict[str, object]:
     summary = summarize(rows)
     relation_rows = [row for row in rows if row.get("method") == "PP" and row.get("np_pp_chp_delay_order_holds") is not None]
     relation_failures = [row for row in relation_rows if row.get("np_pp_chp_delay_order_holds") is not True]
+    relation_instances = {
+        (row["N"], row["arrival_rate"], row["replication"], row["seed"])
+        for row in relation_rows
+    }
     payload = {
         "config": asdict(config),
         "row_count": len(rows),
         "delay_order_checked_rows": len(relation_rows),
-        "delay_order_checked_instances": len(relation_rows),
+        "delay_order_checked_instances": len(relation_instances),
         "delay_order_failure_count": len(relation_failures),
         "summary": summary,
     }
