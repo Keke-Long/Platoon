@@ -27,6 +27,7 @@ env/
 *.synctex.gz
 *.toc
 *.pdf
+!results/rule_based_experiments/**/formal_figures_hS3/*.pdf
 
 # OS/editor
 .DS_Store
