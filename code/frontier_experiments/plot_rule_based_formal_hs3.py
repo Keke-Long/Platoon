@@ -434,13 +434,13 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
     pmax_values = unique_ints(rows, "Pmax")
     delta_cmap = plt.get_cmap("gist_earth")
     delta_tradeoff_colors = {
-        delta: delta_cmap(0.18 + 0.68 * index / max(1, len(delta_values) - 1))
+        delta: delta_cmap(0.86 - 0.68 * index / max(1, len(delta_values) - 1))
         for index, delta in enumerate(delta_values)
     }
-    fig, axes = plt.subplots(1, len(n_values), figsize=(5.0 * len(n_values), 4.2), squeeze=False)
+    fig, axes = plt.subplots(1, len(n_values), figsize=(4.0 * len(n_values), 2.94), squeeze=False)
     for col_index, n_value in enumerate(n_values):
         ax = axes[0][col_index]
-        panel_label(ax, f"({chr(ord('a') + col_index)}) N={n_value}")
+        ax.set_title(f"({chr(ord('a') + col_index)}) N={n_value}", loc="left", pad=5, fontsize=10)
         for (delta, pmax), group in sorted(grouped(filter_rows(rows, n_value=n_value), ("delta", "Pmax")).items()):
             points: list[tuple[float, float]] = []
             for row in group:
@@ -456,7 +456,7 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
                 [point[1] for point in points],
                 marker=PMAX_MARKERS.get(int(pmax), "o"),
                 color=delta_tradeoff_colors.get(int(delta), "#555555"),
-                s=24,
+                s=22,
                 alpha=0.72,
                 linewidths=0.3,
                 edgecolors="white",
@@ -474,9 +474,9 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
         for pmax in pmax_values
     ]
     legend_ax = axes[0][-1]
-    delta_legend = legend_ax.legend(handles=delta_handles, title=r"$\delta$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper right", bbox_to_anchor=(0.78, 0.98))
+    delta_legend = legend_ax.legend(handles=delta_handles, title=r"$\delta$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper left", bbox_to_anchor=(0.52, 0.96))
     legend_ax.add_artist(delta_legend)
-    legend_ax.legend(handles=pmax_handles, title=r"$P_{\max}$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper right", bbox_to_anchor=(0.98, 0.98))
+    legend_ax.legend(handles=pmax_handles, title=r"$P_{\max}$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper left", bbox_to_anchor=(0.72, 0.96))
     write_metadata(
         output_dir,
         "experimental_tradeoff_solve_time_gap",
@@ -484,7 +484,7 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
             "figure_number": 7,
             "plot_type": "case-level scatter",
             "axes": {"x": "solve_time_s", "y": "actual_optimality_gap"},
-            "color": "delta, sampled from the gist_earth colormap",
+            "color": "delta, sampled from the gist_earth colormap in reversed order",
             "marker": "Pmax",
             "aggregation": "None. Each plotted point is one bound-checkable case row with exact actual G.",
             "n_values": n_values,
