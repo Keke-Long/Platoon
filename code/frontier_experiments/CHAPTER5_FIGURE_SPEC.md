@@ -98,7 +98,8 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - Purpose: show that average vehicle delay increases with larger threshold or higher traffic density.
 - Compare: NP, CHP, PP.
 - `Pmax`: averaged within PP for this presentation figure.
-- Aggregation: method-level means over delay-order-checkable rows, stratified by `N`; no uncertainty intervals are shown.
+- Aggregation: method-level means over delay-order-checkable rows, stratified by `N`; light shaded bands show the interquartile range behind each method-level mean.
+- Layout: compact two-panel row; panel labels are centered above each plotting frame and the method legend is a single top row.
 
 ### Figure 9: `pp_time_and_scheduling_units.pdf`
 

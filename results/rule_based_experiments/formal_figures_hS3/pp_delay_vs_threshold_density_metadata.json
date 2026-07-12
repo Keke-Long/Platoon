@@ -10,5 +10,5 @@
     20
   ],
   "plot_type": "method-level mean line figure",
-  "uncertainty": "Not shown in this presentation figure."
+  "uncertainty": "Light shaded bands show the interquartile range behind each method-level mean."
 }
