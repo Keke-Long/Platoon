@@ -8,6 +8,8 @@ The repository supports a manuscript on performance-guaranteed platooning as a p
 
 Old frontier, optimized-partition, dimension-budget, complete-frontier, sampled-budget, and hS=2 workflows were removed because they do not match the final manuscript design.
 
+The manuscript method section has been aligned with the active rule-based implementation: PP is the threshold-and-cap platooning rule using `delta` and `Pmax`, not a separate partition-search method.
+
 ## Current Completion State
 
 - `N=20`: completed in the active formal aggregate results.

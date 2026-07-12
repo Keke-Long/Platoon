@@ -1,112 +1,81 @@
-\section{Performance-Guaranteed Dimension Reduction}
+\section{Rule-Based Dimension Reduction}
 \label{sec:dimension-reduction}
 
-The theoretical bound is used before the downstream scheduling MILP is constructed. The contribution is a guaranteed preprocessing framework rather than a new scheduling solver.
+The loss bound in Section~\ref{sec:theory} is used as a design principle for a deterministic platooning rule. The proposed method is a preprocessing step: it constructs platoons before the downstream scheduling MILP is built, and the reduced scheduling problem is then solved by the same off-the-shelf optimizer used for the vehicle-level model. No optimization model is solved to select the platoon partition.
 
-\subsection{Scheduling dimension}
+\subsection{Scheduling Dimension}
+\label{sec:scheduling-dimension}
 
-If the vehicle-level formulation introduces one precedence variable for each pair of vehicles from conflicting approaches, its pairwise ordering dimension is
+In the vehicle-level formulation, one binary precedence variable is introduced for each pair of vehicles from different approaches. If approach \(l\) contains \(n_l\) vehicles, the corresponding pairwise ordering dimension is
 \begin{equation}
-C_0=\sum_{l<l'}n_ln_{l'}.
+C_0=\sum_{l<l'} n_l n_{l'}.
 \end{equation}
-After platooning, the corresponding dimension becomes
+After platooning, let \(K_l(\Pi)\) denote the number of platoons on approach \(l\) under partition \(\Pi\). The platoon-level ordering dimension becomes
 \begin{equation}
-C(\Pi)=\sum_{l<l'}K_lK_{l'}.
+C(\Pi)=\sum_{l<l'} K_l(\Pi)K_{l'}(\Pi).
 \label{eq:dimension-measure}
 \end{equation}
-This quantity is a deterministic measure of model size. Actual Gurobi runtime is evaluated empirically and is not assumed to be a strictly monotone function of \(C(\Pi)\).
+This quantity measures the number of cross-approach ordering decisions in the downstream MILP. It is a deterministic model-size metric; actual branch-and-bound time is evaluated empirically and is not assumed to be a monotone function of \(C(\Pi)\).
 
-\subsection{MILP encoding of a contiguous partition}
-\label{sec:partition-encoding}
+\subsection{No Platooning and Critical-Headway Platooning}
+\label{sec:np-chp-rules}
 
-For each boundary between vehicles \((l,i)\) and \((l,i+1)\), define
-\begin{equation}
-x_{l,i}=
-\begin{cases}
-1, & \text{if a platoon is cut after vehicle }(l,i),\\
-0, & \text{if the two vehicles are joined.}
-\end{cases}
-\end{equation}
-Every binary vector \(x\) defines one contiguous partition, and the number of platoons on approach \(l\) is
-\begin{equation}
-K_l=1+\sum_{i=1}^{n_l-1}x_{l,i}.
-\label{eq:platoon-count-cuts}
-\end{equation}
+The experiments compare three preprocessing choices. The no-platooning baseline (NP) leaves every vehicle as a singleton platoon, so \(K_l=n_l\) and \(C(\Pi)=C_0\). Conventional critical-headway platooning (CHP) scans vehicles on each approach in FIFO order and joins two consecutive vehicles into the same platoon whenever their release-time gap is no greater than a threshold \(\delta\). CHP uses no maximum platoon-size cap; once a platoon has started, consecutive same-approach vehicles continue to join as long as each adjacent release gap satisfies the threshold rule.
 
-Let \(d_{l,i}=r_{l,i+1}-r_{l,i}\), and define the nonnegative link weight
-\begin{equation}
-w_{l,i}=\left[(N-i)\left[d_{l,i}-\hF\right]_+-2(\hS-\hF)\right]_+.
-\end{equation}
-A boundary contributes to the FIFO-indexed bound only when it is joined. Therefore,
-\begin{equation}
-B_{\mathrm{idx}}(\Pi)=\frac{1}{N}\sum_{l\in\approaches}\sum_{i=1}^{n_l-1}w_{l,i}(1-x_{l,i}),
-\label{eq:linear-indexed-bound}
-\end{equation}
-which is linear in the cut variables.
+The switching headway \(\hS\) is not a platooning threshold. It is the safety headway required when the scheduled sequence switches from one approach to another. The platooning threshold is \(\delta\), which is applied only to release-time gaps between consecutive vehicles on the same approach.
 
-The maximum platoon size is enforced by requiring at least one cut in every sequence of \(P_{\max}\) consecutive boundaries:
-\begin{equation}
-\sum_{q=i}^{i+P_{\max}-1}x_{l,q}\ge 1,
-\quad
- i=1,\ldots,n_l-P_{\max}.
-\label{eq:max-platoon-size-cuts}
-\end{equation}
-No such constraint is needed when \(n_l\le P_{\max}\).
+\subsection{Proposed Threshold-and-Cap Platooning}
+\label{sec:pp-rule}
 
-The dimension measure contains products of platoon counts. For each pair of approaches \(l<l'\), introduce
-\begin{equation}
-y_{l,i,l',j}=x_{l,i}x_{l',j}
-\end{equation}
-with the exact binary linearization
+The proposed method (PP) modifies CHP by adding a maximum platoon size \(P_{\max}\). For each approach \(l\), vehicles are processed in their FIFO order. A new platoon is opened at the first unassigned vehicle. For each next vehicle on the same approach, PP joins it to the current platoon if and only if both conditions hold:
 \begin{align}
-y_{l,i,l',j}&\le x_{l,i},\\
-y_{l,i,l',j}&\le x_{l',j},\\
-y_{l,i,l',j}&\ge x_{l,i}+x_{l',j}-1.
+r_{l,i+1}-r_{l,i} &\le \delta,\\
+\text{current platoon size} &< P_{\max}.
 \end{align}
-Using \eqref{eq:platoon-count-cuts}, the product \(K_lK_{l'}\) is written as
+If either condition fails, the current platoon is closed and a new platoon starts at vehicle \((l,i+1)\). The resulting partition is contiguous within each approach and never mixes vehicles from different approaches.
+
+Equivalently, the PP construction can be written as the following one-pass procedure.
+\begin{enumerate}[label=\arabic*.]
+  \item For each approach, initialize the current platoon with the first vehicle.
+  \item Scan the remaining vehicles on that approach in increasing FIFO index.
+  \item Add the next vehicle to the current platoon if its release gap from the preceding vehicle is at most \(\delta\) and the current platoon contains fewer than \(P_{\max}\) vehicles.
+  \item Otherwise, close the current platoon and start a new singleton platoon.
+  \item Repeat until all approaches have been scanned.
+\end{enumerate}
+The procedure is deterministic for fixed arrivals, \(\delta\), and \(P_{\max}\). It requires only adjacent release-gap comparisons and platoon-size counters.
+
+\subsection{Rule-Level Loss Bound}
+\label{sec:rule-level-bound}
+
+For a specific platoon partition \(\Pi\), Section~\ref{sec:theory} gives a FIFO-indexed upper bound on the platooning-induced average-delay gap \(G(\Pi)\). PP uses a rule-level bound that depends only on the instance size and the two rule parameters \(\delta\) and \(P_{\max}\). Let
 \begin{equation}
-K_lK_{l'}=
-1+\sum_i x_{l,i}+\sum_j x_{l',j}
-+\sum_i\sum_j y_{l,i,l',j}.
-\label{eq:linear-dimension}
+M_{\max}=N-\left\lceil\frac{N}{P_{\max}}\right\rceil
 \end{equation}
-Thus, both \(B_{\mathrm{idx}}(\Pi)\) and \(C(\Pi)\) are represented exactly by linear expressions.
-
-The partition model contains \(N-L\) cut variables and
+be an upper bound on the number of internal same-approach links that can be created under the size cap. Since PP joins only adjacent vehicles whose release-time gap is at most \(\delta\), each internal link is bounded by the worst-case rule-level contribution derived in Section~\ref{sec:theory}. The implemented rule-level upper bound is
 \begin{equation}
-\sum_{l<l'}(n_l-1)(n_{l'}-1)
+\widehat G(\delta,P_{\max})
+=
+M_{\max}
+\left[
+\frac{N-1}{N}\pospart{\delta-\hF}
+-\frac{2(\hS-\hF)}{N}
+\right]_+ .
+\label{eq:rule-level-bound-method}
 \end{equation}
-product variables. Its formulation size is therefore \(O(N^2)\), although the worst-case solution time remains exponential because the model is a MILP.
-
-\subsection{Loss-budget formulation}
-
-Given an acceptable average-delay loss \(\varepsilon\), the central scheduler solves
-\begin{align}
-\min_{x,y}\quad & C(\Pi)\\
-\text{s.t.}\quad & B_{\mathrm{idx}}(\Pi)\le\varepsilon,\\
-& \eqref{eq:max-platoon-size-cuts},\\
-& \text{binary cut and product linearization constraints.}
-\label{eq:loss-budget-formulation}
-\end{align}
-The downstream scheduling MILP is then built using the selected platoons.
-
-\subsection{Computation-size formulation}
-
-If the scheduler can process at most \(\overline C\) pairwise ordering decisions, it instead solves
-\begin{align}
-\min_{x,y}\quad & B_{\mathrm{idx}}(\Pi)\\
-\text{s.t.}\quad & C(\Pi)\le\overline C,\\
-& \eqref{eq:max-platoon-size-cuts},\\
-& \text{binary cut and product linearization constraints.}
-\label{eq:size-budget-formulation}
-\end{align}
-The two formulations generate nondominated dimension-loss pairs
+Thus, for partitions generated by PP,
 \begin{equation}
-\mathcal{F}=\left\{\big(C(\Pi),B_{\mathrm{idx}}(\Pi)\big):\Pi\text{ is feasible}\right\}.
+G(\Pi_{\mathrm{PP}})\le \widehat G(\delta,P_{\max}).
 \end{equation}
+Increasing \(\delta\) can join more vehicles and increase the bound through the release-gap term. Increasing \(P_{\max}\) can also increase the bound by allowing more internal links. These two parameters therefore control the trade-off between model-size reduction and the worst-case delay-loss guarantee.
 
-Both partition formulations are solved with Gurobi. Small verification instances are also solved by complete partition enumeration to confirm the MILP solution. The reported partition time includes model construction and optimization. The reported end-to-end time is
-\begin{equation}
-T_{\mathrm{end}}=T_{\mathrm{partition}}+T_{\mathrm{downstream}},
-\end{equation}
-so the computational cost of selecting the partition is included in every method comparison.
+\subsection{Downstream Scheduling Model}
+\label{sec:downstream-after-pp}
+
+After NP, CHP, or PP constructs a partition, the downstream platoon-level scheduling MILP from Section~\ref{sec:formulation} is built on the resulting scheduling units. Vehicles inside a platoon preserve FIFO order and pass consecutively. The MILP chooses the relative order of platoons from different approaches and their passing times subject to the same following and switching headway requirements. The preprocessing rule does not change the downstream solver; it changes only the number and composition of scheduling units.
+
+For PP, the reported preprocessing time is the time needed to form platoons by the deterministic scan. The end-to-end computational comparison therefore consists of rule-based formation time plus downstream scheduling time, with the downstream MILP solved under the common time limit used in the experiments.
+
+\subsection{Computational Complexity}
+\label{sec:pp-complexity}
+
+Let \(N=\sum_l n_l\). NP creates singleton platoons in \(O(N)\) time. CHP and PP each compare only adjacent vehicles on the same approach, so they also run in \(O(N)\) time and require \(O(N)\) storage for the resulting partition. The size cap in PP adds only a constant-time counter update at each vehicle. Consequently, the proposed preprocessing step is negligible relative to the downstream mixed-integer scheduling solve, while it can substantially reduce the number of ordering variables from \(C_0\) to \(C(\Pi_{\mathrm{PP}})\).

@@ -26,7 +26,7 @@
   country={USA}}
 
 \begin{abstract}
-Vehicle scheduling at intersections, merging areas, and other general conflict areas becomes computationally difficult as the number of vehicles increases. Platooning reduces the scheduling dimension by treating consecutive vehicles from the same approach as unified decision units, but it restricts the feasible sequence space and may increase delay. This paper develops a performance-guaranteed preprocessing framework for this dimension-reduction step. The framework seeks a platoon partition that reduces the downstream mixed-integer programming model while controlling the optimality loss through an analytical upper bound. The reduced scheduling problem is subsequently solved by an off-the-shelf optimizer. A FIFO-indexed bound provides a deterministic guarantee without requiring a probabilistic arrival model.
+Vehicle scheduling at intersections, merging areas, and other general conflict areas becomes computationally difficult as the number of vehicles increases. Platooning reduces the scheduling dimension by treating consecutive vehicles from the same approach as unified decision units, but it restricts the feasible sequence space and may increase delay. This paper develops a performance-guaranteed rule-based preprocessing method for this dimension-reduction step. The proposed method forms contiguous same-approach platoons using a critical-headway threshold \(\delta\) and a maximum platoon size \(P_{\max}\), then solves the reduced downstream mixed-integer programming model with an off-the-shelf optimizer. A FIFO-indexed analytical upper bound controls the induced optimality loss and provides a deterministic guarantee without requiring a probabilistic arrival model.
 \end{abstract}
 
 \begin{keyword}
@@ -42,7 +42,7 @@ University of Wisconsin--Madison}
 \date{}
 \maketitle
 \begin{abstract}
-Vehicle scheduling at intersections, merging areas, and other general conflict areas becomes computationally difficult as the number of vehicles increases. Platooning reduces the scheduling dimension by treating consecutive vehicles from the same approach as unified decision units, but it restricts the feasible sequence space and may increase delay. This paper develops a performance-guaranteed preprocessing framework for this dimension-reduction step. The framework seeks a platoon partition that reduces the downstream mixed-integer programming model while controlling the optimality loss through an analytical upper bound. The reduced scheduling problem is subsequently solved by an off-the-shelf optimizer.
+Vehicle scheduling at intersections, merging areas, and other general conflict areas becomes computationally difficult as the number of vehicles increases. Platooning reduces the scheduling dimension by treating consecutive vehicles from the same approach as unified decision units, but it restricts the feasible sequence space and may increase delay. This paper develops a performance-guaranteed rule-based preprocessing method for this dimension-reduction step. The proposed method forms contiguous same-approach platoons using a critical-headway threshold \(\delta\) and a maximum platoon size \(P_{\max}\), then solves the reduced downstream mixed-integer programming model with an off-the-shelf optimizer. A FIFO-indexed analytical upper bound controls the induced optimality loss.
 \end{abstract}
 \fi
 
