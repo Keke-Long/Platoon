@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import math
 import os
 from pathlib import Path
@@ -80,10 +81,137 @@ def grouped(rows: list[dict[str, str]], keys: tuple[str, ...]) -> dict[tuple[obj
     return result
 
 
+def unique_ints(rows: list[dict[str, str]], field: str) -> list[int]:
+    return sorted({value for value in (ivalue(row, field) for row in rows) if value is not None})
+
+
+def unique_floats(rows: list[dict[str, str]], field: str) -> list[float]:
+    return sorted({value for value in (fvalue(row, field) for row in rows) if value is not None})
+
+
+def finite_mean(values: list[float]) -> float | None:
+    return mean(values) if values else None
+
+
+def filter_rows(
+    rows: list[dict[str, str]],
+    *,
+    n_value: int | None = None,
+    method: str | None = None,
+    delta: int | None = None,
+    pmax: int | None = None,
+    rate: float | None = None,
+) -> list[dict[str, str]]:
+    result: list[dict[str, str]] = []
+    for row in rows:
+        if n_value is not None and ivalue(row, "N") != n_value:
+            continue
+        if method is not None and row.get("method") != method:
+            continue
+        if delta is not None and ivalue(row, "delta") != delta:
+            continue
+        if pmax is not None and ivalue(row, "Pmax") != pmax:
+            continue
+        if rate is not None and fvalue(row, "arrival_rate") != rate:
+            continue
+        result.append(row)
+    return result
+
+
+def metric_mean(
+    rows: list[dict[str, str]],
+    metric: str,
+    *,
+    n_value: int | None = None,
+    method: str | None = None,
+    delta: int | None = None,
+    pmax: int | None = None,
+    rate: float | None = None,
+) -> float | None:
+    values = [
+        value
+        for value in (
+            fvalue(row, metric)
+            for row in filter_rows(
+                rows,
+                n_value=n_value,
+                method=method,
+                delta=delta,
+                pmax=pmax,
+                rate=rate,
+            )
+        )
+        if value is not None
+    ]
+    return finite_mean(values)
+
+
+def pp_metric_groups(
+    rows: list[dict[str, str]],
+    metric: str,
+    *,
+    x_field: str,
+) -> dict[tuple[int, int, int, float | int], list[float]]:
+    """Group PP metric values by N, delta, Pmax, and the plotted x variable."""
+
+    if x_field not in {"delta", "arrival_rate"}:
+        raise ValueError("x_field must be delta or arrival_rate")
+    groups: dict[tuple[int, int, int, float | int], list[float]] = {}
+    for row in rows:
+        if row.get("method") != "PP":
+            continue
+        n_value = ivalue(row, "N")
+        delta = ivalue(row, "delta")
+        pmax = ivalue(row, "Pmax")
+        metric_value = fvalue(row, metric)
+        if n_value is None or delta is None or pmax is None or metric_value is None:
+            continue
+        x_value = ivalue(row, "delta") if x_field == "delta" else fvalue(row, "arrival_rate")
+        if x_value is None:
+            continue
+        groups.setdefault((n_value, delta, pmax, x_value), []).append(metric_value)
+    return groups
+
+
+def select_representative_instance(
+    trajectory_rows: list[dict[str, str]],
+    representative_delta: int = 4,
+    representative_pmax: int = 4,
+) -> str | None:
+    by_instance: dict[str, set[str]] = {}
+    for row in trajectory_rows:
+        instance_id = row.get("instance_id")
+        if not instance_id:
+            continue
+        method = row.get("method")
+        if method == "NP":
+            role = "NP"
+        elif method == "CHP" and ivalue(row, "delta") == representative_delta:
+            role = "CHP"
+        elif (
+            method == "PP"
+            and ivalue(row, "delta") == representative_delta
+            and ivalue(row, "Pmax") == representative_pmax
+        ):
+            role = "PP"
+        else:
+            continue
+        by_instance.setdefault(instance_id, set()).add(role)
+    complete = sorted(instance_id for instance_id, roles in by_instance.items() if roles == {"NP", "CHP", "PP"})
+    return complete[0] if complete else None
+
+
 def save_both(fig, output_dir: Path, stem: str) -> None:
     fig.tight_layout()
     fig.savefig(output_dir / f"{stem}.pdf")
     fig.savefig(output_dir / f"{stem}.png", dpi=300)
+
+
+def write_metadata(output_dir: Path, stem: str, metadata: dict[str, object]) -> None:
+    (output_dir / f"{stem}_metadata.json").write_text(
+        json.dumps(metadata, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
 
 
 def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path) -> None:
@@ -158,113 +286,189 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path) -> None:
     plt.close(fig)
 
 
-def method_delay(rows: list[dict[str, str]], method: str, delta: int | None, rate: float | None, pmax: int | None = None) -> list[float]:
-    values: list[float] = []
-    for row in rows:
-        if row.get("method") != method:
-            continue
-        if delta is not None and ivalue(row, "delta") != delta:
-            continue
-        if rate is not None and fvalue(row, "arrival_rate") != rate:
-            continue
-        if pmax is not None and ivalue(row, "Pmax") != pmax:
-            continue
-        value = fvalue(row, "objective")
-        if value is not None:
-            values.append(value)
-    return values
-
-
 def plot_delay_density(rows: list[dict[str, str]], output_dir: Path) -> None:
     import matplotlib.pyplot as plt
 
-    deltas = sorted({ivalue(row, "delta") for row in rows if row.get("delta") not in (None, "") and row.get("method") != "NP"})
-    deltas = [value for value in deltas if value is not None]
-    rates = sorted({fvalue(row, "arrival_rate") for row in rows})
-    rates = [value for value in rates if value is not None]
-    pmax_values = sorted({ivalue(row, "Pmax") for row in rows if row.get("method") == "PP"})
-    pmax_values = [value for value in pmax_values if value is not None]
-    fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.8))
-    ax = axes[0]
-    np_values = method_delay(rows, "NP", None, None)
-    if np_values:
-        ax.plot(deltas, [mean(np_values)] * len(deltas), color=METHOD_COLORS["NP"], marker="x", label="NP")
-    chp_y = [mean(method_delay(rows, "CHP", delta, None)) for delta in deltas]
-    ax.plot(deltas, chp_y, color=METHOD_COLORS["CHP"], marker="v", label="CHP")
-    for pmax in pmax_values:
-        y = [mean(method_delay(rows, "PP", delta, None, pmax)) for delta in deltas]
-        ax.plot(deltas, y, color="#666666", marker=PMAX_MARKERS.get(pmax, "o"), label=f"PP Pmax={pmax}")
-    ax.set_xlabel("Delta")
-    ax.set_ylabel("Average delay or incumbent")
-    ax.grid(True, linewidth=0.5, alpha=0.25)
-    ax.legend(frameon=False, fontsize=8)
+    n_values = unique_ints(rows, "N")
+    deltas = unique_ints([row for row in rows if row.get("method") != "NP"], "delta")
+    rates = unique_floats(rows, "arrival_rate")
+    pmax_values = unique_ints([row for row in rows if row.get("method") == "PP"], "Pmax")
+    if not n_values or not deltas or not rates:
+        return
+    fig, axes = plt.subplots(len(n_values), 2, figsize=(10.4, max(3.2, 2.6 * len(n_values))), squeeze=False)
+    for row_index, n_value in enumerate(n_values):
+        ax = axes[row_index][0]
+        np_value = metric_mean(rows, "objective", n_value=n_value, method="NP")
+        if np_value is not None:
+            ax.plot(deltas, [np_value] * len(deltas), color=METHOD_COLORS["NP"], marker="x", label="NP")
+        chp_y = [metric_mean(rows, "objective", n_value=n_value, method="CHP", delta=delta) for delta in deltas]
+        ax.plot(deltas, chp_y, color=METHOD_COLORS["CHP"], marker="v", label="CHP")
+        for pmax in pmax_values:
+            y = [metric_mean(rows, "objective", n_value=n_value, method="PP", delta=delta, pmax=pmax) for delta in deltas]
+            ax.plot(deltas, y, color="#666666", marker=PMAX_MARKERS.get(pmax, "o"), label=f"PP Pmax={pmax}")
+        ax.set_title(f"N={n_value}")
+        ax.set_xlabel("Delta")
+        ax.set_ylabel("Average delay or incumbent")
+        ax.grid(True, linewidth=0.5, alpha=0.25)
 
-    ax = axes[1]
-    for method, marker in (("NP", "x"), ("CHP", "v")):
-        y = [mean(method_delay(rows, method, None, rate)) for rate in rates]
-        ax.plot(rates, y, color=METHOD_COLORS[method], marker=marker, label=method)
-    pp_y = [mean(method_delay(rows, "PP", None, rate)) for rate in rates]
-    ax.plot(rates, pp_y, color=METHOD_COLORS["PP"], marker="o", label="PP")
-    ax.set_xlabel("Arrival rate")
-    ax.set_ylabel("Average delay or incumbent")
-    ax.grid(True, linewidth=0.5, alpha=0.25)
-    ax.legend(frameon=False, fontsize=8)
+        ax = axes[row_index][1]
+        np_y = [metric_mean(rows, "objective", n_value=n_value, method="NP", rate=rate) for rate in rates]
+        ax.plot(rates, np_y, color=METHOD_COLORS["NP"], marker="x", label="NP")
+        for delta in deltas:
+            chp_rate_y = [
+                metric_mean(rows, "objective", n_value=n_value, method="CHP", delta=delta, rate=rate)
+                for rate in rates
+            ]
+            ax.plot(rates, chp_rate_y, color=DELTA_COLORS.get(delta, "#555555"), linestyle="--", marker="v", label=f"CHP delta={delta}")
+            for pmax in pmax_values:
+                pp_rate_y = [
+                    metric_mean(rows, "objective", n_value=n_value, method="PP", delta=delta, pmax=pmax, rate=rate)
+                    for rate in rates
+                ]
+                ax.plot(
+                    rates,
+                    pp_rate_y,
+                    color=DELTA_COLORS.get(delta, "#555555"),
+                    marker=PMAX_MARKERS.get(pmax, "o"),
+                    linewidth=1.0,
+                    alpha=0.75,
+                    label=f"PP d={delta}, P={pmax}",
+                )
+        ax.set_title(f"N={n_value}")
+        ax.set_xlabel("Arrival rate")
+        ax.set_ylabel("Average delay or incumbent")
+        ax.grid(True, linewidth=0.5, alpha=0.25)
+    axes[0][0].legend(frameon=False, fontsize=7)
+    axes[0][1].legend(frameon=False, fontsize=6, ncols=2)
+    write_metadata(
+        output_dir,
+        "pp_delay_vs_threshold_density",
+        {
+            "aggregation": "Panels are stratified by N. Delta panels average over arrival rates and replications within each N/method/delta/Pmax group. Arrival-rate panels average over replications within each N/method/delta/Pmax/rate group. PP is never averaged across Pmax.",
+            "n_values": n_values,
+            "pmax_values": pmax_values,
+            "delta_colors": DELTA_COLORS,
+            "pmax_markers": PMAX_MARKERS,
+        },
+    )
     save_both(fig, output_dir, "pp_delay_vs_threshold_density")
     plt.close(fig)
-
-
-def metric_values(rows: list[dict[str, str]], metric: str, method: str, delta: int | None, rate: float | None) -> list[float]:
-    values: list[float] = []
-    for row in rows:
-        if row.get("method") != method:
-            continue
-        if delta is not None and ivalue(row, "delta") != delta:
-            continue
-        if rate is not None and fvalue(row, "arrival_rate") != rate:
-            continue
-        value = fvalue(row, metric)
-        if value is not None:
-            values.append(value)
-    return values
 
 
 def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path) -> None:
     import matplotlib.pyplot as plt
 
-    deltas = sorted({ivalue(row, "delta") for row in rows if row.get("delta") not in (None, "") and row.get("method") != "NP"})
-    deltas = [value for value in deltas if value is not None]
-    rates = sorted({fvalue(row, "arrival_rate") for row in rows})
-    rates = [value for value in rates if value is not None]
-    fig, axes = plt.subplots(2, 2, figsize=(9.2, 6.8))
-    panels = [
-        (axes[0][0], "solve_time_s", deltas, "Delta", "Solve time (s)", "delta"),
-        (axes[0][1], "solve_time_s", rates, "Arrival rate", "Solve time (s)", "rate"),
-        (axes[1][0], "number_of_platoons", deltas, "Delta", "Number of platoons", "delta"),
-        (axes[1][1], "number_of_platoons", rates, "Arrival rate", "Number of platoons", "rate"),
+    n_values = unique_ints(rows, "N")
+    deltas = unique_ints([row for row in rows if row.get("method") != "NP"], "delta")
+    rates = unique_floats(rows, "arrival_rate")
+    pmax_values = unique_ints([row for row in rows if row.get("method") == "PP"], "Pmax")
+    if not n_values or not deltas or not rates:
+        return
+    fig, axes = plt.subplots(len(n_values), 4, figsize=(15.2, max(3.0, 2.7 * len(n_values))), squeeze=False)
+    panel_specs = [
+        ("solve_time_s", "delta", "Delta", "Solve time (s)"),
+        ("solve_time_s", "arrival_rate", "Arrival rate", "Solve time (s)"),
+        ("number_of_platoons", "delta", "Delta", "Number of platoons"),
+        ("number_of_platoons", "arrival_rate", "Arrival rate", "Number of platoons"),
     ]
-    for ax, metric, xs, xlabel, ylabel, mode in panels:
-        for method, marker in (("NP", "x"), ("CHP", "v"), ("PP", "o")):
-            y: list[float] = []
-            for x in xs:
-                values = metric_values(rows, metric, method, int(x) if mode == "delta" and method != "NP" else None, float(x) if mode == "rate" else None)
-                y.append(mean(values) if values else float("nan"))
-            ax.plot(xs, y, marker=marker, color=METHOD_COLORS[method], label=method)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.grid(True, linewidth=0.5, alpha=0.25)
-    axes[0][0].legend(frameon=False, fontsize=8)
+    for row_index, n_value in enumerate(n_values):
+        for col_index, (metric, x_field, xlabel, ylabel) in enumerate(panel_specs):
+            ax = axes[row_index][col_index]
+            xs = deltas if x_field == "delta" else rates
+            if x_field == "delta":
+                np_value = metric_mean(rows, metric, n_value=n_value, method="NP")
+                if np_value is not None:
+                    ax.plot(xs, [np_value] * len(xs), color=METHOD_COLORS["NP"], marker="x", label="NP")
+                chp_y = [metric_mean(rows, metric, n_value=n_value, method="CHP", delta=delta) for delta in deltas]
+                ax.plot(xs, chp_y, color=METHOD_COLORS["CHP"], marker="v", label="CHP")
+                for delta in deltas:
+                    for pmax in pmax_values:
+                        value = metric_mean(rows, metric, n_value=n_value, method="PP", delta=delta, pmax=pmax)
+                        if value is not None:
+                            ax.scatter(
+                                [delta],
+                                [value],
+                                color=DELTA_COLORS.get(delta, "#555555"),
+                                marker=PMAX_MARKERS.get(pmax, "o"),
+                                s=32,
+                                label=f"PP d={delta}, P={pmax}",
+                            )
+            else:
+                np_y = [metric_mean(rows, metric, n_value=n_value, method="NP", rate=rate) for rate in rates]
+                ax.plot(xs, np_y, color=METHOD_COLORS["NP"], marker="x", label="NP")
+                for delta in deltas:
+                    chp_y = [
+                        metric_mean(rows, metric, n_value=n_value, method="CHP", delta=delta, rate=rate)
+                        for rate in rates
+                    ]
+                    ax.plot(xs, chp_y, color=DELTA_COLORS.get(delta, "#555555"), linestyle="--", marker="v", label=f"CHP d={delta}")
+                    for pmax in pmax_values:
+                        pp_y = [
+                            metric_mean(rows, metric, n_value=n_value, method="PP", delta=delta, pmax=pmax, rate=rate)
+                            for rate in rates
+                        ]
+                        ax.plot(
+                            xs,
+                            pp_y,
+                            color=DELTA_COLORS.get(delta, "#555555"),
+                            marker=PMAX_MARKERS.get(pmax, "o"),
+                            linewidth=1.0,
+                            alpha=0.75,
+                            label=f"PP d={delta}, P={pmax}",
+                        )
+            ax.set_title(f"N={n_value}")
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+            ax.grid(True, linewidth=0.5, alpha=0.25)
+    handles, labels = axes[0][1].get_legend_handles_labels()
+    dedup: dict[str, object] = {}
+    for handle, label in zip(handles, labels, strict=False):
+        dedup.setdefault(label, handle)
+    axes[0][1].legend(dedup.values(), dedup.keys(), frameon=False, fontsize=6, ncols=2)
+    write_metadata(
+        output_dir,
+        "pp_time_and_platoon_count",
+        {
+            "aggregation": "Panels are stratified by N. Delta panels average over arrival rates and replications within each N/method/delta/Pmax group. Arrival-rate panels average over replications within each N/method/delta/Pmax/rate group. PP is never averaged across Pmax.",
+            "n_values": n_values,
+            "pmax_values": pmax_values,
+            "delta_colors": DELTA_COLORS,
+            "pmax_markers": PMAX_MARKERS,
+        },
+    )
     save_both(fig, output_dir, "pp_time_and_platoon_count")
     plt.close(fig)
 
 
-def plot_trajectories(trajectory_rows: list[dict[str, str]], output_dir: Path) -> None:
+def plot_trajectories(
+    trajectory_rows: list[dict[str, str]],
+    output_dir: Path,
+    representative_delta: int = 4,
+    representative_pmax: int = 4,
+) -> None:
     import matplotlib.pyplot as plt
 
     if not trajectory_rows:
         return
+    selected_instance = select_representative_instance(
+        trajectory_rows,
+        representative_delta=representative_delta,
+        representative_pmax=representative_pmax,
+    )
+    if selected_instance is None:
+        write_metadata(
+            output_dir,
+            "gurobi_solution_quality_over_time",
+            {
+                "selected_instance_id": None,
+                "reason": "No instance contains NP, CHP, and representative PP trajectory rows.",
+            },
+        )
+        return
+    rows = [row for row in trajectory_rows if row.get("instance_id") == selected_instance]
     fig, ax = plt.subplots(figsize=(6.4, 4.2))
     groups: dict[tuple[str, str, str, str], list[dict[str, str]]] = {}
-    for row in trajectory_rows:
+    for row in rows:
         key = (
             row.get("method") or "NA",
             row.get("delta") or "NA",
@@ -286,8 +490,20 @@ def plot_trajectories(trajectory_rows: list[dict[str, str]], output_dir: Path) -
             ax.step([pair[0] for pair in pairs], [pair[1] for pair in pairs], where="post", label=label)
     ax.set_xlabel("Gurobi runtime (s)")
     ax.set_ylabel("Incumbent average delay")
+    ax.set_title(selected_instance)
     ax.grid(True, linewidth=0.5, alpha=0.25)
     ax.legend(frameon=False, fontsize=8)
+    write_metadata(
+        output_dir,
+        "gurobi_solution_quality_over_time",
+        {
+            "aggregation": "One selected instance only. Series are NP, CHP at representative delta, and PP at representative delta/Pmax from real callback rows.",
+            "selected_instance_id": selected_instance,
+            "representative_delta": representative_delta,
+            "representative_pmax": representative_pmax,
+            "instance_ids_present": sorted({row.get("instance_id", "") for row in trajectory_rows if row.get("instance_id")}),
+        },
+    )
     save_both(fig, output_dir, "gurobi_solution_quality_over_time")
     plt.close(fig)
 
@@ -297,6 +513,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--bound-dir", type=Path, default=Path("../../results/rule_based_experiments/formal_bound_hS3"))
     parser.add_argument("--comparison-dir", type=Path, default=Path("../../results/rule_based_experiments/formal_pp_hS3"))
     parser.add_argument("--output-dir", type=Path, default=Path("../../results/rule_based_experiments/formal_figures_hS3"))
+    parser.add_argument("--representative-threshold", type=int, default=4)
+    parser.add_argument("--representative-max-platoon-size", type=int, default=4)
     return parser
 
 
@@ -323,7 +541,12 @@ def main() -> int:
     plot_tradeoff(bound_rows, args.output_dir)
     plot_delay_density(comparison_rows, args.output_dir)
     plot_time_platoons(comparison_rows, args.output_dir)
-    plot_trajectories(trajectory_rows, args.output_dir)
+    plot_trajectories(
+        trajectory_rows,
+        args.output_dir,
+        representative_delta=args.representative_threshold,
+        representative_pmax=args.representative_max_platoon_size,
+    )
     print(args.output_dir)
     return 0
 
