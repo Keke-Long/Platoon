@@ -335,60 +335,57 @@ def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *,
     checked_rows = [row for row in rows if row.get("bound_check_available") == "True"]
     if not rows:
         return
-    n_values = unique_ints(rows, "N")
-    fig = plt.figure(figsize=(5.2 * len(n_values), 5.0))
-    axes = [fig.add_subplot(1, len(n_values), index + 1, projection="3d") for index in range(len(n_values))]
-    for index, (ax, n_value) in enumerate(zip(axes, n_values, strict=True)):
-        n_rows = filter_rows(rows, n_value=n_value)
-        deltas = unique_ints(n_rows, "delta")
-        pmax_values = unique_ints(n_rows, "Pmax")
-        z_lookup: dict[tuple[int, int], float] = {}
-        for (delta, pmax), group in sorted(grouped(n_rows, ("delta", "Pmax")).items()):
-            values = [value for value in (fvalue(row, "rule_level_upper_bound") for row in group) if value is not None]
-            if values:
-                z_lookup[(int(delta), int(pmax))] = mean(values)
-        if deltas and pmax_values:
-            x_grid, y_grid = np.meshgrid(deltas, pmax_values)
-            z_grid = np.array([[z_lookup.get((int(x), int(y)), np.nan) for x in deltas] for y in pmax_values])
-            ax.plot_surface(
-                x_grid,
-                y_grid,
-                z_grid,
-                color="#ff6b5f",
-                alpha=0.34,
-                linewidth=0.5,
-                edgecolor="#c44e52",
-                antialiased=True,
-            )
-        for rate, group in sorted(grouped(filter_rows(checked_rows, n_value=n_value), ("arrival_rate",)).items()):
-            points: list[tuple[float, float, float]] = []
-            for row in group:
-                delta = fvalue(row, "delta")
-                pmax = fvalue(row, "Pmax")
-                actual = fvalue(row, "actual_optimality_gap")
-                if delta is None or pmax is None or actual is None:
-                    continue
-                points.append((delta, pmax, actual))
-            if not points:
+    fig = plt.figure(figsize=(7.2, 5.2))
+    ax = fig.add_subplot(111, projection="3d")
+    all_deltas = unique_ints(rows, "delta")
+    all_pmax_values = unique_ints(rows, "Pmax")
+    z_lookup: dict[tuple[int, int], float] = {}
+    for (delta, pmax), group in sorted(grouped(rows, ("delta", "Pmax")).items()):
+        values = [value for value in (fvalue(row, "rule_level_upper_bound") for row in group) if value is not None]
+        if values:
+            z_lookup[(int(delta), int(pmax))] = mean(values)
+    if all_deltas and all_pmax_values:
+        x_grid, y_grid = np.meshgrid(all_deltas, all_pmax_values)
+        z_grid = np.array([[z_lookup.get((int(x), int(y)), np.nan) for x in all_deltas] for y in all_pmax_values])
+        ax.plot_surface(
+            x_grid,
+            y_grid,
+            z_grid,
+            color="#ff6b5f",
+            alpha=0.34,
+            linewidth=0.5,
+            edgecolor="#c44e52",
+            antialiased=True,
+        )
+    for rate, group in sorted(grouped(checked_rows, ("arrival_rate",)).items()):
+        points: list[tuple[float, float, float]] = []
+        for row in group:
+            delta = fvalue(row, "delta")
+            pmax = fvalue(row, "Pmax")
+            actual = fvalue(row, "actual_optimality_gap")
+            if delta is None or pmax is None or actual is None:
                 continue
-            ax.scatter(
-                [point[0] for point in points],
-                [point[1] for point in points],
-                [point[2] for point in points],
-                s=16,
-                alpha=0.74,
-                color=RATE_COLORS.get(round(float(rate[0]), 1), "#555555"),
-                marker="o",
-                depthshade=False,
-            )
-        panel_label(ax, f"({chr(ord('a') + index)}) N={n_value}", is_3d=True)
-        ax.set_xlabel(r"$\delta$ (s)")
-        ax.set_ylabel(r"$P_{\max}$")
-        ax.set_zlabel(r"$G$ and $\widehat G$ (s)")
-        ax.set_xticks(deltas)
-        ax.set_yticks(pmax_values)
-        ax.view_init(elev=22, azim=-58)
-        apply_axis_typography(ax)
+            points.append((delta, pmax, actual))
+        if not points:
+            continue
+        ax.scatter(
+            [point[0] for point in points],
+            [point[1] for point in points],
+            [point[2] for point in points],
+            s=16,
+            alpha=0.74,
+            color=RATE_COLORS.get(round(float(rate[0]), 1), "#555555"),
+            marker="o",
+            depthshade=False,
+        )
+    panel_label(ax, "(a)", is_3d=True)
+    ax.set_xlabel(r"$\delta$ (s)")
+    ax.set_ylabel(r"$P_{\max}$")
+    ax.set_zlabel(r"$G$ and $\widehat G$ (s)")
+    ax.set_xticks(all_deltas)
+    ax.set_yticks(all_pmax_values)
+    ax.view_init(elev=22, azim=-58)
+    apply_axis_typography(ax)
     rate_handles = [
         Line2D([0], [0], marker="o", color="none", markerfacecolor=color, markeredgecolor=color, linestyle="None", label=rf"$\lambda$={rate:g}")
         for rate, color in sorted(RATE_COLORS.items())
@@ -414,7 +411,7 @@ def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *,
             "plot_type": "3D surface plus scatter",
             "axes": {"x": "delta", "y": "Pmax", "z": "actual G and rule-level Ghat"},
             "color": "arrival_rate for actual G points",
-            "surface": "Rule-level Ghat is shown as a semi-transparent surface in each N panel.",
+            "surface": "Rule-level Ghat is shown as one semi-transparent surface aggregated by delta and Pmax across completed rows; N is not visually encoded.",
             "quantity_encoding": "Actual G uses filled scatter points; Ghat uses a semi-transparent surface.",
             "rows": "Ghat surface uses completed formal bound rows. Actual G points use only bound_check_available rows where NP and PP are proven optimal.",
             "n_values": unique_ints(rows, "N"),

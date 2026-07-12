@@ -14,5 +14,5 @@
   "plot_type": "3D surface plus scatter",
   "quantity_encoding": "Actual G uses filled scatter points; Ghat uses a semi-transparent surface.",
   "rows": "Ghat surface uses completed formal bound rows. Actual G points use only bound_check_available rows where NP and PP are proven optimal.",
-  "surface": "Rule-level Ghat is shown as a semi-transparent surface in each N panel."
+  "surface": "Rule-level Ghat is shown as one semi-transparent surface aggregated by delta and Pmax across completed rows; N is not visually encoded."
 }

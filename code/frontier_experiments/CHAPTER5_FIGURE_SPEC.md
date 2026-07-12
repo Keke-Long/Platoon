@@ -28,7 +28,7 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - Current data sufficiency: completed checked rows are sufficient to create the approved 3D form, but the checked subset currently contains `N=20` because `N=40` lacks exact NP references before NP recovery.
 - Need for `N=60,80`: needed only for final full-grid polish. NP recovery is also needed before larger `N` rows can enter exact-gap bound validation.
 - `Pmax` handling: all `Pmax` values are shown on the y-axis.
-- Updated plotting decision: `Ghat` is shown as a semi-transparent surface, not as scatter points. Colors distinguish arrival rate `lambda`; `N` is shown by panel rather than color.
+- Updated plotting decision: `Ghat` is shown as one semi-transparent surface, not as scatter points. Colors distinguish arrival rate `lambda`; `N` is not visually encoded, and completed rows are pooled in one 3D axes.
 - Representative callback instance: not applicable.
 
 ### Figure 7: Complexity-Gap Trade-Off
@@ -77,7 +77,7 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - y-axis: maximum platoon size `Pmax`.
 - z-axis: `G` and `Ghat`.
 - Color: arrival rate `lambda`.
-- `N`: separate 3D panels when multiple completed `N` values are included.
+- `N`: not visually encoded; completed rows are pooled in the same 3D axes.
 - Content: only checked rows where NP and PP are both proven optimal; show both actual `G` and theoretical `Ghat`.
   The `Ghat` values may be shown for completed rows even when exact actual `G` is not yet available, but actual `G` points must use only checked rows.
 
