@@ -101,6 +101,27 @@ The finalized paper-facing experiment design is documented in
 [`EXPERIMENT_DESIGN.md`](./EXPERIMENT_DESIGN.md). Use that file as the source
 of truth for formal settings, result locations, and field meanings.
 
+Run the unified rule-based NP/CHP/PP experiment:
+
+```bash
+python rule_based_formal_comparison.py \
+  --reps 20 \
+  --n-values 12,16,20,24 \
+  --arrival-rates 0.4,0.7,1.0 \
+  --thresholds 2,3,4 \
+  --max-platoon-sizes 2,3,4,5 \
+  --time-limit 30 \
+  --threads 1 \
+  --output-dir ../../results/rule_based_experiments/formal_unified
+```
+
+For each traffic instance, this solves NP once, CHP once per threshold, and PP
+once per `(threshold, max_platoon_size)`. PP rows record the actual gap
+`D_PP - D_NP`, the rule-level upper bound, bound-check availability, delay-order
+check availability, dimension reduction, formation time, solver time, terminal
+MIP gap, and node count. The same output supports bound-effectiveness,
+NP/CHP/PP comparison, and trade-off plots.
+
 Run the fair dimension-target scalability suite. The recommended paper design
 uses a controlled scalability setting to isolate the effect of vehicle count.
 

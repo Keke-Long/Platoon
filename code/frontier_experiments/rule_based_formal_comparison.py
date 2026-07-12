@@ -1,4 +1,4 @@
-"""Formal NP/CHP/PP comparison over controlled random instances."""
+"""Unified formal NP/CHP/PP experiment over controlled random instances."""
 
 from __future__ import annotations
 
@@ -185,6 +185,11 @@ def run_instance(
             "number_of_platoons": sum(len(blocks) for blocks in formation.partition),
             "ordering_variable_count": ordering_variables(formation.partition),
             "vehicle_level_ordering_variable_count": vehicle_level_ordering_variables(instance.counts),
+            "dimension_reduction_ratio": (
+                1.0
+                - ordering_variables(formation.partition)
+                / vehicle_level_ordering_variables(instance.counts)
+            ),
             "formation_time_ms": formation.formation_time_ms,
             "formation_repetitions": config.formation_repetitions,
             "model_build_time_s": schedule.model_construction_seconds,
@@ -200,6 +205,17 @@ def run_instance(
             "scaled_partition_specific_upper_bound": scaled_indexed_bound(instance, formation.partition),
             "rule_level_upper_bound": float(rule_bound),
             "scaled_rule_level_upper_bound": scaled_rule_bound,
+            "np_optimal_objective": None,
+            "matching_chp_objective": None,
+            "pp_optimal_objective": None,
+            "D_NP": None,
+            "D_CHP": None,
+            "D_PP": None,
+            "bound_check_available": False,
+            "bound_valid": None,
+            "bound_slack": None,
+            "delay_order_check_available": False,
+            "np_pp_chp_delay_order_holds": None,
         }
 
     np_row = solve_row("NP", None, None)
@@ -209,15 +225,20 @@ def run_instance(
         np_reference_source = "np_gurobi_optimal"
         np_row["actual_gap_reference"] = np_reference_source
         np_row["actual_optimality_gap"] = 0.0
+    np_row["np_optimal_objective"] = np_average_for_gap
+    np_row["D_NP"] = np_average_for_gap
 
     for threshold in config.thresholds:
         chp_row = solve_row("CHP", threshold, None)
+        chp_row["np_optimal_objective"] = np_average_for_gap
+        chp_row["D_NP"] = np_average_for_gap
         rows.append(chp_row)
         chp_objective = (
             float(chp_row["objective"])
             if chp_row["status"] == "OPTIMAL" and chp_row.get("objective") is not None
             else None
         )
+        chp_row["D_CHP"] = chp_objective
         for max_platoon_size in config.max_platoon_sizes:
             pp_row = solve_row("PP", threshold, max_platoon_size)
             pp_objective = (
@@ -225,16 +246,31 @@ def run_instance(
                 if pp_row["status"] == "OPTIMAL" and pp_row.get("objective") is not None
                 else None
             )
+            pp_row["np_optimal_objective"] = np_average_for_gap
+            pp_row["matching_chp_objective"] = chp_objective
+            pp_row["pp_optimal_objective"] = pp_objective
+            pp_row["D_NP"] = np_average_for_gap
+            pp_row["D_CHP"] = chp_objective
+            pp_row["D_PP"] = pp_objective
+            bound_check_available = pp_row["actual_optimality_gap"] is not None
+            pp_row["bound_check_available"] = bound_check_available
+            if bound_check_available:
+                bound_slack = (
+                    float(pp_row["rule_level_upper_bound"])
+                    - float(pp_row["actual_optimality_gap"])
+                )
+                pp_row["bound_slack"] = bound_slack
+                pp_row["bound_valid"] = bound_slack >= -1e-7
             relation_holds = None
+            delay_order_check_available = False
             if np_average_for_gap is not None and pp_objective is not None and chp_objective is not None:
+                delay_order_check_available = True
                 relation_holds = (
                     np_average_for_gap <= pp_objective + 1e-7 <= chp_objective + 1e-7
                 )
+            pp_row["delay_order_check_available"] = delay_order_check_available
             pp_row["np_pp_chp_delay_order_holds"] = relation_holds
-            pp_row["matching_chp_objective"] = chp_objective
             rows.append(pp_row)
-        chp_row["np_pp_chp_delay_order_holds"] = None
-    np_row["np_pp_chp_delay_order_holds"] = None
     return rows
 
 
@@ -247,6 +283,12 @@ def summarize(rows: list[dict[str, object]]) -> list[dict[str, object]]:
     summary: list[dict[str, object]] = []
     for (n_value, arrival_rate, method, threshold, pmax), group in sorted(groups.items()):
         actual_gap_count = len(numeric_values(group, "actual_optimality_gap"))
+        bound_rows = [row for row in group if row.get("bound_check_available") is True]
+        bound_failures = [row for row in bound_rows if row.get("bound_valid") is not True]
+        delay_order_rows = [row for row in group if row.get("delay_order_check_available") is True]
+        delay_order_failures = [
+            row for row in delay_order_rows if row.get("np_pp_chp_delay_order_holds") is not True
+        ]
         summary.append(
             {
                 "N": n_value,
@@ -263,8 +305,21 @@ def summarize(rows: list[dict[str, object]]) -> list[dict[str, object]]:
                 "median_actual_optimality_gap": median_or_none(numeric_values(group, "actual_optimality_gap")),
                 "actual_gap_case_count": actual_gap_count,
                 "actual_gap_availability_rate": actual_gap_count / len(group),
+                "bound_check_case_count": len(bound_rows),
+                "bound_violation_count": len(bound_failures),
+                "bound_violation_rate": len(bound_failures) / len(bound_rows) if bound_rows else None,
+                "mean_rule_level_upper_bound": mean_or_none(numeric_values(group, "rule_level_upper_bound")),
+                "median_rule_level_upper_bound": median_or_none(numeric_values(group, "rule_level_upper_bound")),
+                "mean_bound_slack": mean_or_none(numeric_values(group, "bound_slack")),
+                "median_bound_slack": median_or_none(numeric_values(group, "bound_slack")),
+                "delay_order_check_case_count": len(delay_order_rows),
+                "delay_order_failure_count": len(delay_order_failures),
+                "delay_order_failure_rate": (
+                    len(delay_order_failures) / len(delay_order_rows) if delay_order_rows else None
+                ),
                 "mean_number_of_platoons": mean_or_none(numeric_values(group, "number_of_platoons")),
                 "mean_ordering_variable_count": mean_or_none(numeric_values(group, "ordering_variable_count")),
+                "mean_dimension_reduction_ratio": mean_or_none(numeric_values(group, "dimension_reduction_ratio")),
                 "mean_formation_time_ms": mean_or_none(numeric_values(group, "formation_time_ms")),
                 "median_formation_time_ms": median_or_none(numeric_values(group, "formation_time_ms")),
                 "mean_solve_time_s": mean_or_none(numeric_values(group, "solve_time_s")),
@@ -313,9 +368,13 @@ def run(config: FormalComparisonConfig) -> dict[str, object]:
         (row["N"], row["arrival_rate"], row["replication"], row["seed"])
         for row in relation_rows
     }
+    bound_rows = [row for row in rows if row.get("method") == "PP" and row.get("bound_check_available") is True]
+    bound_failures = [row for row in bound_rows if row.get("bound_valid") is not True]
     payload = {
         "config": asdict(config),
         "row_count": len(rows),
+        "bound_check_rows": len(bound_rows),
+        "bound_violation_count": len(bound_failures),
         "delay_order_checked_rows": len(relation_rows),
         "delay_order_checked_instances": len(relation_instances),
         "delay_order_failure_count": len(relation_failures),
@@ -323,7 +382,13 @@ def run(config: FormalComparisonConfig) -> dict[str, object]:
     }
     write_csv(output_dir / "formal_comparison_rows.csv", rows)
     write_csv(output_dir / "formal_comparison_summary.csv", summary)
+    write_csv(output_dir / "formal_rule_based_rows.csv", rows)
+    write_csv(output_dir / "formal_rule_based_summary.csv", summary)
     (output_dir / "formal_comparison_summary.json").write_text(
+        json.dumps(payload, indent=2),
+        encoding="utf-8",
+    )
+    (output_dir / "formal_rule_based_summary.json").write_text(
         json.dumps(payload, indent=2),
         encoding="utf-8",
     )

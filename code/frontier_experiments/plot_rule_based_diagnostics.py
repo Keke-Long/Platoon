@@ -38,6 +38,8 @@ def quantile(values: list[float], fraction: float) -> float:
 def group_actual_gaps_by_n_threshold_pmax(rows: list[dict[str, str]]) -> dict[int, dict[int, dict[int, list[float]]]]:
     grouped: dict[int, dict[int, dict[int, list[float]]]] = {}
     for row in rows:
+        if row.get("method") != "PP":
+            continue
         gap = fvalue(row, "actual_optimality_gap")
         if gap is None:
             continue
@@ -91,6 +93,8 @@ def plot_tradeoff(theory_rows: Path, output_dir: Path) -> None:
     rows = read_rows(theory_rows)
     grouped: dict[tuple[int, int, int], list[dict[str, str]]] = {}
     for row in rows:
+        if row.get("method") != "PP":
+            continue
         if row.get("actual_optimality_gap") in (None, ""):
             continue
         key = (
@@ -176,19 +180,48 @@ def plot_comparison_runtime(comparison_summary: Path, output_dir: Path) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--theory-dir", type=Path, required=True)
+    parser.add_argument("--experiment-dir", type=Path)
+    parser.add_argument("--theory-dir", type=Path)
     parser.add_argument("--comparison-dir", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
+def first_existing(paths: list[Path]) -> Path:
+    for path in paths:
+        if path.exists():
+            return path
+    return paths[0]
+
+
 def main() -> int:
     args = build_parser().parse_args()
+    if args.experiment_dir is None and args.theory_dir is None:
+        raise SystemExit("either --experiment-dir or --theory-dir is required")
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    plot_gap_by_threshold(args.theory_dir / "formal_theory_rows.csv", args.output_dir)
-    plot_tradeoff(args.theory_dir / "formal_theory_rows.csv", args.output_dir)
-    if args.comparison_dir is not None:
-        plot_comparison_runtime(args.comparison_dir / "formal_comparison_summary.csv", args.output_dir)
+    row_file = (
+        first_existing(
+            [
+                args.experiment_dir / "formal_rule_based_rows.csv",
+                args.experiment_dir / "formal_comparison_rows.csv",
+            ]
+        )
+        if args.experiment_dir is not None
+        else args.theory_dir / "formal_theory_rows.csv"
+    )
+    summary_dir = args.comparison_dir or args.experiment_dir
+    plot_gap_by_threshold(row_file, args.output_dir)
+    plot_tradeoff(row_file, args.output_dir)
+    if summary_dir is not None:
+        plot_comparison_runtime(
+            first_existing(
+                [
+                    summary_dir / "formal_rule_based_summary.csv",
+                    summary_dir / "formal_comparison_summary.csv",
+                ]
+            ),
+            args.output_dir,
+        )
     print(args.output_dir)
     return 0
 
