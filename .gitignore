@@ -31,6 +31,11 @@ env/
 *.toc
 *.pdf
 !results/rule_based_experiments/**/formal_figures_hS3/*.pdf
+!paper/figures/bound_validation_actual_vs_upper.pdf
+!paper/figures/experimental_tradeoff_solve_time_gap.pdf
+!paper/figures/pp_delay_vs_threshold_density.pdf
+!paper/figures/pp_time_and_scheduling_units.pdf
+!paper/figures/gurobi_solution_quality_over_time.pdf
 
 # OS/editor
 .DS_Store

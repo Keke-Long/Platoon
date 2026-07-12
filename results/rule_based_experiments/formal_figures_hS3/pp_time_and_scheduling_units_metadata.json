@@ -6,10 +6,12 @@
     "6": "#2ca02c",
     "8": "#9467bd"
   },
+  "figure_number": 9,
   "n_values": [
     20,
     40
   ],
+  "plot_type": "line figure",
   "pmax_markers": {
     "2": "o",
     "4": "s",
@@ -21,5 +23,6 @@
     4,
     6,
     8
-  ]
+  ],
+  "scheduling_units": "NP equals number of vehicles; CHP and PP equal number of platoons."
 }

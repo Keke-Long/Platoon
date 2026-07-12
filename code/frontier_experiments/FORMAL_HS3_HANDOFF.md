@@ -86,7 +86,7 @@ Checkpoint directories are local resume artifacts and are ignored by git. The cl
   bound_validation_actual_vs_upper.pdf
   experimental_tradeoff_solve_time_gap.pdf
   pp_delay_vs_threshold_density.pdf
-  pp_time_and_platoon_count.pdf
+  pp_time_and_scheduling_units.pdf
   gurobi_solution_quality_over_time.pdf
   *_metadata.json
 ```

@@ -130,7 +130,7 @@ def test_plot_trajectories_filters_to_selected_instance() -> None:
         plot_trajectories(rows, [], output_dir)
         metadata = json.loads((output_dir / "gurobi_solution_quality_over_time_metadata.json").read_text())
         assert metadata["selected_instance_id"] == "b"
-        assert metadata["status"] == "provisional"
+        assert metadata["status"] == "partial_current_data"
         assert (output_dir / "gurobi_solution_quality_over_time.pdf").exists()
         assert not (output_dir / "gurobi_solution_quality_over_time.png").exists()
 

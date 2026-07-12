@@ -10,6 +10,8 @@ Old frontier, optimized-partition, dimension-budget, complete-frontier, sampled-
 
 The manuscript method section has been aligned with the active rule-based implementation: PP is the threshold-and-cap platooning rule using `delta` and `Pmax`, not a separate partition-search method.
 
+The Chapter 5 figure source of truth is `code/frontier_experiments/CHAPTER5_FIGURE_SPEC.md`; do not change figure axes, plot types, encodings, or aggregation rules without explicit project-lead approval.
+
 ## Current Completion State
 
 - `N=20`: completed in the active formal aggregate results.
@@ -52,11 +54,11 @@ results/rule_based_experiments/formal_np_recovery_600s_hS3/formal_np_recovery_su
 results/rule_based_experiments/formal_figures_hS3/bound_validation_actual_vs_upper.pdf
 results/rule_based_experiments/formal_figures_hS3/experimental_tradeoff_solve_time_gap.pdf
 results/rule_based_experiments/formal_figures_hS3/pp_delay_vs_threshold_density.pdf
-results/rule_based_experiments/formal_figures_hS3/pp_time_and_platoon_count.pdf
+results/rule_based_experiments/formal_figures_hS3/pp_time_and_scheduling_units.pdf
 results/rule_based_experiments/formal_figures_hS3/gurobi_solution_quality_over_time.pdf
 results/rule_based_experiments/formal_figures_hS3/gurobi_solution_quality_over_time_metadata.json
 results/rule_based_experiments/formal_figures_hS3/pp_delay_vs_threshold_density_metadata.json
-results/rule_based_experiments/formal_figures_hS3/pp_time_and_platoon_count_metadata.json
+results/rule_based_experiments/formal_figures_hS3/pp_time_and_scheduling_units_metadata.json
 ```
 
 Paper-facing figure files are:
@@ -67,7 +69,7 @@ paper/figures/Picture2.png
 paper/figures/bound_validation_actual_vs_upper.pdf
 paper/figures/experimental_tradeoff_solve_time_gap.pdf
 paper/figures/pp_delay_vs_threshold_density.pdf
-paper/figures/pp_time_and_platoon_count.pdf
+paper/figures/pp_time_and_scheduling_units.pdf
 paper/figures/gurobi_solution_quality_over_time.pdf
 ```
 

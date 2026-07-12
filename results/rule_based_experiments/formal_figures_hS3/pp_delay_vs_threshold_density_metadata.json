@@ -6,10 +6,12 @@
     "6": "#2ca02c",
     "8": "#9467bd"
   },
+  "figure_number": 8,
   "n_values": [
     20,
     40
   ],
+  "plot_type": "line figure",
   "pmax_markers": {
     "2": "o",
     "4": "s",

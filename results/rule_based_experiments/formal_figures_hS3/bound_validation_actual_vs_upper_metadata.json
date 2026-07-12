@@ -1,0 +1,17 @@
+{
+  "available_only": "Current figure uses the bound-checkable subset of completed data; this subset currently contains N=20 because larger N rows need exact NP references.",
+  "axes": {
+    "x": "delta",
+    "y": "Pmax",
+    "z": "actual G and rule-level Ghat"
+  },
+  "color": "N",
+  "figure_number": 6,
+  "marker": "arrival_rate",
+  "n_values": [
+    20
+  ],
+  "plot_type": "3D scatter",
+  "quantity_encoding": "Actual G uses filled markers; Ghat uses open markers.",
+  "rows": "Only bound_check_available rows where NP and PP are proven optimal."
+}

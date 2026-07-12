@@ -1,7 +1,9 @@
 \section{Numerical Experiments}
 \label{sec:experiments}
+% Chapter 5 figure forms are governed by code/frontier_experiments/CHAPTER5_FIGURE_SPEC.md.
 
 This section has two purposes. Section~\ref{sec:bound-validation} evaluates the rule-level upper bound on the platooning-induced optimality gap. Section~\ref{sec:pp-validation} evaluates the proposed platooning method against no platooning and conventional critical-headway platooning. The two studies use the same traffic generator and parameter grid, but they answer different questions and use different solver-time protocols.
+The figures in this version use the completed \(N=20\) and \(N=40\) formal runs; the same figure definitions will be extended to \(N=60\) and \(N=80\) after those runs are completed.
 
 \subsection{Validation of the Rule-Level Upper Bound}
 \label{sec:bound-validation}
@@ -70,7 +72,7 @@ Among cases for which both the NP and PP models are proven optimal, all observed
   }{
     \fbox{\parbox[c][0.25\textheight][c]{0.72\textwidth}{\centering Placeholder for the final bound-validation figure.\\Actual \(G\) and rule-level upper bound \(\widehat G\).}}
   }
-  \caption{Bound validation for cases with exact NP and PP solutions. Panel (a) compares the actual platooning-induced optimality gap \(G\) with the rule-level upper bound \(\widehat G(\delta,P_{\max})\), including the \(y=x\) reference line. Panel (b) summarizes normalized bound utilization \(G/\widehat G\) by \(\delta\) and \(P_{\max}\). Colors represent \(\delta\), and marker shapes represent \(P_{\max}\). Only bound-checkable cases with proven-optimal NP and PP solutions are included.}
+  \caption{Three-dimensional bound validation for cases with exact NP and PP solutions. The horizontal axes are the platooning threshold \(\delta\) and maximum platoon size \(P_{\max}\), and the vertical axis shows both the actual platooning-induced optimality gap \(G\) and the rule-level upper bound \(\widehat G(\delta,P_{\max})\). Colors represent \(N\), marker shapes represent arrival rate \(\lambda\), filled markers show actual \(G\), and open markers show \(\widehat G\). Only bound-checkable rows with proven-optimal NP and PP solutions are included; with the current completed data and no NP recovery, this checked subset is available for \(N=20\).}
   \label{fig:bound-validation}
 \end{figure}
 
@@ -81,7 +83,7 @@ Among cases for which both the NP and PP models are proven optimal, all observed
   }{
     \fbox{\parbox[c][0.25\textheight][c]{0.72\textwidth}{\centering Placeholder for the final experimental trade-off figure.\\Solve time versus actual gap \(G\).}}
   }
-  \caption{Trade-off between downstream solve time and the actual platooning-induced optimality gap \(G\). Colors represent \(\delta\), and marker shapes represent \(P_{\max}\).}
+  \caption{Experimental complexity-gap trade-off using checked exact-gap rows. The horizontal axis is downstream solve time and the vertical axis is the actual optimality gap \(G\). Panels are stratified by \(N\) when checked rows are available. Colors represent \(\delta\), marker shapes represent \(P_{\max}\), and each point averages checked rows over replications within one \((N,\lambda,\delta,P_{\max})\) group; error bars show standard errors. With the current completed data and no NP recovery, this checked exact-gap subset is available for \(N=20\).}
   \label{fig:experimental-tradeoff}
 \end{figure}
 
@@ -134,18 +136,18 @@ The comparison confirms the intended trade-off between scheduling flexibility an
   }{
     \fbox{\parbox[c][0.27\textheight][c]{0.80\textwidth}{\centering Placeholder for the PP delay comparison.\\Panel (a): delay versus \(\delta\). Panel (b): delay versus \(\lambda\).}}
   }
-  \caption{Average vehicle delay of NP, CHP, and PP as the platooning threshold or vehicle arrival rate increases, stratified by \(N\). Panel (a) varies \(\delta\), and Panel (b) varies \(\lambda\). Light uncertainty intervals are shown where sufficient replications are available.}
+  \caption{Average vehicle delay of NP, CHP, and PP as the platooning threshold or vehicle arrival rate increases, using the completed \(N=20\) and \(N=40\) runs. The left-column panels vary \(\delta\), and the right-column panels vary \(\lambda\), with rows stratified by \(N\). PP curves retain \(P_{\max}\) in the marker encoding and are not averaged across \(P_{\max}\). Light uncertainty intervals are shown where sufficient replications are available.}
   \label{fig:pp-delay}
 \end{figure}
 
 \begin{figure}[t]
   \centering
-  \IfFileExists{figures/pp_time_and_platoon_count.pdf}{
-    \includegraphics[width=0.92\textwidth]{figures/pp_time_and_platoon_count.pdf}
+  \IfFileExists{figures/pp_time_and_scheduling_units.pdf}{
+    \includegraphics[width=0.92\textwidth]{figures/pp_time_and_scheduling_units.pdf}
   }{
     \fbox{\parbox[c][0.34\textheight][c]{0.84\textwidth}{\centering Placeholder for the PP computation-mechanism figure.\\Solve time and number of platoons versus \(\delta\) and \(\lambda\).}}
   }
-  \caption{Solution time and number of scheduling units for NP, CHP, and PP. The solve-time panels use a logarithmic vertical axis so that NP, CHP, and PP remain visible on the same scale; platoon-count panels use a linear scale. Colors represent \(\delta\), and marker shapes represent \(P_{\max}\).}
+  \caption{Solution time and number of scheduling units for NP, CHP, and PP, using the completed \(N=20\) and \(N=40\) runs. The panels show solution time versus \(\delta\), solution time versus \(\lambda\), number of scheduling units versus \(\delta\), and number of scheduling units versus \(\lambda\), with rows stratified by \(N\). For NP, the number of scheduling units is the number of vehicles; for CHP and PP, it is the number of platoons. The solve-time panels use a logarithmic vertical axis; scheduling-unit panels use a linear scale. PP retains \(P_{\max}\) in the marker encoding and is not averaged across \(P_{\max}\).}
   \label{fig:pp-time-platoons}
 \end{figure}
 
@@ -156,6 +158,6 @@ The comparison confirms the intended trade-off between scheduling flexibility an
   }{
     \fbox{\parbox[c][0.27\textheight][c]{0.76\textwidth}{\centering Placeholder for the Gurobi incumbent trajectory figure.\\Best-found solution quality versus wall-clock time.}}
   }
-  \caption{Quality of Gurobi solutions as a function of wall-clock time for NP, CHP, and representative PP parameter settings. The plotted curves use one traffic instance shared by all methods and are drawn from recorded Gurobi callback trajectories.}
+  \caption{Quality of Gurobi solutions as a function of wall-clock solution time for one shared traffic instance, drawn from real callback trajectories. The vertical axis is the best incumbent average vehicle delay. The current available trajectory data include NP and PP at representative \(P_{\max}=4\) and \(\delta=4\); additional PP thresholds will be added after callback trajectories are generated for those settings.}
   \label{fig:gurobi-quality-time}
 \end{figure}

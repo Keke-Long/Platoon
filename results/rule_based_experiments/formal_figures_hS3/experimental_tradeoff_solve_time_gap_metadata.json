@@ -1,0 +1,14 @@
+{
+  "aggregation": "Separate N panels. Points average checked rows over replications within each (N, arrival_rate, delta, Pmax) group. Error bars are standard errors.",
+  "axes": {
+    "x": "solve_time_s",
+    "y": "actual_optimality_gap"
+  },
+  "color": "delta",
+  "figure_number": 7,
+  "marker": "Pmax",
+  "n_values": [
+    20
+  ],
+  "plot_type": "scatter with mean and standard-error bars"
+}

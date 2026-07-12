@@ -1,5 +1,13 @@
 {
-  "aggregation": "One selected instance only. Series are NP, CHP at representative delta, and PP at representative delta/Pmax from real callback rows.",
+  "aggregation": "One selected instance only. Series are NP and available PP trajectories at fixed representative Pmax.",
+  "available_pp_deltas_for_selected_instance": [
+    4
+  ],
+  "axes": {
+    "x": "Gurobi wall-clock solution time",
+    "y": "best incumbent average vehicle delay"
+  },
+  "figure_number": 10,
   "instance_ids_present": [
     "N20_rate0p4_rep000_seed2254167912808199683",
     "N40_rate0p4_rep000_seed8917832612856341211",
@@ -63,10 +71,12 @@
     "N40_rate1p0_rep018_seed5368447335565891007",
     "N40_rate1p0_rep019_seed4424395232977576567"
   ],
+  "missing_multiple_pp_delta_trajectories": true,
+  "plot_type": "line plot from real Gurobi callback trajectories",
   "representative_delta": 4,
   "representative_pmax": 4,
   "selected_N": 40,
   "selected_instance_id": "N40_rate0p4_rep000_seed8917832612856341211",
-  "selection_policy": "Prefer N>=40 instances where NP has multiple incumbent updates or reaches the time limit, PP has at least two callback points, and NP/CHP/PP rows share the same instance. Fall back to the first complete trajectory instance if no better instance exists.",
-  "status": "representative_selected_after_N40_search"
+  "selection_policy": "Prefer N>=40 instances where NP has multiple incumbent updates or reaches the time limit, PP has at least two callback points, and rows share the same instance. Fall back to the first complete trajectory instance if no better instance exists.",
+  "status": "partial_current_data"
 }

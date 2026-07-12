@@ -1,4 +1,9 @@
-"""Generate formal hS=3 rule-based experiment figures."""
+"""Generate formal hS=3 rule-based experiment figures.
+
+The source of truth for Chapter 5 figure forms is
+CHAPTER5_FIGURE_SPEC.md. Do not change axes, plot types, encodings, or
+aggregation rules without explicit project-lead approval.
+"""
 
 from __future__ import annotations
 
@@ -21,6 +26,17 @@ PMAX_MARKERS = {
     4: "s",
     6: "^",
     8: "D",
+}
+N_COLORS = {
+    20: "#1f77b4",
+    40: "#d62728",
+    60: "#2ca02c",
+    80: "#9467bd",
+}
+RATE_MARKERS = {
+    0.4: "o",
+    0.7: "^",
+    1.0: "s",
 }
 METHOD_COLORS = {
     "NP": "#222222",
@@ -280,6 +296,23 @@ def save_figure(fig, output_dir: Path, stem: str, *, write_png: bool = False) ->
         fig.savefig(output_dir / f"{stem}.png", dpi=300, bbox_inches="tight")
 
 
+def apply_axis_typography(ax) -> None:
+    ax.xaxis.label.set_size(11)
+    ax.yaxis.label.set_size(11)
+    if hasattr(ax, "zaxis"):
+        ax.zaxis.label.set_size(11)
+    ax.tick_params(axis="both", labelsize=10)
+    if hasattr(ax, "zaxis"):
+        ax.tick_params(axis="z", labelsize=10)
+
+
+def panel_label(ax, label: str, *, is_3d: bool = False) -> None:
+    if is_3d:
+        ax.text2D(0.02, 0.96, label, transform=ax.transAxes, fontsize=10)
+    else:
+        ax.text(0.02, 0.96, label, transform=ax.transAxes, fontsize=10, va="top")
+
+
 def write_metadata(output_dir: Path, stem: str, metadata: dict[str, object]) -> None:
     (output_dir / f"{stem}_metadata.json").write_text(
         json.dumps(metadata, indent=2, sort_keys=True),
@@ -289,87 +322,93 @@ def write_metadata(output_dir: Path, stem: str, metadata: dict[str, object]) -> 
 
 def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *, write_png: bool = False) -> None:
     import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
 
     rows = [row for row in bound_rows if row.get("bound_check_available") == "True"]
     if not rows:
         return
-    fig, axes = plt.subplots(1, 2, figsize=(11.4, 4.2))
-    ax = axes[0]
-    for (delta, pmax), group in sorted(grouped(rows, ("delta", "Pmax")).items()):
-        pairs = [
-            (actual, upper)
-            for actual, upper in (
-                (fvalue(row, "actual_optimality_gap"), fvalue(row, "rule_level_upper_bound")) for row in group
-            )
-            if actual is not None and upper is not None
-        ]
-        if not pairs:
-            continue
-        ax.scatter(
-            [pair[0] for pair in pairs],
-            [pair[1] for pair in pairs],
-            s=32,
-            alpha=0.74,
-            color=DELTA_COLORS.get(int(delta), "#555555"),
-            marker=PMAX_MARKERS.get(int(pmax), "o"),
-            label=f"d={delta}, P={pmax}",
-        )
-    max_axis = max(
-        max(float(row["actual_optimality_gap"]) for row in rows),
-        max(float(row["rule_level_upper_bound"]) for row in rows),
-    )
-    ax.plot([0, max_axis], [0, max_axis], color="#666666", linewidth=1.0, linestyle="--")
-    ax.text(0.02, 0.98, "Bound valid; conservative", transform=ax.transAxes, va="top")
-    ax.set_title("(a) Actual G vs. Ghat")
-    ax.set_xlabel("Actual G")
-    ax.set_ylabel("Rule-level upper bound Ghat")
-    ax.grid(True, linewidth=0.5, alpha=0.25)
-    ax = axes[1]
-    labels: list[str] = []
-    centers: list[float] = []
-    medians: list[float] = []
-    lower_errors: list[float] = []
-    upper_errors: list[float] = []
-    colors: list[str] = []
-    markers: list[str] = []
-    for index, ((delta, pmax), group) in enumerate(sorted(grouped(rows, ("delta", "Pmax")).items())):
-        ratios = []
+    fig = plt.figure(figsize=(7.2, 5.2))
+    ax = fig.add_subplot(111, projection="3d")
+    for (n_value, rate), group in sorted(grouped(rows, ("N", "arrival_rate")).items()):
+        actual_points: list[tuple[float, float, float]] = []
+        upper_points: list[tuple[float, float, float]] = []
         for row in group:
+            delta = fvalue(row, "delta")
+            pmax = fvalue(row, "Pmax")
             actual = fvalue(row, "actual_optimality_gap")
             upper = fvalue(row, "rule_level_upper_bound")
-            if actual is not None and upper is not None and upper > 0:
-                ratios.append(actual / upper)
-        if not ratios:
+            if delta is None or pmax is None or actual is None or upper is None:
+                continue
+            actual_points.append((delta, pmax, actual))
+            upper_points.append((delta, pmax, upper))
+        if not actual_points:
             continue
-        q50 = median(ratios)
-        q10 = sorted(ratios)[max(0, int(0.10 * (len(ratios) - 1)))]
-        q90 = sorted(ratios)[min(len(ratios) - 1, int(0.90 * (len(ratios) - 1)))]
-        centers.append(float(index))
-        labels.append(f"{delta}/{pmax}")
-        medians.append(q50)
-        lower_errors.append(q50 - q10)
-        upper_errors.append(q90 - q50)
-        colors.append(DELTA_COLORS.get(int(delta), "#555555"))
-        markers.append(PMAX_MARKERS.get(int(pmax), "o"))
-    for x_value, y_value, lo, hi, color, marker in zip(centers, medians, lower_errors, upper_errors, colors, markers, strict=True):
-        ax.errorbar(
-            [x_value],
-            [y_value],
-            yerr=[[lo], [hi]],
-            fmt=marker,
-            color=color,
-            markersize=6,
-            capsize=3,
+        ax.scatter(
+            [point[0] for point in actual_points],
+            [point[1] for point in actual_points],
+            [point[2] for point in actual_points],
+            s=22,
+            alpha=0.60,
+            color=N_COLORS.get(int(n_value), "#555555"),
+            marker=RATE_MARKERS.get(round(float(rate), 1), "o"),
+            depthshade=False,
         )
-    ax.axhline(1.0, color="#666666", linewidth=1.0, linestyle="--")
-    ax.set_title("(b) Bound utilization G/Ghat")
-    ax.set_ylabel("G/Ghat median with 10-90% interval")
-    ax.set_xlabel("delta/Pmax")
-    ax.set_xticks(centers)
-    ax.set_xticklabels(labels, fontsize=7, rotation=90)
-    ax.grid(True, axis="y", linewidth=0.5, alpha=0.25)
-    handles, legend_labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, legend_labels, frameon=False, fontsize=7, ncols=1, loc="center left", bbox_to_anchor=(1.0, 0.5))
+        ax.scatter(
+            [point[0] for point in upper_points],
+            [point[1] for point in upper_points],
+            [point[2] for point in upper_points],
+            s=46,
+            alpha=0.92,
+            facecolors="none",
+            edgecolors=N_COLORS.get(int(n_value), "#555555"),
+            marker=RATE_MARKERS.get(round(float(rate), 1), "o"),
+            depthshade=False,
+        )
+    ax.set_xlabel(r"Platooning threshold $\delta$")
+    ax.set_ylabel(r"Maximum platoon size $P_{\max}$")
+    ax.set_zlabel(r"Actual $G$ and upper bound $\widehat G$")
+    ax.set_xticks(unique_ints(rows, "delta"))
+    ax.set_yticks(unique_ints(rows, "Pmax"))
+    ax.view_init(elev=22, azim=-55)
+    panel_label(ax, "(a)", is_3d=True)
+    apply_axis_typography(ax)
+    n_handles = [
+        Line2D([0], [0], marker="o", color="none", markerfacecolor=color, markeredgecolor=color, label=f"N={n_value}")
+        for n_value, color in sorted(N_COLORS.items())
+        if any(ivalue(row, "N") == n_value for row in rows)
+    ]
+    rate_handles = [
+        Line2D([0], [0], marker=marker, color="#555555", linestyle="None", label=rf"$\lambda$={rate:g}")
+        for rate, marker in sorted(RATE_MARKERS.items())
+        if any(fvalue(row, "arrival_rate") == rate for row in rows)
+    ]
+    quantity_handles = [
+        Line2D([0], [0], marker="o", color="#555555", linestyle="None", markerfacecolor="#555555", label=r"Actual $G$"),
+        Line2D([0], [0], marker="o", color="#555555", linestyle="None", markerfacecolor="none", label=r"Upper bound $\widehat G$"),
+    ]
+    fig.legend(
+        handles=n_handles + rate_handles + quantity_handles,
+        frameon=False,
+        fontsize=9,
+        ncols=1,
+        loc="center left",
+        bbox_to_anchor=(0.92, 0.5),
+    )
+    write_metadata(
+        output_dir,
+        "bound_validation_actual_vs_upper",
+        {
+            "figure_number": 6,
+            "plot_type": "3D scatter",
+            "axes": {"x": "delta", "y": "Pmax", "z": "actual G and rule-level Ghat"},
+            "color": "N",
+            "marker": "arrival_rate",
+            "quantity_encoding": "Actual G uses filled markers; Ghat uses open markers.",
+            "rows": "Only bound_check_available rows where NP and PP are proven optimal.",
+            "n_values": unique_ints(rows, "N"),
+            "available_only": "Current figure uses the bound-checkable subset of completed data; this subset currently contains N=20 because larger N rows need exact NP references.",
+        },
+    )
     save_figure(fig, output_dir, "bound_validation_actual_vs_upper", write_png=write_png)
     plt.close(fig)
 
@@ -380,30 +419,49 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
     rows = [row for row in bound_rows if row.get("bound_check_available") == "True"]
     if not rows:
         return
-    fig, ax = plt.subplots(figsize=(6.4, 4.2))
-    for (delta, pmax), group in sorted(grouped(rows, ("delta", "Pmax")).items()):
-        times = [fvalue(row, "solve_time_s") for row in group]
-        gaps = [fvalue(row, "actual_optimality_gap") for row in group]
-        pairs = [(x, y) for x, y in zip(times, gaps, strict=True) if x is not None and y is not None]
-        if not pairs:
-            continue
-        xs = [pair[0] for pair in pairs]
-        ys = [pair[1] for pair in pairs]
-        ax.errorbar(
-            [mean(xs)],
-            [mean(ys)],
-            xerr=[stderr(xs)],
-            yerr=[stderr(ys)],
-            fmt=PMAX_MARKERS.get(int(pmax), "o"),
-            color=DELTA_COLORS.get(int(delta), "#555555"),
-            markersize=6,
-            capsize=3,
-            label=f"delta={delta}, Pmax={pmax}",
-        )
-    ax.set_xlabel("Downstream solve time (s)")
-    ax.set_ylabel("Actual G")
-    ax.grid(True, linewidth=0.5, alpha=0.25)
-    ax.legend(frameon=False, fontsize=8, ncols=2, loc="center left", bbox_to_anchor=(1.02, 0.5))
+    n_values = unique_ints(rows, "N")
+    fig, axes = plt.subplots(1, len(n_values), figsize=(5.0 * len(n_values), 4.2), squeeze=False)
+    for col_index, n_value in enumerate(n_values):
+        ax = axes[0][col_index]
+        panel_label(ax, f"({chr(ord('a') + col_index)}) N={n_value}")
+        for (delta, pmax, rate), group in sorted(grouped(filter_rows(rows, n_value=n_value), ("delta", "Pmax", "arrival_rate")).items()):
+            times = [value for value in (fvalue(row, "solve_time_s") for row in group) if value is not None]
+            gaps = [value for value in (fvalue(row, "actual_optimality_gap") for row in group) if value is not None]
+            if not times or not gaps:
+                continue
+            ax.errorbar(
+                [mean(times)],
+                [mean(gaps)],
+                xerr=[stderr(times)],
+                yerr=[stderr(gaps)],
+                fmt=PMAX_MARKERS.get(int(pmax), "o"),
+                color=DELTA_COLORS.get(int(delta), "#555555"),
+                markersize=6,
+                capsize=3,
+                label=rf"$\delta$={delta}, $P_{{\max}}$={pmax}",
+            )
+        ax.set_xlabel("Downstream solve time (s)")
+        ax.set_ylabel(r"Actual optimality gap $G$")
+        ax.grid(True, linewidth=0.5, alpha=0.25)
+        apply_axis_typography(ax)
+    handles, labels = axes[0][-1].get_legend_handles_labels()
+    dedup: dict[str, object] = {}
+    for handle, label in zip(handles, labels, strict=False):
+        dedup.setdefault(label, handle)
+    fig.legend(dedup.values(), dedup.keys(), frameon=False, fontsize=9, ncols=1, loc="center left", bbox_to_anchor=(0.98, 0.5))
+    write_metadata(
+        output_dir,
+        "experimental_tradeoff_solve_time_gap",
+        {
+            "figure_number": 7,
+            "plot_type": "scatter with mean and standard-error bars",
+            "axes": {"x": "solve_time_s", "y": "actual_optimality_gap"},
+            "color": "delta",
+            "marker": "Pmax",
+            "aggregation": "Separate N panels. Points average checked rows over replications within each (N, arrival_rate, delta, Pmax) group. Error bars are standard errors.",
+            "n_values": n_values,
+        },
+    )
     save_figure(fig, output_dir, "experimental_tradeoff_solve_time_gap", write_png=write_png)
     plt.close(fig)
 
@@ -417,9 +475,10 @@ def plot_delay_density(rows: list[dict[str, str]], output_dir: Path, *, write_pn
     pmax_values = unique_ints([row for row in rows if row.get("method") == "PP"], "Pmax")
     if not n_values or not deltas or not rates:
         return
-    fig, axes = plt.subplots(len(n_values), 2, figsize=(10.4, max(3.2, 2.6 * len(n_values))), squeeze=False)
+    fig, axes = plt.subplots(len(n_values), 2, figsize=(10.4, max(3.2, 2.8 * len(n_values))), squeeze=False)
     for row_index, n_value in enumerate(n_values):
         ax = axes[row_index][0]
+        panel_label(ax, f"({chr(ord('a') + 2 * row_index)}) N={n_value}")
         np_values = metric_values(rows, "objective", n_value=n_value, method="NP")
         np_mean, np_ci = mean_interval(np_values)
         if np_mean is not None:
@@ -440,12 +499,13 @@ def plot_delay_density(rows: list[dict[str, str]], output_dir: Path, *, write_pn
                 y.append(value)
                 err.append(interval or 0.0)
             ax.errorbar(deltas, y, yerr=err, color="#666666", marker=PMAX_MARKERS.get(pmax, "o"), label=f"PP Pmax={pmax}", capsize=2)
-        ax.set_title(f"N={n_value}")
-        ax.set_xlabel("Delta")
-        ax.set_ylabel("Average delay or incumbent")
+        ax.set_xlabel(r"Platooning threshold $\delta$")
+        ax.set_ylabel("Average vehicle delay")
         ax.grid(True, linewidth=0.5, alpha=0.25)
+        apply_axis_typography(ax)
 
         ax = axes[row_index][1]
+        panel_label(ax, f"({chr(ord('a') + 2 * row_index + 1)}) N={n_value}")
         np_y: list[float | None] = []
         np_err: list[float] = []
         for rate in rates:
@@ -479,20 +539,26 @@ def plot_delay_density(rows: list[dict[str, str]], output_dir: Path, *, write_pn
                     label=f"PP d={delta}, P={pmax}",
                     capsize=2,
                 )
-        ax.set_title(f"N={n_value}")
-        ax.set_xlabel("Arrival rate")
-        ax.set_ylabel("Average delay or incumbent")
+        ax.set_xlabel(r"Arrival rate $\lambda$")
+        ax.set_ylabel("Average vehicle delay")
         ax.grid(True, linewidth=0.5, alpha=0.25)
+        apply_axis_typography(ax)
+    handles: list[object] = []
+    labels: list[str] = []
     for legend_ax in (axes[0][0], axes[0][1]):
-        handles, labels = legend_ax.get_legend_handles_labels()
-        dedup: dict[str, object] = {}
-        for handle, label in zip(handles, labels, strict=False):
-            dedup.setdefault(label, handle)
-        legend_ax.legend(dedup.values(), dedup.keys(), frameon=False, fontsize=6, ncols=1, loc="center left", bbox_to_anchor=(1.02, 0.5))
+        new_handles, new_labels = legend_ax.get_legend_handles_labels()
+        handles.extend(new_handles)
+        labels.extend(new_labels)
+    dedup: dict[str, object] = {}
+    for handle, label in zip(handles, labels, strict=False):
+        dedup.setdefault(label, handle)
+    fig.legend(dedup.values(), dedup.keys(), frameon=False, fontsize=9, ncols=2, loc="lower center", bbox_to_anchor=(0.5, -0.02))
     write_metadata(
         output_dir,
         "pp_delay_vs_threshold_density",
         {
+            "figure_number": 8,
+            "plot_type": "line figure",
             "aggregation": "Panels are stratified by N. Delta panels average over arrival rates and replications within each N/method/delta/Pmax group. Arrival-rate panels average over replications within each N/method/delta/Pmax/rate group. PP is never averaged across Pmax.",
             "uncertainty": "Error bars show approximate 95% mean intervals when at least two replications contribute to a plotted mean. Means are not jittered.",
             "n_values": n_values,
@@ -514,16 +580,17 @@ def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path, *, write_pn
     pmax_values = unique_ints([row for row in rows if row.get("method") == "PP"], "Pmax")
     if not n_values or not deltas or not rates:
         return
-    fig, axes = plt.subplots(len(n_values), 4, figsize=(15.2, max(3.0, 2.7 * len(n_values))), squeeze=False)
+    fig, axes = plt.subplots(len(n_values), 4, figsize=(15.2, max(3.0, 2.8 * len(n_values))), squeeze=False)
     panel_specs = [
-        ("solve_time_s", "delta", "Delta", "Solve time (s)"),
-        ("solve_time_s", "arrival_rate", "Arrival rate", "Solve time (s)"),
-        ("number_of_platoons", "delta", "Delta", "Number of platoons"),
-        ("number_of_platoons", "arrival_rate", "Arrival rate", "Number of platoons"),
+        ("solve_time_s", "delta", r"Platooning threshold $\delta$", "Solution time (s)"),
+        ("solve_time_s", "arrival_rate", r"Arrival rate $\lambda$", "Solution time (s)"),
+        ("number_of_platoons", "delta", r"Platooning threshold $\delta$", "Number of scheduling units"),
+        ("number_of_platoons", "arrival_rate", r"Arrival rate $\lambda$", "Number of scheduling units"),
     ]
     for row_index, n_value in enumerate(n_values):
         for col_index, (metric, x_field, xlabel, ylabel) in enumerate(panel_specs):
             ax = axes[row_index][col_index]
+            panel_label(ax, f"({chr(ord('a') + 4 * row_index + col_index)}) N={n_value}")
             xs = deltas if x_field == "delta" else rates
             if x_field == "delta":
                 np_value = metric_mean(rows, metric, n_value=n_value, method="NP")
@@ -566,29 +633,37 @@ def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path, *, write_pn
                             alpha=0.75,
                             label=f"PP d={delta}, P={pmax}",
                         )
-            ax.set_title(f"N={n_value}")
             ax.set_xlabel(xlabel)
             ax.set_ylabel(ylabel)
             if metric == "solve_time_s":
                 ax.set_yscale("log")
             ax.grid(True, linewidth=0.5, alpha=0.25)
-    handles, labels = axes[0][1].get_legend_handles_labels()
+            apply_axis_typography(ax)
+    handles: list[object] = []
+    labels: list[str] = []
+    for legend_ax in (axes[0][1], axes[0][3]):
+        new_handles, new_labels = legend_ax.get_legend_handles_labels()
+        handles.extend(new_handles)
+        labels.extend(new_labels)
     dedup: dict[str, object] = {}
     for handle, label in zip(handles, labels, strict=False):
         dedup.setdefault(label, handle)
-    axes[0][1].legend(dedup.values(), dedup.keys(), frameon=False, fontsize=6, ncols=1, loc="center left", bbox_to_anchor=(1.02, 0.5))
+    fig.legend(dedup.values(), dedup.keys(), frameon=False, fontsize=9, ncols=3, loc="lower center", bbox_to_anchor=(0.5, -0.02))
     write_metadata(
         output_dir,
-        "pp_time_and_platoon_count",
+        "pp_time_and_scheduling_units",
         {
+            "figure_number": 9,
+            "plot_type": "line figure",
             "aggregation": "Panels are stratified by N. Delta panels average over arrival rates and replications within each N/method/delta/Pmax group. Arrival-rate panels average over replications within each N/method/delta/Pmax/rate group. PP is never averaged across Pmax.",
+            "scheduling_units": "NP equals number of vehicles; CHP and PP equal number of platoons.",
             "n_values": n_values,
             "pmax_values": pmax_values,
             "delta_colors": DELTA_COLORS,
             "pmax_markers": PMAX_MARKERS,
         },
     )
-    save_figure(fig, output_dir, "pp_time_and_platoon_count", write_png=write_png)
+    save_figure(fig, output_dir, "pp_time_and_scheduling_units", write_png=write_png)
     plt.close(fig)
 
 
@@ -623,10 +698,22 @@ def plot_trajectories(
     rows = [row for row in trajectory_rows if row.get("instance_id") == selected_instance]
     selected_n = max((ivalue(row, "N") or 0 for row in rows), default=0)
     max_n_present = max((ivalue(row, "N") or 0 for row in trajectory_rows), default=0)
-    provisional = selected_n < 40 or max_n_present < 40
+    available_pp_deltas = sorted(
+        {
+            ivalue(row, "delta")
+            for row in rows
+            if row.get("method") == "PP" and ivalue(row, "Pmax") == representative_pmax and ivalue(row, "delta") is not None
+        }
+    )
+    missing_multiple_pp_deltas = len(available_pp_deltas) < 2
+    provisional = selected_n < 40 or max_n_present < 40 or missing_multiple_pp_deltas
     fig, ax = plt.subplots(figsize=(6.4, 4.2))
     groups: dict[tuple[str, str, str, str], list[dict[str, str]]] = {}
     for row in rows:
+        if row.get("method") == "CHP":
+            continue
+        if row.get("method") == "PP" and ivalue(row, "Pmax") != representative_pmax:
+            continue
         key = (
             row.get("method") or "NA",
             row.get("delta") or "NA",
@@ -638,30 +725,34 @@ def plot_trajectories(
         method = key[0]
         label = method
         if method == "PP":
-            label = f"PP delta={key[1]}, Pmax={key[2]}"
-        elif method == "CHP":
-            label = f"CHP delta={key[1]}"
+            label = rf"PP $\delta$={key[1]}, $P_{{\max}}$={key[2]}"
         xs = [fvalue(row, "time_s") for row in group]
         ys = [fvalue(row, "incumbent_average_delay") for row in group]
         pairs = sorted((x, y) for x, y in zip(xs, ys, strict=True) if x is not None and y is not None)
         if pairs:
             ax.step([pair[0] for pair in pairs], [pair[1] for pair in pairs], where="post", label=label)
-    ax.set_xlabel("Gurobi runtime (s)")
-    ax.set_ylabel("Incumbent average delay")
-    ax.set_title(f"{selected_instance} (provisional)" if provisional else selected_instance)
+    panel_label(ax, "(a)")
+    ax.set_xlabel("Gurobi wall-clock solution time (s)")
+    ax.set_ylabel("Best incumbent average vehicle delay")
     ax.grid(True, linewidth=0.5, alpha=0.25)
-    ax.legend(frameon=False, fontsize=8, loc="center left", bbox_to_anchor=(1.02, 0.5))
+    apply_axis_typography(ax)
+    ax.legend(frameon=False, fontsize=9, loc="center left", bbox_to_anchor=(1.02, 0.5))
     write_metadata(
         output_dir,
         "gurobi_solution_quality_over_time",
         {
-            "aggregation": "One selected instance only. Series are NP, CHP at representative delta, and PP at representative delta/Pmax from real callback rows.",
-            "status": "provisional" if provisional else "representative_selected_after_N40_search",
-            "selection_policy": "Prefer N>=40 instances where NP has multiple incumbent updates or reaches the time limit, PP has at least two callback points, and NP/CHP/PP rows share the same instance. Fall back to the first complete trajectory instance if no better instance exists.",
+            "figure_number": 10,
+            "plot_type": "line plot from real Gurobi callback trajectories",
+            "axes": {"x": "Gurobi wall-clock solution time", "y": "best incumbent average vehicle delay"},
+            "aggregation": "One selected instance only. Series are NP and available PP trajectories at fixed representative Pmax.",
+            "status": "partial_current_data" if provisional else "representative_selected_after_N40_search",
+            "selection_policy": "Prefer N>=40 instances where NP has multiple incumbent updates or reaches the time limit, PP has at least two callback points, and rows share the same instance. Fall back to the first complete trajectory instance if no better instance exists.",
             "selected_instance_id": selected_instance,
             "selected_N": selected_n,
             "representative_delta": representative_delta,
             "representative_pmax": representative_pmax,
+            "available_pp_deltas_for_selected_instance": available_pp_deltas,
+            "missing_multiple_pp_delta_trajectories": missing_multiple_pp_deltas,
             "instance_ids_present": sorted({row.get("instance_id", "") for row in trajectory_rows if row.get("instance_id")}),
         },
     )
@@ -689,9 +780,10 @@ def main() -> int:
     plt.rcParams.update(
         {
             "font.size": 10,
-            "axes.labelsize": 10,
-            "axes.titlesize": 11,
-            "legend.fontsize": 8,
+            "axes.labelsize": 11,
+            "legend.fontsize": 9,
+            "xtick.labelsize": 10,
+            "ytick.labelsize": 10,
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
         }
