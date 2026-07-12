@@ -61,7 +61,7 @@ only on the subset of cases with an exact NP reference. NP models that do not pr
 \subsubsection{Results}
 \label{sec:bound-results}
 
-This subsection will report the number and coverage of valid bound checks, the number of observed violations, the realized gap, the rule-level upper bound, and the bound slack. The bound is interpreted as a worst-case guarantee rather than a point prediction of the realized gap.
+The \(N=20\) formal run is complete. The larger-scale \(N=40,60,80\) results will be added after those runs finish. For \(N=20\), all 960 PP rows are bound-checkable, giving 100\% bound-check coverage. No bound violation is observed. The mean actual optimality gap is \(0.331\), and the median actual gap is \(0.000\). The corresponding mean rule-level upper bound is \(52.200\), and the median upper bound is \(45.275\). The minimum observed bound slack is \(6.950\). These results support the intended interpretation of the rule-level bound: it is valid on every checked case in the completed \(N=20\) domain, but it is conservative and should not be interpreted as a point prediction of the realized gap.
 
 \begin{figure}[t]
   \centering
@@ -70,7 +70,7 @@ This subsection will report the number and coverage of valid bound checks, the n
   }{
     \fbox{\parbox[c][0.25\textheight][c]{0.72\textwidth}{\centering Placeholder for the final bound-validation figure.\\Actual \(G\) and rule-level upper bound \(\widehat G\).}}
   }
-  \caption{Actual platooning-induced optimality gap \(G\) and the rule-level upper bound \(\widehat G(\delta,P_{\max})\) under different platooning thresholds and maximum platoon sizes. Colors represent \(\delta\), and marker shapes represent \(P_{\max}\). Only cases with proven-optimal NP and PP solutions are included.}
+  \caption{Bound validation for the completed \(N=20\) formal run. Panel (a) compares the actual platooning-induced optimality gap \(G\) with the rule-level upper bound \(\widehat G(\delta,P_{\max})\), including the \(y=x\) reference line. Panel (b) summarizes normalized bound utilization \(G/\widehat G\) by \(\delta\) and \(P_{\max}\). Colors represent \(\delta\), and marker shapes represent \(P_{\max}\). Only bound-checkable cases with proven-optimal NP and PP solutions are included.}
   \label{fig:bound-validation}
 \end{figure}
 
@@ -125,7 +125,9 @@ is checked only when all three corresponding models are proven optimal. For larg
 \subsubsection{Results}
 \label{sec:pp-results}
 
-This subsection will first compare the delay performance of NP, CHP, and PP. It will then explain the computational mechanism through changes in the number of platoons, downstream model dimension, solve time, and fixed-time solver behavior.
+The \(N=20\) formal comparison is complete. Larger-scale results for \(N=40,60,80\) will be added after those runs finish. Among the 960 checked PP rows, there are zero delay-order failures, meaning every checked case satisfies \(D_{\mathrm{NP}}\le D_{\mathrm{PP}}\le D_{\mathrm{CHP}}\). The mean delay is \(8.531\) for NP, \(8.862\) for PP, and \(8.977\) for CHP. The PP solutions use an average of \(7.786\) platoons and \(26.416\) ordering variables, corresponding to a mean dimension-reduction ratio of 82.4\%.
+
+The completed \(N=20\) results show the expected qualitative behavior. Larger \(\delta\) generally increases delay while reducing the number of platoons. The effect of \(P_{\max}\) is strongest at small caps and then saturates at larger values for \(N=20\), where the traffic instances are not large enough for the biggest platoon-size caps to remain active in many cases. The fixed-budget trajectory figure is retained only as a provisional pipeline check from the \(N=20\) run; the final manuscript figure will be selected after the \(N=40\) run unless no more representative instance is available.
 
 \begin{figure}[t]
   \centering
@@ -134,7 +136,7 @@ This subsection will first compare the delay performance of NP, CHP, and PP. It 
   }{
     \fbox{\parbox[c][0.27\textheight][c]{0.80\textwidth}{\centering Placeholder for the PP delay comparison.\\Panel (a): delay versus \(\delta\). Panel (b): delay versus \(\lambda\).}}
   }
-  \caption{Average vehicle delay of NP, CHP, and PP as the platooning threshold or vehicle arrival rate increases. Panel (a) varies \(\delta\), and Panel (b) varies \(\lambda\).}
+  \caption{Average vehicle delay of NP, CHP, and PP as the platooning threshold or vehicle arrival rate increases, stratified by \(N\). Panel (a) varies \(\delta\), and Panel (b) varies \(\lambda\). Light uncertainty intervals are shown where sufficient replications are available.}
   \label{fig:pp-delay}
 \end{figure}
 
@@ -145,7 +147,7 @@ This subsection will first compare the delay performance of NP, CHP, and PP. It 
   }{
     \fbox{\parbox[c][0.34\textheight][c]{0.84\textwidth}{\centering Placeholder for the PP computation-mechanism figure.\\Solve time and number of platoons versus \(\delta\) and \(\lambda\).}}
   }
-  \caption{Solution time and number of scheduling units for NP, CHP, and PP. The panels show how both quantities change with the platooning threshold and vehicle arrival rate.}
+  \caption{Solution time and number of scheduling units for NP, CHP, and PP. The solve-time panels use a logarithmic vertical axis so that NP, CHP, and PP remain visible on the same scale; platoon-count panels use a linear scale. Colors represent \(\delta\), and marker shapes represent \(P_{\max}\).}
   \label{fig:pp-time-platoons}
 \end{figure}
 
@@ -156,6 +158,6 @@ This subsection will first compare the delay performance of NP, CHP, and PP. It 
   }{
     \fbox{\parbox[c][0.27\textheight][c]{0.76\textwidth}{\centering Placeholder for the Gurobi incumbent trajectory figure.\\Best-found solution quality versus wall-clock time.}}
   }
-  \caption{Quality of Gurobi solutions as a function of wall-clock time for NP, CHP, and representative PP parameter settings. The figure illustrates the practical value of dimension reduction under a limited computation budget.}
+  \caption{Provisional quality of Gurobi solutions as a function of wall-clock time for NP, CHP, and representative PP parameter settings. The current \(N=20\) trajectory is retained only as a pipeline check. After the \(N=40\) run is complete, the final figure will use a representative instance where NP has multiple incumbent updates or reaches the time limit, PP has at least two callback points, and all methods use the same instance, unless no better instance exists.}
   \label{fig:gurobi-quality-time}
 \end{figure}

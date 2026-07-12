@@ -20,5 +20,6 @@
     4,
     6,
     8
-  ]
+  ],
+  "uncertainty": "Error bars show approximate 95% mean intervals when at least two replications contribute to a plotted mean. Means are not jittered."
 }

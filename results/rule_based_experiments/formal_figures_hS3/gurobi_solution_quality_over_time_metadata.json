@@ -5,5 +5,8 @@
   ],
   "representative_delta": 4,
   "representative_pmax": 4,
-  "selected_instance_id": "N20_rate0p4_rep000_seed2254167912808199683"
+  "selected_N": 20,
+  "selected_instance_id": "N20_rate0p4_rep000_seed2254167912808199683",
+  "selection_policy": "Prefer N>=40 instances where NP has multiple incumbent updates or reaches the time limit, PP has at least two callback points, and NP/CHP/PP rows share the same instance. Fall back to the first complete trajectory instance if no better instance exists.",
+  "status": "provisional"
 }

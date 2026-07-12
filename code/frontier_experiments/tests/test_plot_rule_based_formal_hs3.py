@@ -39,19 +39,44 @@ def test_pp_metric_groups_do_not_mix_pmax_values() -> None:
 
 def test_trajectory_selection_requires_one_complete_instance() -> None:
     rows = [
-        {"instance_id": "a", "method": "NP", "delta": "", "Pmax": ""},
-        {"instance_id": "a", "method": "CHP", "delta": "4", "Pmax": ""},
-        {"instance_id": "b", "method": "NP", "delta": "", "Pmax": ""},
-        {"instance_id": "b", "method": "CHP", "delta": "4", "Pmax": ""},
-        {"instance_id": "b", "method": "PP", "delta": "4", "Pmax": "4"},
+        {"instance_id": "a", "N": "20", "method": "NP", "delta": "", "Pmax": ""},
+        {"instance_id": "a", "N": "20", "method": "CHP", "delta": "4", "Pmax": ""},
+        {"instance_id": "b", "N": "20", "method": "NP", "delta": "", "Pmax": ""},
+        {"instance_id": "b", "N": "20", "method": "CHP", "delta": "4", "Pmax": ""},
+        {"instance_id": "b", "N": "20", "method": "PP", "delta": "4", "Pmax": "4"},
     ]
     assert select_representative_instance(rows) == "b"
+
+
+def test_trajectory_selection_prefers_qualified_n40_instance() -> None:
+    rows = [
+        {"instance_id": "n20", "N": "20", "method": "NP", "delta": "", "Pmax": ""},
+        {"instance_id": "n20", "N": "20", "method": "CHP", "delta": "4", "Pmax": ""},
+        {"instance_id": "n20", "N": "20", "method": "PP", "delta": "4", "Pmax": "4"},
+        {"instance_id": "n40", "N": "40", "method": "NP", "delta": "", "Pmax": ""},
+        {"instance_id": "n40", "N": "40", "method": "CHP", "delta": "4", "Pmax": ""},
+        {"instance_id": "n40", "N": "40", "method": "PP", "delta": "4", "Pmax": "4"},
+        {"instance_id": "n40", "N": "40", "method": "PP", "delta": "4", "Pmax": "4"},
+    ]
+    comparison_rows = [
+        {
+            "instance_id": "n40",
+            "method": "NP",
+            "delta": "",
+            "Pmax": "",
+            "status": "TIME_LIMIT",
+            "solve_time_s": "30.0",
+            "time_limit_s": "30.0",
+        }
+    ]
+    assert select_representative_instance(rows, comparison_rows=comparison_rows) == "n40"
 
 
 def test_plot_trajectories_filters_to_selected_instance() -> None:
     rows = [
         {
             "instance_id": "a",
+            "N": "20",
             "method": "NP",
             "delta": "",
             "Pmax": "",
@@ -61,6 +86,7 @@ def test_plot_trajectories_filters_to_selected_instance() -> None:
         },
         {
             "instance_id": "a",
+            "N": "20",
             "method": "CHP",
             "delta": "4",
             "Pmax": "",
@@ -70,6 +96,7 @@ def test_plot_trajectories_filters_to_selected_instance() -> None:
         },
         {
             "instance_id": "b",
+            "N": "20",
             "method": "NP",
             "delta": "",
             "Pmax": "",
@@ -79,6 +106,7 @@ def test_plot_trajectories_filters_to_selected_instance() -> None:
         },
         {
             "instance_id": "b",
+            "N": "20",
             "method": "CHP",
             "delta": "4",
             "Pmax": "",
@@ -88,6 +116,7 @@ def test_plot_trajectories_filters_to_selected_instance() -> None:
         },
         {
             "instance_id": "b",
+            "N": "20",
             "method": "PP",
             "delta": "4",
             "Pmax": "4",
@@ -98,9 +127,10 @@ def test_plot_trajectories_filters_to_selected_instance() -> None:
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
         output_dir = Path(tmpdir)
-        plot_trajectories(rows, output_dir)
+        plot_trajectories(rows, [], output_dir)
         metadata = json.loads((output_dir / "gurobi_solution_quality_over_time_metadata.json").read_text())
         assert metadata["selected_instance_id"] == "b"
+        assert metadata["status"] == "provisional"
         assert (output_dir / "gurobi_solution_quality_over_time.png").exists()
 
 

@@ -663,14 +663,13 @@ def load_checkpoints(config: FormalHS3Config) -> tuple[list[dict[str, Any]], lis
 def run(config: FormalHS3Config, resume: bool) -> dict[str, Any]:
     Path(config.comparison_output_dir).mkdir(parents=True, exist_ok=True)
     rows, recovery_rows, trajectory_rows, completed = load_checkpoints(config) if resume else ([], [], [], set())
-    first_new_replication = True
     for n_value in config.n_values:
         for arrival_rate in config.arrival_rates:
             for replication in range(config.reps):
                 key = (n_value, arrival_rate, replication)
                 if key in completed:
                     continue
-                collect_trajectory = config.write_trajectory and first_new_replication
+                collect_trajectory = config.write_trajectory
                 payload = run_replication(config, n_value, arrival_rate, replication, collect_trajectory)
                 path = checkpoint_path(config, n_value, arrival_rate, replication)
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -679,7 +678,6 @@ def run(config: FormalHS3Config, resume: bool) -> dict[str, Any]:
                 recovery_rows.extend(payload["recovery_rows"])
                 trajectory_rows.extend(payload["trajectory_rows"])
                 completed.add(key)
-                first_new_replication = False
                 write_outputs(config, rows, recovery_rows, trajectory_rows)
     return write_outputs(config, rows, recovery_rows, trajectory_rows)
 
