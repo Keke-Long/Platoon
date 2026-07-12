@@ -660,25 +660,53 @@ def load_checkpoints(config: FormalHS3Config) -> tuple[list[dict[str, Any]], lis
     return rows, recovery_rows, trajectory_rows, completed
 
 
-def run(config: FormalHS3Config, resume: bool) -> dict[str, Any]:
+def write_checkpoint_atomic(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    tmp_path.replace(path)
+
+
+def run(
+    config: FormalHS3Config,
+    resume: bool,
+    *,
+    rep_start: int = 0,
+    rep_end_exclusive: int | None = None,
+    checkpoint_only: bool = False,
+) -> dict[str, Any]:
     Path(config.comparison_output_dir).mkdir(parents=True, exist_ok=True)
     rows, recovery_rows, trajectory_rows, completed = load_checkpoints(config) if resume else ([], [], [], set())
+    rep_end = config.reps if rep_end_exclusive is None else rep_end_exclusive
+    if rep_start < 0 or rep_end < rep_start or rep_end > config.reps:
+        raise ValueError("replication range must satisfy 0 <= rep_start <= rep_end <= reps")
+    newly_completed = 0
     for n_value in config.n_values:
         for arrival_rate in config.arrival_rates:
-            for replication in range(config.reps):
+            for replication in range(rep_start, rep_end):
                 key = (n_value, arrival_rate, replication)
                 if key in completed:
                     continue
                 collect_trajectory = config.write_trajectory
                 payload = run_replication(config, n_value, arrival_rate, replication, collect_trajectory)
                 path = checkpoint_path(config, n_value, arrival_rate, replication)
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+                write_checkpoint_atomic(path, payload)
                 rows.extend(payload["rows"])
                 recovery_rows.extend(payload["recovery_rows"])
                 trajectory_rows.extend(payload["trajectory_rows"])
                 completed.add(key)
-                write_outputs(config, rows, recovery_rows, trajectory_rows)
+                newly_completed += 1
+                if not checkpoint_only:
+                    write_outputs(config, rows, recovery_rows, trajectory_rows)
+    if checkpoint_only:
+        return {
+            "config": asdict(config),
+            "checkpoint_only": True,
+            "rep_start": rep_start,
+            "rep_end_exclusive": rep_end,
+            "newly_completed_replications": newly_completed,
+            "completed_checkpoint_count": len(completed),
+        }
     return write_outputs(config, rows, recovery_rows, trajectory_rows)
 
 
@@ -706,6 +734,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--representative-threshold", type=int, default=4)
     parser.add_argument("--representative-max-platoon-size", type=int, default=4)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--rep-start", type=int, default=0)
+    parser.add_argument("--rep-end-exclusive", type=int)
+    parser.add_argument(
+        "--checkpoint-only",
+        action="store_true",
+        help="Write per-replication checkpoints only. Use for parallel chunks, then run a single aggregate pass.",
+    )
     return parser
 
 
@@ -734,8 +769,16 @@ def main() -> int:
         representative_threshold=args.representative_threshold,
         representative_max_platoon_size=args.representative_max_platoon_size,
     )
-    payload = run(config, resume=args.resume)
+    payload = run(
+        config,
+        resume=args.resume,
+        rep_start=args.rep_start,
+        rep_end_exclusive=args.rep_end_exclusive,
+        checkpoint_only=args.checkpoint_only,
+    )
     print(json.dumps(payload, indent=2))
+    if payload.get("checkpoint_only"):
+        return 0
     checks = payload["checks"]
     return 1 if checks["duplicate_row_key_count"] or checks["bound_violation_count"] else 0
 
