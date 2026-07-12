@@ -38,6 +38,11 @@ RATE_MARKERS = {
     0.7: "^",
     1.0: "s",
 }
+RATE_COLORS = {
+    0.4: "#1f77b4",
+    0.7: "#00a6a6",
+    1.0: "#2ecc71",
+}
 METHOD_COLORS = {
     "NP": "#222222",
     "CHP": "#ff7f0e",
@@ -322,89 +327,96 @@ def write_metadata(output_dir: Path, stem: str, metadata: dict[str, object]) -> 
 
 def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *, write_png: bool = False) -> None:
     import matplotlib.pyplot as plt
+    import numpy as np
     from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
 
-    rows = [row for row in bound_rows if row.get("bound_check_available") == "True"]
+    rows = [row for row in bound_rows if fvalue(row, "rule_level_upper_bound") is not None]
+    checked_rows = [row for row in rows if row.get("bound_check_available") == "True"]
     if not rows:
         return
-    fig = plt.figure(figsize=(7.2, 5.2))
-    ax = fig.add_subplot(111, projection="3d")
-    for (n_value, rate), group in sorted(grouped(rows, ("N", "arrival_rate")).items()):
-        actual_points: list[tuple[float, float, float]] = []
-        upper_points: list[tuple[float, float, float]] = []
-        for row in group:
-            delta = fvalue(row, "delta")
-            pmax = fvalue(row, "Pmax")
-            actual = fvalue(row, "actual_optimality_gap")
-            upper = fvalue(row, "rule_level_upper_bound")
-            if delta is None or pmax is None or actual is None or upper is None:
+    n_values = unique_ints(rows, "N")
+    fig = plt.figure(figsize=(5.2 * len(n_values), 5.0))
+    axes = [fig.add_subplot(1, len(n_values), index + 1, projection="3d") for index in range(len(n_values))]
+    for index, (ax, n_value) in enumerate(zip(axes, n_values, strict=True)):
+        n_rows = filter_rows(rows, n_value=n_value)
+        deltas = unique_ints(n_rows, "delta")
+        pmax_values = unique_ints(n_rows, "Pmax")
+        z_lookup: dict[tuple[int, int], float] = {}
+        for (delta, pmax), group in sorted(grouped(n_rows, ("delta", "Pmax")).items()):
+            values = [value for value in (fvalue(row, "rule_level_upper_bound") for row in group) if value is not None]
+            if values:
+                z_lookup[(int(delta), int(pmax))] = mean(values)
+        if deltas and pmax_values:
+            x_grid, y_grid = np.meshgrid(deltas, pmax_values)
+            z_grid = np.array([[z_lookup.get((int(x), int(y)), np.nan) for x in deltas] for y in pmax_values])
+            ax.plot_surface(
+                x_grid,
+                y_grid,
+                z_grid,
+                color="#ff6b5f",
+                alpha=0.34,
+                linewidth=0.5,
+                edgecolor="#c44e52",
+                antialiased=True,
+            )
+        for rate, group in sorted(grouped(filter_rows(checked_rows, n_value=n_value), ("arrival_rate",)).items()):
+            points: list[tuple[float, float, float]] = []
+            for row in group:
+                delta = fvalue(row, "delta")
+                pmax = fvalue(row, "Pmax")
+                actual = fvalue(row, "actual_optimality_gap")
+                if delta is None or pmax is None or actual is None:
+                    continue
+                points.append((delta, pmax, actual))
+            if not points:
                 continue
-            actual_points.append((delta, pmax, actual))
-            upper_points.append((delta, pmax, upper))
-        if not actual_points:
-            continue
-        ax.scatter(
-            [point[0] for point in actual_points],
-            [point[1] for point in actual_points],
-            [point[2] for point in actual_points],
-            s=22,
-            alpha=0.60,
-            color=N_COLORS.get(int(n_value), "#555555"),
-            marker=RATE_MARKERS.get(round(float(rate), 1), "o"),
-            depthshade=False,
-        )
-        ax.scatter(
-            [point[0] for point in upper_points],
-            [point[1] for point in upper_points],
-            [point[2] for point in upper_points],
-            s=46,
-            alpha=0.92,
-            facecolors="none",
-            edgecolors=N_COLORS.get(int(n_value), "#555555"),
-            marker=RATE_MARKERS.get(round(float(rate), 1), "o"),
-            depthshade=False,
-        )
-    ax.set_xlabel(r"Platooning threshold $\delta$")
-    ax.set_ylabel(r"Maximum platoon size $P_{\max}$")
-    ax.set_zlabel(r"Actual $G$ and upper bound $\widehat G$")
-    ax.set_xticks(unique_ints(rows, "delta"))
-    ax.set_yticks(unique_ints(rows, "Pmax"))
-    ax.view_init(elev=22, azim=-55)
-    panel_label(ax, "(a)", is_3d=True)
-    apply_axis_typography(ax)
-    n_handles = [
-        Line2D([0], [0], marker="o", color="none", markerfacecolor=color, markeredgecolor=color, label=f"N={n_value}")
-        for n_value, color in sorted(N_COLORS.items())
-        if any(ivalue(row, "N") == n_value for row in rows)
-    ]
+            ax.scatter(
+                [point[0] for point in points],
+                [point[1] for point in points],
+                [point[2] for point in points],
+                s=16,
+                alpha=0.74,
+                color=RATE_COLORS.get(round(float(rate[0]), 1), "#555555"),
+                marker="o",
+                depthshade=False,
+            )
+        panel_label(ax, f"({chr(ord('a') + index)}) N={n_value}", is_3d=True)
+        ax.set_xlabel(r"$\delta$ (s)")
+        ax.set_ylabel(r"$P_{\max}$")
+        ax.set_zlabel(r"$G$ and $\widehat G$ (s)")
+        ax.set_xticks(deltas)
+        ax.set_yticks(pmax_values)
+        ax.view_init(elev=22, azim=-58)
+        apply_axis_typography(ax)
     rate_handles = [
-        Line2D([0], [0], marker=marker, color="#555555", linestyle="None", label=rf"$\lambda$={rate:g}")
-        for rate, marker in sorted(RATE_MARKERS.items())
+        Line2D([0], [0], marker="o", color="none", markerfacecolor=color, markeredgecolor=color, linestyle="None", label=rf"$\lambda$={rate:g}")
+        for rate, color in sorted(RATE_COLORS.items())
         if any(fvalue(row, "arrival_rate") == rate for row in rows)
     ]
     quantity_handles = [
-        Line2D([0], [0], marker="o", color="#555555", linestyle="None", markerfacecolor="#555555", label=r"Actual $G$"),
-        Line2D([0], [0], marker="o", color="#555555", linestyle="None", markerfacecolor="none", label=r"Upper bound $\widehat G$"),
+        Patch(facecolor="#ff6b5f", edgecolor="#c44e52", alpha=0.34, label=r"Upper bound $\widehat G$"),
+        Line2D([0], [0], marker="o", color="none", markerfacecolor="#555555", markeredgecolor="#555555", linestyle="None", label=r"Actual $G$"),
     ]
     fig.legend(
-        handles=n_handles + rate_handles + quantity_handles,
+        handles=quantity_handles + rate_handles,
         frameon=False,
         fontsize=9,
         ncols=1,
         loc="center left",
-        bbox_to_anchor=(0.92, 0.5),
+        bbox_to_anchor=(0.98, 0.5),
     )
     write_metadata(
         output_dir,
         "bound_validation_actual_vs_upper",
         {
             "figure_number": 6,
-            "plot_type": "3D scatter",
+            "plot_type": "3D surface plus scatter",
             "axes": {"x": "delta", "y": "Pmax", "z": "actual G and rule-level Ghat"},
-            "color": "N",
-            "marker": "arrival_rate",
-            "quantity_encoding": "Actual G uses filled markers; Ghat uses open markers.",
-            "rows": "Only bound_check_available rows where NP and PP are proven optimal.",
+            "color": "arrival_rate for actual G points",
+            "surface": "Rule-level Ghat is shown as a semi-transparent surface in each N panel.",
+            "quantity_encoding": "Actual G uses filled scatter points; Ghat uses a semi-transparent surface.",
+            "rows": "Ghat surface uses completed formal bound rows. Actual G points use only bound_check_available rows where NP and PP are proven optimal.",
             "n_values": unique_ints(rows, "N"),
             "available_only": "Current figure uses the bound-checkable subset of completed data; this subset currently contains N=20 because larger N rows need exact NP references.",
         },

@@ -5,13 +5,14 @@
     "y": "Pmax",
     "z": "actual G and rule-level Ghat"
   },
-  "color": "N",
+  "color": "arrival_rate for actual G points",
   "figure_number": 6,
-  "marker": "arrival_rate",
   "n_values": [
-    20
+    20,
+    40
   ],
-  "plot_type": "3D scatter",
-  "quantity_encoding": "Actual G uses filled markers; Ghat uses open markers.",
-  "rows": "Only bound_check_available rows where NP and PP are proven optimal."
+  "plot_type": "3D surface plus scatter",
+  "quantity_encoding": "Actual G uses filled scatter points; Ghat uses a semi-transparent surface.",
+  "rows": "Ghat surface uses completed formal bound rows. Actual G points use only bound_check_available rows where NP and PP are proven optimal.",
+  "surface": "Rule-level Ghat is shown as a semi-transparent surface in each N panel."
 }
