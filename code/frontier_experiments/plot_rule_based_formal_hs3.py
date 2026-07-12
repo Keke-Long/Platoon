@@ -430,6 +430,13 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
     if not rows:
         return
     n_values = unique_ints(rows, "N")
+    delta_values = unique_ints(rows, "delta")
+    pmax_values = unique_ints(rows, "Pmax")
+    delta_cmap = plt.get_cmap("gist_earth")
+    delta_tradeoff_colors = {
+        delta: delta_cmap(0.18 + 0.68 * index / max(1, len(delta_values) - 1))
+        for index, delta in enumerate(delta_values)
+    }
     fig, axes = plt.subplots(1, len(n_values), figsize=(5.0 * len(n_values), 4.2), squeeze=False)
     for col_index, n_value in enumerate(n_values):
         ax = axes[0][col_index]
@@ -448,7 +455,7 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
                 [point[0] for point in points],
                 [point[1] for point in points],
                 marker=PMAX_MARKERS.get(int(pmax), "o"),
-                color=DELTA_COLORS.get(int(delta), "#555555"),
+                color=delta_tradeoff_colors.get(int(delta), "#555555"),
                 s=24,
                 alpha=0.72,
                 linewidths=0.3,
@@ -459,17 +466,17 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
         ax.grid(True, linewidth=0.5, alpha=0.25)
         apply_axis_typography(ax)
     delta_handles = [
-        Line2D([0], [0], marker="o", color="none", markerfacecolor=DELTA_COLORS[delta], markeredgecolor=DELTA_COLORS[delta], linestyle="None", label=rf"$\delta$={delta}")
-        for delta in unique_ints(rows, "delta")
+        Line2D([0], [0], marker="o", color="none", markerfacecolor=delta_tradeoff_colors[delta], markeredgecolor=delta_tradeoff_colors[delta], linestyle="None", label=rf"$\delta$={delta}")
+        for delta in delta_values
     ]
     pmax_handles = [
         Line2D([0], [0], marker=PMAX_MARKERS.get(pmax, "o"), color="#555555", markerfacecolor="#555555", linestyle="None", label=rf"$P_{{\max}}$={pmax}")
-        for pmax in unique_ints(rows, "Pmax")
+        for pmax in pmax_values
     ]
     legend_ax = axes[0][-1]
-    delta_legend = legend_ax.legend(handles=delta_handles, title=r"$\delta$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper right", bbox_to_anchor=(0.98, 0.98))
+    delta_legend = legend_ax.legend(handles=delta_handles, title=r"$\delta$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper right", bbox_to_anchor=(0.78, 0.98))
     legend_ax.add_artist(delta_legend)
-    legend_ax.legend(handles=pmax_handles, title=r"$P_{\max}$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper right", bbox_to_anchor=(0.98, 0.60))
+    legend_ax.legend(handles=pmax_handles, title=r"$P_{\max}$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper right", bbox_to_anchor=(0.98, 0.98))
     write_metadata(
         output_dir,
         "experimental_tradeoff_solve_time_gap",
@@ -477,7 +484,7 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
             "figure_number": 7,
             "plot_type": "case-level scatter",
             "axes": {"x": "solve_time_s", "y": "actual_optimality_gap"},
-            "color": "delta",
+            "color": "delta, sampled from the gist_earth colormap",
             "marker": "Pmax",
             "aggregation": "None. Each plotted point is one bound-checkable case row with exact actual G.",
             "n_values": n_values,

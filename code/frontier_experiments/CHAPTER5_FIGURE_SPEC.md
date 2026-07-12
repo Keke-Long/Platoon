@@ -87,10 +87,10 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - Purpose: show the experimental complexity-gap trade-off.
 - x-axis: solve time.
 - y-axis: actual optimality gap `G`.
-- Color: `delta`.
+- Color: `delta`, sampled from the `gist_earth` colormap.
 - Marker shape: `Pmax`.
 - Aggregation: none. Each point is one bound-checkable case row with exact actual `G`.
-- Legend placement: inside the upper-right plotting area, with separate `delta` color and `Pmax` marker labels.
+- Legend placement: inside the upper-right plotting area, with separate `delta` color and `Pmax` marker labels placed side by side.
 
 ### Figure 8: `pp_delay_vs_threshold_density.pdf`
 

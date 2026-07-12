@@ -4,7 +4,7 @@
     "x": "solve_time_s",
     "y": "actual_optimality_gap"
   },
-  "color": "delta",
+  "color": "delta, sampled from the gist_earth colormap",
   "figure_number": 7,
   "marker": "Pmax",
   "n_values": [
