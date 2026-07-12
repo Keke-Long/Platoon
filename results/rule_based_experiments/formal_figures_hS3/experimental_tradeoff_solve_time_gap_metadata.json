@@ -1,5 +1,5 @@
 {
-  "aggregation": "Separate N panels. Points average checked rows over replications within each (N, arrival_rate, delta, Pmax) group. Error bars are standard errors.",
+  "aggregation": "None. Each plotted point is one bound-checkable case row with exact actual G.",
   "axes": {
     "x": "solve_time_s",
     "y": "actual_optimality_gap"
@@ -10,5 +10,5 @@
   "n_values": [
     20
   ],
-  "plot_type": "scatter with mean and standard-error bars"
+  "plot_type": "case-level scatter"
 }

@@ -89,7 +89,8 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - y-axis: actual optimality gap `G`.
 - Color: `delta`.
 - Marker shape: `Pmax`.
-- Aggregation: mean over replications within each `(N, lambda, delta, Pmax)` group; error bars show standard error where available.
+- Aggregation: none. Each point is one bound-checkable case row with exact actual `G`.
+- Legend placement: inside the upper-right plotting area, with separate `delta` color and `Pmax` marker labels.
 
 ### Figure 8: `pp_delay_vs_threshold_density.pdf`
 

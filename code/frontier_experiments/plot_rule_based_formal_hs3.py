@@ -424,6 +424,7 @@ def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *,
 
 def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_png: bool = False) -> None:
     import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
 
     rows = [row for row in bound_rows if row.get("bound_check_available") == "True"]
     if not rows:
@@ -433,41 +434,52 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
     for col_index, n_value in enumerate(n_values):
         ax = axes[0][col_index]
         panel_label(ax, f"({chr(ord('a') + col_index)}) N={n_value}")
-        for (delta, pmax, rate), group in sorted(grouped(filter_rows(rows, n_value=n_value), ("delta", "Pmax", "arrival_rate")).items()):
-            times = [value for value in (fvalue(row, "solve_time_s") for row in group) if value is not None]
-            gaps = [value for value in (fvalue(row, "actual_optimality_gap") for row in group) if value is not None]
-            if not times or not gaps:
+        for (delta, pmax), group in sorted(grouped(filter_rows(rows, n_value=n_value), ("delta", "Pmax")).items()):
+            points: list[tuple[float, float]] = []
+            for row in group:
+                solve_time = fvalue(row, "solve_time_s")
+                gap = fvalue(row, "actual_optimality_gap")
+                if solve_time is None or gap is None:
+                    continue
+                points.append((solve_time, gap))
+            if not points:
                 continue
-            ax.errorbar(
-                [mean(times)],
-                [mean(gaps)],
-                xerr=[stderr(times)],
-                yerr=[stderr(gaps)],
-                fmt=PMAX_MARKERS.get(int(pmax), "o"),
+            ax.scatter(
+                [point[0] for point in points],
+                [point[1] for point in points],
+                marker=PMAX_MARKERS.get(int(pmax), "o"),
                 color=DELTA_COLORS.get(int(delta), "#555555"),
-                markersize=6,
-                capsize=3,
-                label=rf"$\delta$={delta}, $P_{{\max}}$={pmax}",
+                s=24,
+                alpha=0.72,
+                linewidths=0.3,
+                edgecolors="white",
             )
         ax.set_xlabel("Downstream solve time (s)")
         ax.set_ylabel(r"Actual optimality gap $G$")
         ax.grid(True, linewidth=0.5, alpha=0.25)
         apply_axis_typography(ax)
-    handles, labels = axes[0][-1].get_legend_handles_labels()
-    dedup: dict[str, object] = {}
-    for handle, label in zip(handles, labels, strict=False):
-        dedup.setdefault(label, handle)
-    fig.legend(dedup.values(), dedup.keys(), frameon=False, fontsize=9, ncols=1, loc="center left", bbox_to_anchor=(0.98, 0.5))
+    delta_handles = [
+        Line2D([0], [0], marker="o", color="none", markerfacecolor=DELTA_COLORS[delta], markeredgecolor=DELTA_COLORS[delta], linestyle="None", label=rf"$\delta$={delta}")
+        for delta in unique_ints(rows, "delta")
+    ]
+    pmax_handles = [
+        Line2D([0], [0], marker=PMAX_MARKERS.get(pmax, "o"), color="#555555", markerfacecolor="#555555", linestyle="None", label=rf"$P_{{\max}}$={pmax}")
+        for pmax in unique_ints(rows, "Pmax")
+    ]
+    legend_ax = axes[0][-1]
+    delta_legend = legend_ax.legend(handles=delta_handles, title=r"$\delta$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper right", bbox_to_anchor=(0.98, 0.98))
+    legend_ax.add_artist(delta_legend)
+    legend_ax.legend(handles=pmax_handles, title=r"$P_{\max}$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper right", bbox_to_anchor=(0.98, 0.60))
     write_metadata(
         output_dir,
         "experimental_tradeoff_solve_time_gap",
         {
             "figure_number": 7,
-            "plot_type": "scatter with mean and standard-error bars",
+            "plot_type": "case-level scatter",
             "axes": {"x": "solve_time_s", "y": "actual_optimality_gap"},
             "color": "delta",
             "marker": "Pmax",
-            "aggregation": "Separate N panels. Points average checked rows over replications within each (N, arrival_rate, delta, Pmax) group. Error bars are standard errors.",
+            "aggregation": "None. Each plotted point is one bound-checkable case row with exact actual G.",
             "n_values": n_values,
         },
     )
