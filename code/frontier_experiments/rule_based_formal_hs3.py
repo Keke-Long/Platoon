@@ -48,6 +48,7 @@ class FormalHS3Config:
     hS: int
     time_limit: float
     np_recovery_time_limit: float
+    enable_np_recovery: bool
     threads: int
     formation_repetitions: int
     bound_output_dir: str
@@ -277,7 +278,7 @@ def run_replication(
     )
     np_optimal_source = "initial_30s" if np_optimal_objective is not None else None
 
-    if np_schedule.status != "OPTIMAL":
+    if config.enable_np_recovery and np_schedule.status != "OPTIMAL":
         recovery_row, recovery_schedule = solve_method_row(
             config,
             instance,
@@ -696,6 +697,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--hS", type=int, default=3)
     parser.add_argument("--time-limit", type=float, default=30.0)
     parser.add_argument("--np-recovery-time-limit", type=float, default=600.0)
+    parser.add_argument("--skip-np-recovery", action="store_true")
     parser.add_argument("--threads", type=int, default=12)
     parser.add_argument("--formation-repetitions", type=int, default=20)
     parser.add_argument("--bound-output-dir", default="../../results/rule_based_experiments/formal_bound_hS3")
@@ -723,6 +725,7 @@ def main() -> int:
         hS=args.hS,
         time_limit=args.time_limit,
         np_recovery_time_limit=args.np_recovery_time_limit,
+        enable_np_recovery=not args.skip_np_recovery,
         threads=args.threads,
         formation_repetitions=args.formation_repetitions,
         bound_output_dir=args.bound_output_dir,
