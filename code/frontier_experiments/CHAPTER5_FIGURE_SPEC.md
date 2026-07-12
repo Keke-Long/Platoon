@@ -107,8 +107,8 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - Purpose: show the mechanism behind complexity reduction.
 - Required panels: solution time vs `delta`, solution time vs `lambda`, number of scheduling units vs `delta`, number of scheduling units vs `lambda`.
 - Scheduling units: NP equals number of vehicles; CHP and PP equal number of platoons.
-- `Pmax`: retained for PP in marker encoding; PP is not averaged across `Pmax`.
-- Aggregation: means over completed replications, stratified by `N`.
+- `Pmax`: averaged within PP for this presentation figure.
+- Aggregation: method-level means over completed rows, stratified by `N`; light shaded bands show the interquartile range behind each method-level mean.
 
 ### Figure 10: `gurobi_solution_quality_over_time.pdf`
 

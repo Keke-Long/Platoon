@@ -611,9 +611,49 @@ def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path, *, write_pn
     n_values = unique_ints(rows, "N")
     deltas = unique_ints([row for row in rows if row.get("method") != "NP"], "delta")
     rates = unique_floats(rows, "arrival_rate")
-    pmax_values = unique_ints([row for row in rows if row.get("method") == "PP"], "Pmax")
     if not n_values or not deltas or not rates:
         return
+
+    def method_metric_values(
+        metric: str,
+        *,
+        n_value: int,
+        method: str,
+        delta: int | None = None,
+        rate: float | None = None,
+    ) -> list[float]:
+        return metric_values(rows, metric, n_value=n_value, method=method, delta=delta, rate=rate)
+
+    def percentile(values: list[float], fraction: float) -> float | None:
+        if not values:
+            return None
+        ordered = sorted(values)
+        position = fraction * (len(ordered) - 1)
+        lower_index = math.floor(position)
+        upper_index = math.ceil(position)
+        if lower_index == upper_index:
+            return ordered[lower_index]
+        lower_weight = upper_index - position
+        upper_weight = position - lower_index
+        return lower_weight * ordered[lower_index] + upper_weight * ordered[upper_index]
+
+    def draw_method_line(
+        ax,
+        xs: list[float | int],
+        grouped_values: list[list[float]],
+        *,
+        method: str,
+        marker: str,
+        log_scale: bool,
+    ) -> None:
+        ys = [finite_mean(values) for values in grouped_values]
+        lower = [percentile(values, 0.25) for values in grouped_values]
+        upper = [percentile(values, 0.75) for values in grouped_values]
+        if all(value is not None for value in lower + upper):
+            if not log_scale or all(value > 0 for value in lower if value is not None):
+                ax.fill_between(xs, lower, upper, color=METHOD_COLORS[method], alpha=0.06, linewidth=0)
+        ax.plot(xs, ys, color=METHOD_COLORS[method], marker=marker, linewidth=1.4, label=method)
+
     fig, axes = plt.subplots(len(n_values), 4, figsize=(15.2, max(3.0, 2.8 * len(n_values))), squeeze=False)
     panel_specs = [
         ("solve_time_s", "delta", r"Platooning threshold $\delta$", "Solution time (s)"),
@@ -624,49 +664,23 @@ def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path, *, write_pn
     for row_index, n_value in enumerate(n_values):
         for col_index, (metric, x_field, xlabel, ylabel) in enumerate(panel_specs):
             ax = axes[row_index][col_index]
-            panel_label(ax, f"({chr(ord('a') + 4 * row_index + col_index)}) N={n_value}")
+            ax.set_title(f"({chr(ord('a') + 4 * row_index + col_index)}) N={n_value}", loc="center", pad=7, fontsize=10)
             xs = deltas if x_field == "delta" else rates
+            log_scale = metric == "solve_time_s"
             if x_field == "delta":
-                np_value = metric_mean(rows, metric, n_value=n_value, method="NP")
-                if np_value is not None:
-                    ax.plot(xs, [np_value] * len(xs), color=METHOD_COLORS["NP"], marker="x", label="NP")
-                chp_y = [metric_mean(rows, metric, n_value=n_value, method="CHP", delta=delta) for delta in deltas]
-                ax.plot(xs, chp_y, color=METHOD_COLORS["CHP"], marker="v", label="CHP")
-                for delta in deltas:
-                    for pmax in pmax_values:
-                        value = metric_mean(rows, metric, n_value=n_value, method="PP", delta=delta, pmax=pmax)
-                        if value is not None:
-                            ax.scatter(
-                                [delta],
-                                [value],
-                                color=DELTA_COLORS.get(delta, "#555555"),
-                                marker=PMAX_MARKERS.get(pmax, "o"),
-                                s=32,
-                                label=f"PP d={delta}, P={pmax}",
-                            )
+                np_values = method_metric_values(metric, n_value=n_value, method="NP")
+                draw_method_line(ax, xs, [np_values for _ in deltas], method="NP", marker="x", log_scale=log_scale)
+                chp_values = [method_metric_values(metric, n_value=n_value, method="CHP", delta=delta) for delta in deltas]
+                pp_values = [method_metric_values(metric, n_value=n_value, method="PP", delta=delta) for delta in deltas]
+                draw_method_line(ax, xs, chp_values, method="CHP", marker="v", log_scale=log_scale)
+                draw_method_line(ax, xs, pp_values, method="PP", marker="o", log_scale=log_scale)
             else:
-                np_y = [metric_mean(rows, metric, n_value=n_value, method="NP", rate=rate) for rate in rates]
-                ax.plot(xs, np_y, color=METHOD_COLORS["NP"], marker="x", label="NP")
-                for delta in deltas:
-                    chp_y = [
-                        metric_mean(rows, metric, n_value=n_value, method="CHP", delta=delta, rate=rate)
-                        for rate in rates
-                    ]
-                    ax.plot(xs, chp_y, color=DELTA_COLORS.get(delta, "#555555"), linestyle="--", marker="v", label=f"CHP d={delta}")
-                    for pmax in pmax_values:
-                        pp_y = [
-                            metric_mean(rows, metric, n_value=n_value, method="PP", delta=delta, pmax=pmax, rate=rate)
-                            for rate in rates
-                        ]
-                        ax.plot(
-                            xs,
-                            pp_y,
-                            color=DELTA_COLORS.get(delta, "#555555"),
-                            marker=PMAX_MARKERS.get(pmax, "o"),
-                            linewidth=1.0,
-                            alpha=0.75,
-                            label=f"PP d={delta}, P={pmax}",
-                        )
+                np_values = [method_metric_values(metric, n_value=n_value, method="NP", rate=rate) for rate in rates]
+                chp_values = [method_metric_values(metric, n_value=n_value, method="CHP", rate=rate) for rate in rates]
+                pp_values = [method_metric_values(metric, n_value=n_value, method="PP", rate=rate) for rate in rates]
+                draw_method_line(ax, xs, np_values, method="NP", marker="x", log_scale=log_scale)
+                draw_method_line(ax, xs, chp_values, method="CHP", marker="v", log_scale=log_scale)
+                draw_method_line(ax, xs, pp_values, method="PP", marker="o", log_scale=log_scale)
             ax.set_xlabel(xlabel)
             ax.set_ylabel(ylabel)
             if metric == "solve_time_s":
@@ -682,19 +696,18 @@ def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path, *, write_pn
     dedup: dict[str, object] = {}
     for handle, label in zip(handles, labels, strict=False):
         dedup.setdefault(label, handle)
-    fig.legend(dedup.values(), dedup.keys(), frameon=False, fontsize=9, ncols=3, loc="lower center", bbox_to_anchor=(0.5, -0.02))
+    fig.legend(dedup.values(), dedup.keys(), frameon=False, fontsize=11, ncols=3, loc="upper center", bbox_to_anchor=(0.5, 1.03))
     write_metadata(
         output_dir,
         "pp_time_and_scheduling_units",
         {
             "figure_number": 9,
-            "plot_type": "line figure",
-            "aggregation": "Panels are stratified by N. Delta panels average over arrival rates and replications within each N/method/delta/Pmax group. Arrival-rate panels average over replications within each N/method/delta/Pmax/rate group. PP is never averaged across Pmax.",
+            "plot_type": "method-level mean line figure",
+            "aggregation": "Panels are stratified by N. Delta panels show one mean per method and delta; PP is averaged over Pmax, arrival rates, and replications at each delta. Arrival-rate panels show one mean per method and arrival rate; PP is averaged over delta, Pmax, and replications at each rate.",
+            "uncertainty": "Light shaded bands show the interquartile range behind each method-level mean.",
             "scheduling_units": "NP equals number of vehicles; CHP and PP equal number of platoons.",
             "n_values": n_values,
-            "pmax_values": pmax_values,
-            "delta_colors": DELTA_COLORS,
-            "pmax_markers": PMAX_MARKERS,
+            "method_colors": METHOD_COLORS,
         },
     )
     save_figure(fig, output_dir, "pp_time_and_scheduling_units", write_png=write_png)

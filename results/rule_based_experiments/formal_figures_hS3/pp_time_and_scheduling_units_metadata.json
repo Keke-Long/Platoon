@@ -1,28 +1,16 @@
 {
-  "aggregation": "Panels are stratified by N. Delta panels average over arrival rates and replications within each N/method/delta/Pmax group. Arrival-rate panels average over replications within each N/method/delta/Pmax/rate group. PP is never averaged across Pmax.",
-  "delta_colors": {
-    "2": "#1f77b4",
-    "4": "#d62728",
-    "6": "#2ca02c",
-    "8": "#9467bd"
-  },
+  "aggregation": "Panels are stratified by N. Delta panels show one mean per method and delta; PP is averaged over Pmax, arrival rates, and replications at each delta. Arrival-rate panels show one mean per method and arrival rate; PP is averaged over delta, Pmax, and replications at each rate.",
   "figure_number": 9,
+  "method_colors": {
+    "CHP": "#ff7f0e",
+    "NP": "#222222",
+    "PP": "#1f77b4"
+  },
   "n_values": [
     20,
     40
   ],
-  "plot_type": "line figure",
-  "pmax_markers": {
-    "2": "o",
-    "4": "s",
-    "6": "^",
-    "8": "D"
-  },
-  "pmax_values": [
-    2,
-    4,
-    6,
-    8
-  ],
-  "scheduling_units": "NP equals number of vehicles; CHP and PP equal number of platoons."
+  "plot_type": "method-level mean line figure",
+  "scheduling_units": "NP equals number of vehicles; CHP and PP equal number of platoons.",
+  "uncertainty": "Light shaded bands show the interquartile range behind each method-level mean."
 }
