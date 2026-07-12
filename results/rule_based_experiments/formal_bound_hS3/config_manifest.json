@@ -2,7 +2,8 @@
   "seed": 20260712,
   "reps": 20,
   "n_values": [
-    20
+    20,
+    40
   ],
   "approaches": 4,
   "arrival_rates": [

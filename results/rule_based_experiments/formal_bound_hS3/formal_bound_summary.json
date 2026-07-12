@@ -1,5 +1,5 @@
 {
-  "total_pp_rows": 960,
+  "total_pp_rows": 1920,
   "bound_checkable_rows": 960,
   "unique_checked_instances": 60,
   "coverage_by_N_and_arrival_rate": {
@@ -16,14 +16,14 @@
   "median_bound_slack": 45.05,
   "minimum_bound_slack": 6.949999999999999,
   "checks": {
-    "expected_instance_count": 60,
-    "observed_instance_count": 60,
-    "expected_initial_row_count": 1260,
-    "observed_initial_row_count": 1260,
+    "expected_instance_count": 120,
+    "observed_instance_count": 120,
+    "expected_initial_row_count": 2520,
+    "observed_initial_row_count": 2520,
     "duplicate_row_key_count": 0,
     "duplicate_row_keys": [],
-    "expected_pp_rows": 960,
-    "observed_pp_rows": 960,
+    "expected_pp_rows": 1920,
+    "observed_pp_rows": 1920,
     "bound_violation_count": 0,
     "delay_order_failure_count": 0
   }
