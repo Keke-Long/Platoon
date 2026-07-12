@@ -34,14 +34,18 @@ N_COLORS = {
     80: "#9467bd",
 }
 RATE_MARKERS = {
-    0.4: "o",
-    0.7: "^",
+    0.5: "o",
     1.0: "s",
+    1.5: "^",
+    2.0: "P",
+    2.5: "D",
 }
 RATE_COLORS = {
-    0.4: "#1f77b4",
-    0.7: "#00a6a6",
-    1.0: "#2ecc71",
+    0.5: "#1f77b4",
+    1.0: "#17becf",
+    1.5: "#2ca02c",
+    2.0: "#ff7f0e",
+    2.5: "#9467bd",
 }
 METHOD_COLORS = {
     "NP": "#222222",
@@ -374,8 +378,8 @@ def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *,
             [point[2] for point in points],
             s=16,
             alpha=0.74,
-            color=RATE_COLORS.get(round(float(rate[0]), 1), "#555555"),
-            marker="o",
+            color="#3366aa",
+            marker=RATE_MARKERS.get(round(float(rate[0]), 1), "o"),
             depthshade=False,
         )
     panel_label(ax, "(a)", is_3d=True)
@@ -387,8 +391,8 @@ def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *,
     ax.view_init(elev=22, azim=-58)
     apply_axis_typography(ax)
     rate_handles = [
-        Line2D([0], [0], marker="o", color="none", markerfacecolor=color, markeredgecolor=color, linestyle="None", label=rf"$\lambda$={rate:g}")
-        for rate, color in sorted(RATE_COLORS.items())
+        Line2D([0], [0], marker=RATE_MARKERS.get(rate, "o"), color="none", markerfacecolor="#3366aa", markeredgecolor="#3366aa", linestyle="None", label=rf"$\lambda$={rate:g}")
+        for rate in sorted(RATE_MARKERS)
         if any(fvalue(row, "arrival_rate") == rate for row in rows)
     ]
     quantity_handles = [
@@ -410,7 +414,7 @@ def plot_bound_validation(bound_rows: list[dict[str, str]], output_dir: Path, *,
             "figure_number": 6,
             "plot_type": "3D surface plus scatter",
             "axes": {"x": "delta", "y": "Pmax", "z": "actual G and rule-level Ghat"},
-            "color": "arrival_rate for actual G points",
+            "marker": "total arrival rate lambda for actual G points",
             "surface": "Rule-level Ghat is shown as one semi-transparent surface aggregated by delta and Pmax across completed rows; N is not visually encoded.",
             "quantity_encoding": "Actual G uses filled scatter points; Ghat uses a semi-transparent surface.",
             "rows": "Ghat surface uses completed formal bound rows. Actual G points use only bound_check_available rows where NP and PP are proven optimal.",
@@ -575,7 +579,7 @@ def plot_delay_density(rows: list[dict[str, str]], output_dir: Path, *, write_pn
         plot_method_mean_with_range(ax, rates, np_y, np_rate_ranges, "NP", "x")
         plot_method_mean_with_range(ax, rates, chp_rate_y, chp_rate_ranges, "CHP", "v")
         plot_method_mean_with_range(ax, rates, pp_rate_y, pp_rate_ranges, "PP", "o")
-        ax.set_xlabel(r"Arrival rate $\lambda$")
+        ax.set_xlabel(r"Total arrival rate, $\lambda$ (veh/s)")
         ax.set_ylabel("Average vehicle delay")
         ax.grid(True, linewidth=0.5, alpha=0.25)
         apply_axis_typography(ax)
@@ -657,9 +661,9 @@ def plot_time_platoons(rows: list[dict[str, str]], output_dir: Path, *, write_pn
     fig, axes = plt.subplots(len(n_values), 4, figsize=(15.2, max(3.0, 2.8 * len(n_values))), squeeze=False)
     panel_specs = [
         ("solve_time_s", "delta", r"Platooning threshold $\delta$", "Solution time (s)"),
-        ("solve_time_s", "arrival_rate", r"Arrival rate $\lambda$", "Solution time (s)"),
+        ("solve_time_s", "arrival_rate", r"Total arrival rate, $\lambda$ (veh/s)", "Solution time (s)"),
         ("number_of_platoons", "delta", r"Platooning threshold $\delta$", "Number of scheduling units"),
-        ("number_of_platoons", "arrival_rate", r"Arrival rate $\lambda$", "Number of scheduling units"),
+        ("number_of_platoons", "arrival_rate", r"Total arrival rate, $\lambda$ (veh/s)", "Number of scheduling units"),
     ]
     for row_index, n_value in enumerate(n_values):
         for col_index, (metric, x_field, xlabel, ylabel) in enumerate(panel_specs):

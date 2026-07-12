@@ -1,5 +1,32 @@
 {
   "recovery_row_count": 0,
   "optimal_recovery_count": 0,
-  "status_counts": {}
+  "status_counts": {},
+  "arrival_rate_revision": {
+    "lambda_definition": "total vehicle arrival rate into the entire conflict area",
+    "approved_total_arrival_rate_grid": [
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      2.5
+    ],
+    "completed_total_arrival_rates": [
+      1.5,
+      2.5
+    ],
+    "missing_total_arrival_rates": [
+      0.5,
+      1.0,
+      2.0
+    ],
+    "per_approach_rate_rule": "per_approach_arrival_rate = total_arrival_rate / L",
+    "reused_rate_mapping": {
+      "old_0.4": "total_1.5",
+      "old_0.7": "total_2.5"
+    },
+    "deleted_old_arrival_rates": [
+      1.0
+    ]
+  }
 }

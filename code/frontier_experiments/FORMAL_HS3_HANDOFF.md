@@ -19,7 +19,8 @@ The experiments do not prove the theorem; they check the implementation on solve
 ```text
 L = 4
 N = {20, 40, 60, 80}
-arrival rates = {0.4, 0.7, 1.0}
+total arrival rates lambda = {0.5, 1.0, 1.5, 2.0, 2.5}
+per-approach Poisson rate = lambda / 4
 hF = 1
 hS = 3
 delta = {2, 4, 6, 8}
@@ -30,7 +31,7 @@ initial time limit = 30 seconds
 NP recovery time limit = 600 seconds, only when explicitly launched
 ```
 
-Do not change this grid for paper-facing formal runs.
+Do not change this grid for paper-facing formal runs. Existing old `arrival_rate=0.4` rows are reused as total `lambda=1.5`; old `arrival_rate=0.7` rows are reused as total `lambda=2.5`; old `arrival_rate=1.0` rows are deleted. Missing total rates `0.5`, `1.0`, and `2.0` still need to be generated.
 
 ## Active Files
 
@@ -52,9 +53,10 @@ Expected current aggregate checks:
 ```text
 formal_comparison_rows.csv: N = {20, 40}
 formal_bound_rows.csv: N = {20, 40}
-initial instances: 120
-initial rows: 2520
-PP rows: 1920
+active total lambda values: {1.5, 2.5}
+initial instances: 80
+initial rows: 1680
+PP rows: 1280
 bound violations: 0
 delay-order failures among checked rows: 0
 ```
@@ -104,7 +106,7 @@ cd code/frontier_experiments
 python3 rule_based_formal_hs3.py \
   --n-values 60 \
   --approaches 4 \
-  --arrival-rates 0.4,0.7,1.0 \
+  --arrival-rates 0.5,1.0,1.5,2.0,2.5 \
   --thresholds 2,4,6,8 \
   --max-platoon-sizes 2,4,6,8 \
   --reps 20 \
@@ -127,7 +129,7 @@ cd code/frontier_experiments
 python3 rule_based_formal_hs3.py \
   --n-values 20,40,60 \
   --approaches 4 \
-  --arrival-rates 0.4,0.7,1.0 \
+  --arrival-rates 0.5,1.0,1.5,2.0,2.5 \
   --thresholds 2,4,6,8 \
   --max-platoon-sizes 2,4,6,8 \
   --reps 20 \

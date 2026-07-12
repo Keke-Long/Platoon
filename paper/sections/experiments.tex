@@ -3,7 +3,6 @@
 % Chapter 5 figure forms are governed by code/frontier_experiments/CHAPTER5_FIGURE_SPEC.md.
 
 This section has two purposes. Section~\ref{sec:bound-validation} evaluates the rule-level upper bound on the platooning-induced optimality gap. Section~\ref{sec:pp-validation} evaluates the proposed platooning method against no platooning and conventional critical-headway platooning. The two studies use the same traffic generator and parameter grid, but they answer different questions and use different solver-time protocols.
-The figures in this version use the completed \(N=20\) and \(N=40\) formal runs; the same figure definitions will be extended to \(N=60\) and \(N=80\) after those runs are completed.
 
 \subsection{Validation of the Rule-Level Upper Bound}
 \label{sec:bound-validation}
@@ -15,9 +14,9 @@ We consider a general conflict area with four single-lane approaches. The total 
 \begin{equation}
 N\in\{20,40,60,80\}.
 \end{equation}
-Vehicles are distributed as evenly as possible across the four approaches. Vehicle arrivals on each approach are generated independently according to a Poisson process with arrival rate
+Vehicles are distributed as evenly as possible across the four approaches. Let \(\lambda\) denote the total vehicle arrival rate into the conflict area. The four approaches share the total flow evenly, so vehicle arrivals on each approach are generated independently according to a Poisson process with rate \(\lambda/4\), where
 \begin{equation}
-\lambda\in\{0.4,0.7,1.0\}\ \text{veh/s}.
+\lambda\in\{0.5,1.0,1.5,2.0,2.5\}\ \text{veh/s}.
 \end{equation}
 The minimum following and switching headways are fixed at \(\hF=1\)~s and \(\hS=3\)~s, respectively. The platooning threshold and maximum platoon size are varied over
 \begin{equation}
@@ -47,7 +46,8 @@ only on the subset of cases with an exact NP reference. NP models that do not pr
     \midrule
     Number of approaches \(L\) & 4 \\
     Total number of vehicles \(N\) & \(20,40,60,80\) \\
-    Arrival rate \(\lambda\) & \(0.4,0.7,1.0\) veh/s \\
+    Total arrival rate \(\lambda\) & \(0.5,1.0,1.5,2.0,2.5\) veh/s \\
+    Per-approach arrival rate & \(\lambda/4\) veh/s \\
     Minimum following headway \(\hF\) & 1 s \\
     Minimum switching headway \(\hS\) & 3 s \\
     Platooning threshold \(\delta\) & \(2,4,6,8\) s \\
@@ -72,7 +72,7 @@ Among cases for which both the NP and PP models are proven optimal, all observed
   }{
     \fbox{\parbox[c][0.25\textheight][c]{0.72\textwidth}{\centering Placeholder for the final bound-validation figure.\\Actual \(G\) and rule-level upper bound \(\widehat G\).}}
   }
-  \caption{Three-dimensional bound validation using the completed \(N=20\) and \(N=40\) runs in one axes. The horizontal axes are the platooning threshold \(\delta\) and maximum platoon size \(P_{\max}\), and the vertical axis shows both the actual platooning-induced optimality gap \(G\) and the rule-level upper bound \(\widehat G(\delta,P_{\max})\). The semi-transparent surface shows \(\widehat G\), and colored scatter points show actual \(G\); colors represent arrival rate \(\lambda\). Actual \(G\) points use only bound-checkable rows with proven-optimal NP and PP solutions. With the current completed data and no NP recovery, actual \(G\) points are available for \(N=20\); \(N=40\) contributes to the \(\widehat G\) surface pending exact NP references.}
+  \caption{Three-dimensional bound validation using the completed formal runs in one axes. The horizontal axes are the platooning threshold \(\delta\) and maximum platoon size \(P_{\max}\), and the vertical axis shows both the actual platooning-induced optimality gap \(G\) and the rule-level upper bound \(\widehat G(\delta,P_{\max})\). The semi-transparent surface shows \(\widehat G\), and scatter points show actual \(G\); marker shapes represent the total arrival rate \(\lambda\). Actual \(G\) points use only bound-checkable rows with proven-optimal NP and PP solutions.}
   \label{fig:bound-validation}
 \end{figure}
 
@@ -93,7 +93,7 @@ Among cases for which both the NP and PP models are proven optimal, all observed
 \subsubsection{Experiment Setting}
 \label{sec:pp-setting}
 
-The second study compares three methods on the same instances: NP treats every vehicle as an independent scheduling unit; CHP applies a conventional critical-headway rule using \(\delta\) without a platoon-size cap; and PP applies the proposed rule using both \(\delta\) and \(P_{\max}\). The traffic settings are identical to Table~\ref{tab:bound-setting}, with \(N\in\{20,40,60,80\}\), \(L=4\), \(\lambda\in\{0.4,0.7,1.0\}\), \(\hF=1\)~s, \(\hS=3\)~s, \(\delta\in\{2,4,6,8\}\), and \(P_{\max}\in\{2,4,6,8\}\). Each configuration uses 20 independent replications.
+The second study compares three methods on the same instances: NP treats every vehicle as an independent scheduling unit; CHP applies a conventional critical-headway rule using \(\delta\) without a platoon-size cap; and PP applies the proposed rule using both \(\delta\) and \(P_{\max}\). The traffic settings are identical to Table~\ref{tab:bound-setting}, with \(N\in\{20,40,60,80\}\), \(L=4\), total arrival rate \(\lambda\in\{0.5,1.0,1.5,2.0,2.5\}\), \(\hF=1\)~s, \(\hS=3\)~s, \(\delta\in\{2,4,6,8\}\), and \(P_{\max}\in\{2,4,6,8\}\). Each configuration uses 20 independent replications.
 
 All three methods use the same 30-second downstream time limit and 12 Gurobi threads. NP is solved once per instance, CHP once for each \(\delta\), and PP once for each \((\delta,P_{\max})\). The comparison reports average vehicle delay, incumbent objective, optimality rate, terminal MIP gap, number of scheduling units, dimension-reduction ratio, solve time, end-to-end time, and branch-and-bound node count. The delay ordering
 \begin{equation}
@@ -112,7 +112,8 @@ is checked only when all three corresponding models are proven optimal. For larg
     Methods & NP, CHP, PP \\
     Number of approaches \(L\) & 4 \\
     Total number of vehicles \(N\) & \(20,40,60,80\) \\
-    Arrival rate \(\lambda\) & \(0.4,0.7,1.0\) veh/s \\
+    Total arrival rate \(\lambda\) & \(0.5,1.0,1.5,2.0,2.5\) veh/s \\
+    Per-approach arrival rate & \(\lambda/4\) veh/s \\
     Minimum following headway \(\hF\) & 1 s \\
     Minimum switching headway \(\hS\) & 3 s \\
     Platooning threshold \(\delta\) & \(2,4,6,8\) s \\
@@ -134,9 +135,9 @@ The comparison confirms the intended trade-off between scheduling flexibility an
   \IfFileExists{figures/pp_delay_vs_threshold_density.pdf}{
     \includegraphics[width=0.53\textwidth]{figures/pp_delay_vs_threshold_density.pdf}
   }{
-    \fbox{\parbox[c][0.27\textheight][c]{0.80\textwidth}{\centering Placeholder for the PP delay comparison.\\Panel (a): delay versus \(\delta\). Panel (b): delay versus \(\lambda\).}}
+    \fbox{\parbox[c][0.27\textheight][c]{0.80\textwidth}{\centering Placeholder for the PP delay comparison.\\Panel (a): delay versus \(\delta\). Panel (b): delay versus total \(\lambda\).}}
   }
-  \caption{Method-level mean vehicle delay of NP, CHP, and PP as the platooning threshold or vehicle arrival rate increases, using checked exact-delay rows. The left panel varies \(\delta\), and the right panel varies \(\lambda\). For this presentation figure, PP is averaged over \(P_{\max}\) to show its aggregate delay position relative to NP and CHP; light shaded bands show the interquartile range behind each method-level mean.}
+  \caption{Method-level mean vehicle delay of NP, CHP, and PP as the platooning threshold or total arrival rate increases, using checked exact-delay rows. The left panel varies \(\delta\), and the right panel varies the total arrival rate \(\lambda\). For this presentation figure, PP is averaged over \(P_{\max}\) to show its aggregate delay position relative to NP and CHP; light shaded bands show the interquartile range behind each method-level mean.}
   \label{fig:pp-delay}
 \end{figure}
 
@@ -145,9 +146,9 @@ The comparison confirms the intended trade-off between scheduling flexibility an
   \IfFileExists{figures/pp_time_and_scheduling_units.pdf}{
     \includegraphics[width=0.92\textwidth]{figures/pp_time_and_scheduling_units.pdf}
   }{
-    \fbox{\parbox[c][0.34\textheight][c]{0.84\textwidth}{\centering Placeholder for the PP computation-mechanism figure.\\Solve time and number of platoons versus \(\delta\) and \(\lambda\).}}
+    \fbox{\parbox[c][0.34\textheight][c]{0.84\textwidth}{\centering Placeholder for the PP computation-mechanism figure.\\Solve time and number of platoons versus \(\delta\) and total \(\lambda\).}}
   }
-  \caption{Method-level mean solution time and number of scheduling units for NP, CHP, and PP, using the completed \(N=20\) and \(N=40\) runs. The panels show solution time versus \(\delta\), solution time versus \(\lambda\), number of scheduling units versus \(\delta\), and number of scheduling units versus \(\lambda\), with rows stratified by \(N\). For NP, the number of scheduling units is the number of vehicles; for CHP and PP, it is the number of platoons. The solve-time panels use a logarithmic vertical axis; scheduling-unit panels use a linear scale. For this presentation figure, PP is averaged over \(P_{\max}\), and light shaded bands show the interquartile range behind each method-level mean.}
+  \caption{Method-level mean solution time and number of scheduling units for NP, CHP, and PP. The panels show solution time versus \(\delta\), solution time versus total arrival rate \(\lambda\), number of scheduling units versus \(\delta\), and number of scheduling units versus total arrival rate \(\lambda\), with rows stratified by \(N\). For NP, the number of scheduling units is the number of vehicles; for CHP and PP, it is the number of platoons. The solve-time panels use a logarithmic vertical axis; scheduling-unit panels use a linear scale. For this presentation figure, PP is averaged over \(P_{\max}\), and light shaded bands show the interquartile range behind each method-level mean.}
   \label{fig:pp-time-platoons}
 \end{figure}
 

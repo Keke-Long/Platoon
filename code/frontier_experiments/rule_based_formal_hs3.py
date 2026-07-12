@@ -74,17 +74,24 @@ def balanced_counts(total_vehicles: int, approaches: int) -> tuple[int, ...]:
     return tuple(base + (1 if index < remainder else 0) for index in range(approaches))
 
 
-def instance_id(n_value: int, arrival_rate: float, replication: int, seed: int) -> str:
-    rate_label = str(arrival_rate).replace(".", "p")
-    return f"N{n_value}_rate{rate_label}_rep{replication:03d}_seed{seed}"
+def rate_label(rate: float) -> str:
+    return f"{rate:g}".replace(".", "p")
 
 
-def instance_seed(config: FormalHS3Config, n_value: int, arrival_rate: float, replication: int) -> int:
+def per_approach_arrival_rate(total_arrival_rate: float, approaches: int) -> float:
+    return total_arrival_rate / approaches
+
+
+def instance_id(n_value: int, total_arrival_rate: float, replication: int, seed: int) -> str:
+    return f"N{n_value}_lambda{rate_label(total_arrival_rate)}_rep{replication:03d}_seed{seed}"
+
+
+def instance_seed(config: FormalHS3Config, n_value: int, total_arrival_rate: float, replication: int) -> int:
     material = json.dumps(
         {
             "base_seed": config.seed,
             "N": n_value,
-            "arrival_rate": arrival_rate,
+            "total_arrival_rate": total_arrival_rate,
             "replication": replication,
             "approaches": config.approaches,
             "hF": config.hF,
@@ -97,7 +104,7 @@ def instance_seed(config: FormalHS3Config, n_value: int, arrival_rate: float, re
 
 def generate_releases(
     counts: tuple[int, ...],
-    arrival_rate: float,
+    approach_arrival_rate: float,
     rng: random.Random,
 ) -> tuple[tuple[int, ...], ...]:
     releases: list[tuple[int, ...]] = []
@@ -105,7 +112,7 @@ def generate_releases(
         current = rng.randint(0, 2)
         row: list[int] = []
         for _ in range(count):
-            current += rng.expovariate(arrival_rate)
+            current += rng.expovariate(approach_arrival_rate)
             row.append(round(current))
         releases.append(tuple(row))
     return tuple(releases)
@@ -114,19 +121,20 @@ def generate_releases(
 def build_instance(
     config: FormalHS3Config,
     n_value: int,
-    arrival_rate: float,
+    total_arrival_rate: float,
     replication: int,
 ) -> tuple[Instance, int, str]:
-    seed = instance_seed(config, n_value, arrival_rate, replication)
+    seed = instance_seed(config, n_value, total_arrival_rate, replication)
     rng = random.Random(seed)
     counts = balanced_counts(n_value, config.approaches)
+    approach_arrival_rate = per_approach_arrival_rate(total_arrival_rate, config.approaches)
     instance = Instance(
         counts=counts,
-        releases=generate_releases(counts, arrival_rate, rng),
+        releases=generate_releases(counts, approach_arrival_rate, rng),
         hF=config.hF,
         hS=config.hS,
     )
-    return instance, seed, instance_id(n_value, arrival_rate, replication, seed)
+    return instance, seed, instance_id(n_value, total_arrival_rate, replication, seed)
 
 
 def numeric_values(rows: list[dict[str, Any]], field: str) -> list[float]:
@@ -177,7 +185,7 @@ def solve_method_row(
     instance: Instance,
     seed: int,
     instance_id_value: str,
-    arrival_rate: float,
+    total_arrival_rate: float,
     replication: int,
     method: RuleMethod,
     threshold: int | None,
@@ -210,6 +218,7 @@ def solve_method_row(
         rule_bound = rule_level_bound(instance, threshold, max_platoon_size)
     ordering_count = ordering_variables(formation.partition)
     vehicle_level_count = vehicle_level_ordering_variables(instance.counts)
+    approach_arrival_rate = per_approach_arrival_rate(total_arrival_rate, instance.L)
     row: dict[str, Any] = {
         "instance_id": instance_id_value,
         "seed": seed,
@@ -218,7 +227,10 @@ def solve_method_row(
         "L": instance.L,
         "counts": list(instance.counts),
         "releases": [list(values) for values in instance.releases],
-        "arrival_rate": arrival_rate,
+        "lambda": total_arrival_rate,
+        "arrival_rate": total_arrival_rate,
+        "total_arrival_rate": total_arrival_rate,
+        "per_approach_arrival_rate": approach_arrival_rate,
         "h_F": instance.hF,
         "h_S": instance.hS,
         "method": method,
@@ -251,11 +263,12 @@ def solve_method_row(
 def run_replication(
     config: FormalHS3Config,
     n_value: int,
-    arrival_rate: float,
+    total_arrival_rate: float,
     replication: int,
     collect_trajectory: bool,
 ) -> dict[str, Any]:
-    instance, seed, instance_id_value = build_instance(config, n_value, arrival_rate, replication)
+    instance, seed, instance_id_value = build_instance(config, n_value, total_arrival_rate, replication)
+    approach_arrival_rate = per_approach_arrival_rate(total_arrival_rate, config.approaches)
     rows: list[dict[str, Any]] = []
     recovery_rows: list[dict[str, Any]] = []
     trajectory_rows: list[dict[str, Any]] = []
@@ -265,7 +278,7 @@ def run_replication(
         instance,
         seed,
         instance_id_value,
-        arrival_rate,
+        total_arrival_rate,
         replication,
         "NP",
         None,
@@ -289,7 +302,7 @@ def run_replication(
             instance,
             seed,
             instance_id_value,
-            arrival_rate,
+            total_arrival_rate,
             replication,
             "NP",
             None,
@@ -315,7 +328,7 @@ def run_replication(
             instance,
             seed,
             instance_id_value,
-            arrival_rate,
+            total_arrival_rate,
             replication,
             "CHP",
             threshold,
@@ -337,7 +350,7 @@ def run_replication(
                 instance,
                 seed,
                 instance_id_value,
-                arrival_rate,
+                total_arrival_rate,
                 replication,
                 "PP",
                 threshold,
@@ -431,7 +444,10 @@ def run_replication(
             "seed": seed,
             "replication": replication,
             "N": n_value,
-            "arrival_rate": arrival_rate,
+            "lambda": total_arrival_rate,
+            "arrival_rate": total_arrival_rate,
+            "total_arrival_rate": total_arrival_rate,
+            "per_approach_arrival_rate": approach_arrival_rate,
             "counts": list(instance.counts),
             "releases": [list(values) for values in instance.releases],
         },
@@ -448,7 +464,10 @@ def trajectory_points(row: dict[str, Any], schedule: ScheduleResult) -> list[dic
             {
                 "instance_id": row["instance_id"],
                 "N": row["N"],
+                "lambda": row["lambda"],
                 "arrival_rate": row["arrival_rate"],
+                "total_arrival_rate": row["total_arrival_rate"],
+                "per_approach_arrival_rate": row["per_approach_arrival_rate"],
                 "replication": row["replication"],
                 "method": row["method"],
                 "threshold": row["threshold"],
@@ -524,7 +543,10 @@ def summarize_comparison(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         summary.append(
             {
                 "N": n_value,
+                "lambda": arrival_rate,
                 "arrival_rate": arrival_rate,
+                "total_arrival_rate": arrival_rate,
+                "per_approach_arrival_rate": arrival_rate / float(group[0].get("L", 4)),
                 "method": method,
                 "threshold": threshold,
                 "delta": threshold,
@@ -557,13 +579,13 @@ def summarize_bound(rows: list[dict[str, Any]]) -> dict[str, Any]:
     violations = [row for row in checkable if row.get("bound_valid") is not True]
     coverage: dict[str, int] = {}
     for row in checkable:
-        key = f"N={row['N']},arrival_rate={row['arrival_rate']}"
+        key = f"N={row['N']},total_arrival_rate={row['arrival_rate']}"
         coverage[key] = coverage.get(key, 0) + 1
     return {
         "total_pp_rows": len(pp_rows),
         "bound_checkable_rows": len(checkable),
         "unique_checked_instances": len({row["instance_id"] for row in checkable}),
-        "coverage_by_N_and_arrival_rate": coverage,
+        "coverage_by_N_and_total_arrival_rate": coverage,
         "violation_count": len(violations),
         "mean_actual_gap": mean_or_none(numeric_values(checkable, "actual_optimality_gap")),
         "median_actual_gap": median_or_none(numeric_values(checkable, "actual_optimality_gap")),
@@ -661,8 +683,7 @@ def status_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
 
 
 def checkpoint_path(config: FormalHS3Config, n_value: int, arrival_rate: float, replication: int) -> Path:
-    rate_label = str(arrival_rate).replace(".", "p")
-    return Path(config.comparison_output_dir) / "checkpoints" / f"N{n_value}_rate{rate_label}_rep{replication:03d}.json"
+    return Path(config.comparison_output_dir) / "checkpoints" / f"N{n_value}_lambda{rate_label(arrival_rate)}_rep{replication:03d}.json"
 
 
 def completed_from_rows(rows: list[dict[str, Any]]) -> set[tuple[int, float, int]]:
@@ -789,7 +810,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--reps", type=int, default=20)
     parser.add_argument("--n-values", default="20,40,60,80")
     parser.add_argument("--approaches", type=int, default=4)
-    parser.add_argument("--arrival-rates", default="0.4,0.7,1.0")
+    parser.add_argument("--arrival-rates", default="0.5,1.0,1.5,2.0,2.5")
     parser.add_argument("--thresholds", default="2,4,6,8")
     parser.add_argument("--max-platoon-sizes", default="2,4,6,8")
     parser.add_argument("--hF", type=int, default=1)

@@ -12,6 +12,8 @@ The manuscript method section has been aligned with the active rule-based implem
 
 The Chapter 5 figure source of truth is `code/frontier_experiments/CHAPTER5_FIGURE_SPEC.md`; do not change figure axes, plot types, encodings, or aggregation rules without explicit project-lead approval.
 
+Arrival-rate convention: `lambda` now means the total vehicle arrival rate into the entire conflict area. For `L=4`, each approach is generated independently with per-approach Poisson rate `lambda/4`. The approved total-arrival-rate grid is `{0.5, 1.0, 1.5, 2.0, 2.5}` veh/s.
+
 ## Current Completion State
 
 - `N=20`: completed in the active formal aggregate results.
@@ -21,6 +23,13 @@ The Chapter 5 figure source of truth is `code/frontier_experiments/CHAPTER5_FIGU
 - 600-second NP recovery: not started in the active formal aggregate results.
 
 The committed formal aggregates contain exactly `N={20,40}`.
+
+Current total-arrival-rate state:
+
+- old `arrival_rate=0.4` rows are reused and relabeled as total `lambda=1.5` with per-approach rate `0.375`;
+- old `arrival_rate=0.7` rows are reused and relabeled as total `lambda=2.5` with per-approach rate `0.625`;
+- old `arrival_rate=1.0` rows are deleted and not used;
+- missing total rates `0.5`, `1.0`, and `2.0` still need to be generated with per-approach rates `0.125`, `0.250`, and `0.500`.
 
 ## Active Scripts
 
@@ -96,7 +105,7 @@ cd code/frontier_experiments
 python3 rule_based_formal_hs3.py \
   --n-values 60 \
   --approaches 4 \
-  --arrival-rates 0.4,0.7,1.0 \
+  --arrival-rates 0.5,1.0,1.5,2.0,2.5 \
   --thresholds 2,4,6,8 \
   --max-platoon-sizes 2,4,6,8 \
   --reps 20 \
@@ -127,7 +136,7 @@ cd code/frontier_experiments
 python3 rule_based_formal_hs3.py \
   --n-values 20,40,60 \
   --approaches 4 \
-  --arrival-rates 0.4,0.7,1.0 \
+  --arrival-rates 0.5,1.0,1.5,2.0,2.5 \
   --thresholds 2,4,6,8 \
   --max-platoon-sizes 2,4,6,8 \
   --reps 20 \

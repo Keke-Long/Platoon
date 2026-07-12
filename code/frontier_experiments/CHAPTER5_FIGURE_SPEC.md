@@ -10,14 +10,17 @@ Current completed formal results:
 
 - `N=20`
 - `N=40`
+- total `lambda=1.5`, reused from old `arrival_rate=0.4`
+- total `lambda=2.5`, reused from old `arrival_rate=0.7`
 
 Not yet completed:
 
 - `N=60`
 - `N=80`
 - 600-second NP recovery
+- total `lambda=0.5`, `1.0`, and `2.0` for the revised total-arrival-rate grid
 
-Current figures may use only completed `N=20` and `N=40` data. They must not fabricate missing larger-scale results. Figures requiring exact actual gaps can only use rows where NP and PP are both proven optimal; until NP recovery is run, the checked actual-gap subset is currently available for `N=20`.
+`lambda` now means total vehicle arrival rate into the entire conflict area. With `L=4`, the per-approach Poisson rate is `lambda/4`. Old `arrival_rate=1.0` rows are deleted and must not be plotted. Current figures may use only completed `N=20` and `N=40` data at total `lambda=1.5` and `2.5`; they must leave missing total rates empty until those experiments are generated. Figures requiring exact actual gaps can only use rows where NP and PP are both proven optimal; until NP recovery is run, the checked actual-gap subset is currently available for `N=20`.
 
 ## Audit Before Correction
 
@@ -28,7 +31,7 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - Current data sufficiency: completed checked rows are sufficient to create the approved 3D form, but the checked subset currently contains `N=20` because `N=40` lacks exact NP references before NP recovery.
 - Need for `N=60,80`: needed only for final full-grid polish. NP recovery is also needed before larger `N` rows can enter exact-gap bound validation.
 - `Pmax` handling: all `Pmax` values are shown on the y-axis.
-- Updated plotting decision: `Ghat` is shown as one semi-transparent surface, not as scatter points. Colors distinguish arrival rate `lambda`; `N` is not visually encoded, and completed rows are pooled in one 3D axes.
+- Updated plotting decision: `Ghat` is shown as one semi-transparent surface, not as scatter points. Marker shape distinguishes total arrival rate `lambda`; `N` is not visually encoded, and completed rows are pooled in one 3D axes.
 - Representative callback instance: not applicable.
 
 ### Figure 7: Complexity-Gap Trade-Off
@@ -40,9 +43,9 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - `Pmax` handling: all `Pmax` values are retained as marker shapes; no PP averaging across `Pmax`.
 - Representative callback instance: not applicable.
 
-### Figure 8: Delay Versus Threshold and Density
+### Figure 8: Delay Versus Threshold and Total Arrival Rate
 
-- Approved form: two-panel line figure with delay versus `delta` and delay versus arrival rate `lambda`.
+- Approved form: two-panel line figure with delay versus `delta` and delay versus total arrival rate `lambda`.
 - Current difference before correction: the existing figure stratified by `N` but placed plot titles over panels and used dense legends; it needed explicit approved aggregation and no top titles.
 - Current data sufficiency: completed `N=20` and `N=40` are sufficient for a form-correct provisional figure.
 - Need for `N=60,80`: needed only for final full-grid polish.
@@ -51,7 +54,7 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 
 ### Figure 9: Complexity-Reduction Mechanism
 
-- Approved form: line figure showing solution time and number of scheduling units as functions of `delta` and `lambda`.
+- Approved form: line figure showing solution time and number of scheduling units as functions of `delta` and total arrival rate `lambda`.
 - Current difference before correction: the existing file name used `platoon_count`, and labels referred to platoons rather than the approved number of scheduling units. Panel titles were also present.
 - Current data sufficiency: completed `N=20` and `N=40` are sufficient for a form-correct provisional figure.
 - Need for `N=60,80`: needed only for final full-grid polish.
@@ -76,7 +79,7 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 - x-axis: platooning threshold `delta`.
 - y-axis: maximum platoon size `Pmax`.
 - z-axis: `G` and `Ghat`.
-- Color: arrival rate `lambda`.
+- Marker shape: total arrival rate `lambda`.
 - `N`: not visually encoded; completed rows are pooled in the same 3D axes.
 - Content: only checked rows where NP and PP are both proven optimal; show both actual `G` and theoretical `Ghat`.
   The `Ghat` values may be shown for completed rows even when exact actual `G` is not yet available, but actual `G` points must use only checked rows.
@@ -94,8 +97,8 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 
 ### Figure 8: `pp_delay_vs_threshold_density.pdf`
 
-- Plot type: line figure with two scientific panels: delay versus `delta` and delay versus arrival rate `lambda`.
-- Purpose: show that average vehicle delay increases with larger threshold or higher traffic density.
+- Plot type: line figure with two scientific panels: delay versus `delta` and delay versus total arrival rate `lambda`.
+- Purpose: show that average vehicle delay increases with larger threshold or higher total arrival rate.
 - Compare: NP, CHP, PP.
 - `Pmax`: averaged within PP for this presentation figure.
 - Aggregation: method-level means over delay-order-checkable rows, stratified by `N`; light shaded bands show the interquartile range behind each method-level mean.
@@ -105,7 +108,7 @@ Current figures may use only completed `N=20` and `N=40` data. They must not fab
 
 - Plot type: line figure.
 - Purpose: show the mechanism behind complexity reduction.
-- Required panels: solution time vs `delta`, solution time vs `lambda`, number of scheduling units vs `delta`, number of scheduling units vs `lambda`.
+- Required panels: solution time vs `delta`, solution time vs total `lambda`, number of scheduling units vs `delta`, number of scheduling units vs total `lambda`.
 - Scheduling units: NP equals number of vehicles; CHP and PP equal number of platoons.
 - `Pmax`: averaged within PP for this presentation figure.
 - Aggregation: method-level means over completed rows, stratified by `N`; light shaded bands show the interquartile range behind each method-level mean.

@@ -5,8 +5,8 @@
     "y": "Pmax",
     "z": "actual G and rule-level Ghat"
   },
-  "color": "arrival_rate for actual G points",
   "figure_number": 6,
+  "marker": "total arrival rate lambda for actual G points",
   "n_values": [
     20,
     40

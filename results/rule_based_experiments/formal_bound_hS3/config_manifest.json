@@ -7,9 +7,8 @@
   ],
   "approaches": 4,
   "arrival_rates": [
-    0.4,
-    0.7,
-    1.0
+    1.5,
+    2.5
   ],
   "thresholds": [
     2,
@@ -30,11 +29,36 @@
   "enable_np_recovery": false,
   "threads": 12,
   "formation_repetitions": 20,
-  "bound_output_dir": "../../results/rule_based_experiments/formal_bound_hS3",
-  "comparison_output_dir": "../../results/rule_based_experiments/formal_pp_hS3",
-  "recovery_output_dir": "../../results/rule_based_experiments/formal_np_recovery_600s_hS3",
+  "bound_output_dir": "results/rule_based_experiments/formal_bound_hS3",
+  "comparison_output_dir": "results/rule_based_experiments/formal_pp_hS3",
+  "recovery_output_dir": "results/rule_based_experiments/formal_np_recovery_600s_hS3",
   "write_trajectory": true,
-  "trajectory_output_dir": "../../results/rule_based_experiments/formal_pp_hS3",
+  "trajectory_output_dir": "results/rule_based_experiments/formal_pp_hS3",
   "representative_threshold": 4,
-  "representative_max_platoon_size": 4
+  "representative_max_platoon_size": 4,
+  "lambda_definition": "total vehicle arrival rate into the entire conflict area",
+  "approved_total_arrival_rate_grid": [
+    0.5,
+    1.0,
+    1.5,
+    2.0,
+    2.5
+  ],
+  "completed_total_arrival_rates": [
+    1.5,
+    2.5
+  ],
+  "missing_total_arrival_rates": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "per_approach_rate_rule": "per_approach_arrival_rate = total_arrival_rate / L",
+  "reused_rate_mapping": {
+    "old_0.4": "total_1.5",
+    "old_0.7": "total_2.5"
+  },
+  "deleted_old_arrival_rates": [
+    1.0
+  ]
 }
