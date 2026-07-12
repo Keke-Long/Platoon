@@ -474,9 +474,9 @@ def plot_tradeoff(bound_rows: list[dict[str, str]], output_dir: Path, *, write_p
         for pmax in pmax_values
     ]
     legend_ax = axes[0][-1]
-    delta_legend = legend_ax.legend(handles=delta_handles, title=r"$\delta$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper left", bbox_to_anchor=(0.52, 0.96))
+    delta_legend = legend_ax.legend(handles=delta_handles, title=r"$\delta$ label", frameon=False, fontsize=8, title_fontsize=8, loc="upper left", bbox_to_anchor=(0.52, 0.96))
     legend_ax.add_artist(delta_legend)
-    legend_ax.legend(handles=pmax_handles, title=r"$P_{\max}$ label", frameon=True, fontsize=8, title_fontsize=8, loc="upper left", bbox_to_anchor=(0.72, 0.96))
+    legend_ax.legend(handles=pmax_handles, title=r"$P_{\max}$ label", frameon=False, fontsize=8, title_fontsize=8, loc="upper left", bbox_to_anchor=(0.72, 0.96))
     write_metadata(
         output_dir,
         "experimental_tradeoff_solve_time_gap",
