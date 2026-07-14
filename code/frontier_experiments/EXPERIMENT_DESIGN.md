@@ -28,11 +28,14 @@ Both studies use the same generated traffic instances and formal grid.
 - minimum switching headway: `hS = 3 s`
 - platooning thresholds: `delta in {2, 4, 6, 8}` s
 - maximum platoon sizes: `Pmax in {2, 4, 6, 8}`
-- replications: `20`
+- replications: `10`
 - Gurobi threads: `12`
+- common maximum solve time: `600 seconds` for NP, CHP, and PP
 - deterministic instance seeds
 
 The same generated traffic instance must be reused by NP, CHP, and every PP parameter combination.
+
+`N = 80` is retained as the largest stress-test scale. It uses the same common solver limit and enters paper-facing aggregates only after all 50 traffic instances are complete.
 
 ## Methods
 
@@ -58,7 +61,7 @@ G(Pi) = D_PP - D_NP
 
 The partition-specific bound may remain in diagnostic output but is not the plotted or manuscript-facing validation target.
 
-Bound checks are available only when both NP and PP are proven optimal. NP models that do not prove optimality in the initial 30-second run may be solved in a separate 600-second recovery stage. The recovery result may update `D_NP` for bound checking, but the initial 30-second NP status and metrics must remain preserved.
+Bound checks are available only when both NP and PP are proven optimal within the common 600-second limit. Unresolved rows retain their incumbent, best bound, and terminal MIP gap but are excluded from exact-gap checks. There is no separate recovery stage.
 
 Required summary statistics:
 
@@ -75,7 +78,7 @@ Manuscript claims about realized gaps must specify that they apply to checked ca
 
 ## Method Validation
 
-The comparison study uses the initial 30-second downstream time limit for NP, CHP, and PP. NP is solved once per instance, CHP once per `delta`, and PP once per `(delta, Pmax)`.
+The comparison study uses the same 600-second maximum downstream time limit for NP, CHP, and PP. Gurobi stops as soon as optimality is proved. NP is solved once per instance, CHP once per `delta`, and PP once per `(delta, Pmax)`.
 
 Required metrics:
 
@@ -115,10 +118,9 @@ PDF is the default publication format. PNG previews are optional and generated o
 The active formal result directories are:
 
 ```text
-results/rule_based_experiments/formal_pp_hS3
-results/rule_based_experiments/formal_bound_hS3
-results/rule_based_experiments/formal_np_recovery_600s_hS3
-results/rule_based_experiments/formal_figures_hS3
+results/rule_based_experiments/formal_pp_hS3_600s_r10
+results/rule_based_experiments/formal_bound_hS3_600s_r10
+results/rule_based_experiments/formal_figures_hS3_600s_r10
 ```
 
 The paper-facing figure PDFs are copied to `paper/figures/`.
@@ -138,10 +140,12 @@ Formal scripts must:
 - write deterministic instance identifiers
 - detect duplicate aggregate rows
 - report Gurobi status, runtime, MIP gap, nodes, and incumbent information
-- keep 30-second and 600-second NP metrics in separate fields
+- use the uniform `uniform_600s` run role for every method
 
 Only one process should write aggregate CSV/JSON outputs at a time. Parallel experiment execution must use `--checkpoint-only` chunks followed by a single aggregation pass.
 
 ## Current Repository State
 
-The committed aggregate files contain the completed initial formal run for `N={20,40}` after the total-arrival-rate remapping. Existing old `lambda=0.4` rows are reused and relabeled as total `lambda=1.5`; old `lambda=0.7` rows are reused and relabeled as total `lambda=2.5`; old `lambda=1.0` rows are deleted and not used. Missing total rates `0.5`, `1.0`, and `2.0` still need to be generated with per-approach rates `0.125`, `0.250`, and `0.500`, respectively. No committed `N=60`, `N=80`, or NP-recovery rows are part of the active formal results. The manuscript text describes the full formal design and should not describe the implementation process as unfinished.
+The previous aggregate files under `formal_pp_hS3` and `formal_bound_hS3` are legacy 30-second, 20-replication results. For the new uniform design, the first 10 replications of the approved relabeled `lambda={1.5,2.5}` cases may be reused when the legacy solve already proved optimal; unresolved legacy rows are rerun on the same stored instance with the 600-second limit. All other grid points are generated directly under the new `*_600s_r10` result directories. No separate NP-recovery output is produced.
+
+The reuse and relabeling of the `lambda={1.5,2.5}` rows is an approved project decision and is not itself a reason to rerun those cases.

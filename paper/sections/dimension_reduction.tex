@@ -71,6 +71,9 @@ Increasing \(\delta\) can join more vehicles and increase the bound through the 
 \subsection{Downstream Scheduling Model}
 \label{sec:downstream-after-pp}
 
+% TODO: Add the downstream MILP variables, precedence constraints, Big-M
+% choice, and a brief equivalence argument linking the MILP to Section 2.
+
 After NP, CHP, or PP constructs a partition, the downstream platoon-level scheduling MILP from Section~\ref{sec:formulation} is built on the resulting scheduling units. Vehicles inside a platoon preserve FIFO order and pass consecutively. The MILP chooses the relative order of platoons from different approaches and their passing times subject to the same following and switching headway requirements. The preprocessing rule does not change the downstream solver; it changes only the number and composition of scheduling units.
 
 For PP, the reported preprocessing time is the time needed to form platoons by the deterministic scan. The end-to-end computational comparison therefore consists of rule-based formation time plus downstream scheduling time, with the downstream MILP solved under the common time limit used in the experiments.

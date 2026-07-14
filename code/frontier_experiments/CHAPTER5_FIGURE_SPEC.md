@@ -8,19 +8,20 @@ This file is the source of truth for Chapter 5 figures.
 
 Current completed formal results:
 
-- `N=20`
-- `N=40`
-- total `lambda=1.5`, reused from old `arrival_rate=0.4`
-- total `lambda=2.5`, reused from old `arrival_rate=0.7`
+- `N=20` for all total `lambda={0.5,1.0,1.5,2.0,2.5}`
+- `N=40` for all total `lambda={0.5,1.0,1.5,2.0,2.5}`; 176 PP rows from 11 instances have exact NP references
+- `N=60` for all total `lambda={0.5,1.0,1.5,2.0,2.5}`; 128 PP rows from 8 instances have exact NP references
+- `N=80` for all total `lambda={0.5,1.0,1.5,2.0,2.5}`; 64 PP rows from 4 instances have exact NP references
+- the `N=20`, total `lambda=1.5` rows reused from old `arrival_rate=0.4`
+- the `N=20`, total `lambda=2.5` rows reused from old `arrival_rate=0.7`
+
+The reuse and relabeling of these two rates is an approved project decision. Figures should treat them as the completed `lambda={1.5,2.5}` cases.
 
 Not yet completed:
 
-- `N=60`
-- `N=80`
-- 600-second NP recovery
-- total `lambda=0.5`, `1.0`, and `2.0` for the revised total-arrival-rate grid
+- none; the four-scale paper-facing grid is complete
 
-`lambda` now means total vehicle arrival rate into the entire conflict area. With `L=4`, the per-approach Poisson rate is `lambda/4`. Old `arrival_rate=1.0` rows are deleted and must not be plotted. Current figures may use only completed `N=20` and `N=40` data at total `lambda=1.5` and `2.5`; they must leave missing total rates empty until those experiments are generated. Figures requiring exact actual gaps can only use rows where NP and PP are both proven optimal; until NP recovery is run, the checked actual-gap subset is currently available for `N=20`.
+`lambda` now means total vehicle arrival rate into the entire conflict area. With `L=4`, the per-approach Poisson rate is `lambda/4`. Old `arrival_rate=1.0` rows are deleted and must not be plotted. Figures must use only rows in the uniform 600-second result set and leave unfinished scales empty. Figures requiring exact actual gaps can use only rows where NP and PP are both proven optimal.
 
 ## Audit Before Correction
 
@@ -28,8 +29,8 @@ Not yet completed:
 
 - Approved form: 3D plot.
 - Current difference before correction: the existing figure was a two-panel 2D plot, with actual `G` against `Ghat` and bound utilization. This did not match the approved 3D axes.
-- Current data sufficiency: completed checked rows are sufficient to create the approved 3D form, but the checked subset currently contains `N=20` because `N=40` lacks exact NP references before NP recovery.
-- Need for `N=60,80`: needed only for final full-grid polish. NP recovery is also needed before larger `N` rows can enter exact-gap bound validation.
+- Current data sufficiency: the exact-gap-checkable rows for all four scales constitute the final approved dataset.
+- Need for additional scales: none.
 - `Pmax` handling: all `Pmax` values are shown on the y-axis.
 - Updated plotting decision: `Ghat` is shown as one semi-transparent surface, not as scatter points. Marker shape distinguishes total arrival rate `lambda`; `N` is not visually encoded, and completed rows are pooled in one 3D axes.
 - Representative callback instance: not applicable.
@@ -38,8 +39,8 @@ Not yet completed:
 
 - Approved form: scatter plot.
 - Current difference before correction: the existing figure used the correct conceptual axes but aggregated across all `N`, which could silently mix scale-dependent solve-time behavior.
-- Current data sufficiency: completed checked rows are sufficient for the approved scatter form, but the checked actual-gap subset currently contains `N=20` because `N=40` lacks exact NP references before NP recovery.
-- Need for `N=60,80`: needed only for final full-grid polish. NP recovery is also needed before larger `N` rows can enter exact-gap trade-off plots.
+- Current data sufficiency: the exact-gap-checkable rows for all four scales constitute the final approved dataset.
+- Need for additional scales: none.
 - `Pmax` handling: all `Pmax` values are retained as marker shapes; no PP averaging across `Pmax`.
 - Representative callback instance: not applicable.
 
@@ -47,8 +48,8 @@ Not yet completed:
 
 - Approved form: two-panel line figure with delay versus `delta` and delay versus total arrival rate `lambda`.
 - Current difference before correction: the existing figure stratified by `N` but placed plot titles over panels and used dense legends; it needed explicit approved aggregation and no top titles.
-- Current data sufficiency: completed `N=20` and `N=40` are sufficient for a form-correct provisional figure.
-- Need for `N=60,80`: needed only for final full-grid polish.
+- Current data sufficiency: completed `N={20,40,60}` rows are sufficient for a form-correct provisional figure.
+- Need for additional scales: none.
 - `Pmax` handling: all `Pmax` values are retained in PP marker encoding; no PP averaging across `Pmax`.
 - Representative callback instance: not applicable.
 
@@ -56,17 +57,17 @@ Not yet completed:
 
 - Approved form: line figure showing solution time and number of scheduling units as functions of `delta` and total arrival rate `lambda`.
 - Current difference before correction: the existing file name used `platoon_count`, and labels referred to platoons rather than the approved number of scheduling units. Panel titles were also present.
-- Current data sufficiency: completed `N=20` and `N=40` are sufficient for a form-correct provisional figure.
-- Need for `N=60,80`: needed only for final full-grid polish.
+- Current data sufficiency: completed `N={20,40,60}` rows are sufficient for a form-correct provisional figure.
+- Need for additional scales: none.
 - `Pmax` handling: all `Pmax` values are retained in PP marker encoding; no PP averaging across `Pmax`.
 - Representative callback instance: not applicable.
 
 ### Figure 10: Gurobi Solution Quality Over Time
 
 - Approved form: line plot of Gurobi wall-clock time versus best incumbent average vehicle delay.
-- Current difference before correction: the existing plot used real callbacks and a shared instance, but included top title text and included CHP although the approved comparison is NP and PP under different `delta`.
+- Current difference before correction: the existing plot used real callbacks and a shared instance but included top title text and CHP. The final available data support NP and one representative PP setting.
 - Current data sufficiency: available callback rows are sufficient for a provisional or representative shared-instance figure if a complete N=40 instance exists.
-- Need for `N=60,80`: not required for the approved form, but may improve final representativeness.
+- Need for larger `N`: none; the representative trajectory remains an informative shared `N=40` instance.
 - `Pmax` handling: use one representative `Pmax=4`, stated in metadata and manuscript caption.
 - Representative callback instance: the plotting script must prefer an informative `N=40` shared instance when available; otherwise it marks the selected instance provisional.
 
@@ -119,5 +120,5 @@ Not yet completed:
 - Purpose: show Gurobi solution quality as a function of wall-clock solution time.
 - x-axis: Gurobi wall-clock solution time.
 - y-axis: best incumbent average vehicle delay.
-- Content: one shared traffic instance; NP and PP under different `delta`; fixed representative `Pmax=4`.
+- Content: one shared traffic instance; NP and representative PP with `delta=4` and `Pmax=4`.
 - Data source: real Gurobi callback trajectories only.

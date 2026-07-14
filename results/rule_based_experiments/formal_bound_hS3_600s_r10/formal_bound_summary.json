@@ -1,0 +1,36 @@
+{
+  "total_pp_rows": 3200,
+  "bound_checkable_rows": 1168,
+  "unique_checked_instances": 73,
+  "coverage_by_N_and_total_arrival_rate": {
+    "N=20,total_arrival_rate=0.5": 160,
+    "N=20,total_arrival_rate=1.0": 160,
+    "N=20,total_arrival_rate=1.5": 160,
+    "N=20,total_arrival_rate=2.0": 160,
+    "N=20,total_arrival_rate=2.5": 160,
+    "N=40,total_arrival_rate=0.5": 144,
+    "N=40,total_arrival_rate=1.0": 32,
+    "N=60,total_arrival_rate=0.5": 128,
+    "N=80,total_arrival_rate=0.5": 64
+  },
+  "violation_count": 0,
+  "mean_actual_gap": 0.47330194063926945,
+  "median_actual_gap": 0.04999999999999982,
+  "mean_rule_level_upper_bound": 84.0041095890411,
+  "median_rule_level_upper_bound": 64.5,
+  "mean_bound_slack": 83.53080764840183,
+  "median_bound_slack": 64.5,
+  "minimum_bound_slack": 6.949999999999999,
+  "checks": {
+    "expected_instance_count": 200,
+    "observed_instance_count": 200,
+    "expected_initial_row_count": 4200,
+    "observed_initial_row_count": 4200,
+    "duplicate_row_key_count": 0,
+    "duplicate_row_keys": [],
+    "expected_pp_rows": 3200,
+    "observed_pp_rows": 3200,
+    "bound_violation_count": 0,
+    "delay_order_failure_count": 0
+  }
+}

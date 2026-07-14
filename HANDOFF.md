@@ -14,156 +14,43 @@ The Chapter 5 figure source of truth is `code/frontier_experiments/CHAPTER5_FIGU
 
 Arrival-rate convention: `lambda` now means the total vehicle arrival rate into the entire conflict area. For `L=4`, each approach is generated independently with per-approach Poisson rate `lambda/4`. The approved total-arrival-rate grid is `{0.5, 1.0, 1.5, 2.0, 2.5}` veh/s.
 
-## Current Completion State
+## Uniform 600-Second Experiment State
 
-- `N=20`: completed in the active formal aggregate results.
-- `N=40`: completed in the active formal aggregate results.
-- `N=60`: not started in the active formal aggregate results.
-- `N=80`: not started in the active formal aggregate results.
-- 600-second NP recovery: not started in the active formal aggregate results.
+- `N=20`: complete under the new 600-second, 10-replication design; all 50 NP, 200 CHP, and 800 PP rows are optimal, with zero bound violations and zero delay-order failures.
+- `N=40`: complete under the new design; NP has 11 optimal and 39 time-limit rows, CHP has 200 optimal rows, and PP has 793 optimal and 7 time-limit rows. The 176 exact-gap-checkable PP rows have zero bound violations and zero delay-order failures.
+- `N=60`: complete under the new design; NP has 8 optimal and 42 time-limit rows, CHP has 185 optimal and 15 time-limit rows, and PP has 560 optimal and 240 time-limit rows. The 128 exact-gap-checkable PP rows have zero bound violations and zero delay-order failures.
+- `N=80`: complete under the new design; NP has 4 optimal and 46 time-limit rows, CHP has 161 optimal and 39 time-limit rows, and PP has 393 optimal and 407 time-limit rows. The 64 exact-gap-checkable PP rows have zero bound violations and zero delay-order failures.
 
-The committed formal aggregates contain exactly `N={20,40}`.
+All NP, CHP, and PP models now use one common 600-second maximum time limit. There is no recovery stage. Gurobi stops immediately when optimality is proved, and only unresolved cases may later be rerun with a longer limit.
 
 Current total-arrival-rate state:
 
 - old `arrival_rate=0.4` rows are reused and relabeled as total `lambda=1.5` with per-approach rate `0.375`;
 - old `arrival_rate=0.7` rows are reused and relabeled as total `lambda=2.5` with per-approach rate `0.625`;
 - old `arrival_rate=1.0` rows are deleted and not used;
-- missing total rates `0.5`, `1.0`, and `2.0` still need to be generated with per-approach rates `0.125`, `0.250`, and `0.500`.
+- all five rates are complete for `N={20,40,60,80}`.
 
-## Active Scripts
+This remapping is an approved project decision. Treat the reused `lambda={1.5,2.5}` rows as final and do not rerun them solely to replace the historical rate labels.
 
-- `code/frontier_experiments/rule_based_formal_hs3.py`
-- `code/frontier_experiments/plot_rule_based_formal_hs3.py`
-- `code/frontier_experiments/scheduling_milp.py`
-- `code/frontier_experiments/partition_methods.py`
-- `code/frontier_experiments/metrics.py`
-- `code/frontier_experiments/tests/run_tests.py`
+The legacy 30-second aggregates are retained as source data. For the first 10 replications of `lambda={1.5,2.5}`, rows already proved optimal may be migrated into the new result set; unresolved rows are rerun for up to 600 seconds on the same stored instances.
 
-Exact verification code remains under `code/exhaustive_verification/`.
+## Next Experiment Order
 
-## Active Result Files
+1. Compile and audit the manuscript when a LaTeX toolchain is available.
 
-```text
-results/rule_based_experiments/formal_pp_hS3/config_manifest.json
-results/rule_based_experiments/formal_pp_hS3/formal_comparison_rows.csv
-results/rule_based_experiments/formal_pp_hS3/formal_comparison_summary.csv
-results/rule_based_experiments/formal_pp_hS3/formal_comparison_summary.json
-results/rule_based_experiments/formal_pp_hS3/gurobi_incumbent_trajectories.csv
+## Operational Sources
 
-results/rule_based_experiments/formal_bound_hS3/config_manifest.json
-results/rule_based_experiments/formal_bound_hS3/formal_bound_rows.csv
-results/rule_based_experiments/formal_bound_hS3/formal_bound_checkable_rows.csv
-results/rule_based_experiments/formal_bound_hS3/formal_bound_summary.json
+- `code/frontier_experiments/EXPERIMENT_DESIGN.md` is the source of truth for the scientific grid and metric definitions.
+- `code/frontier_experiments/CHAPTER5_FIGURE_SPEC.md` is the source of truth for paper-facing figures.
+- `code/frontier_experiments/FORMAL_HS3_HANDOFF.md` is the source of truth for execution commands, result paths, aggregation, plotting, and validation.
+- `code/exhaustive_verification/README.md` is the source of truth for exact small-instance verification.
+- `notes/final_experiment_summary.md` is the concise final summary of the completed `N={20,40,60}` study.
 
-results/rule_based_experiments/formal_np_recovery_600s_hS3/config_manifest.json
-results/rule_based_experiments/formal_np_recovery_600s_hS3/formal_np_recovery_rows.csv
-results/rule_based_experiments/formal_np_recovery_600s_hS3/formal_np_recovery_summary.json
-
-results/rule_based_experiments/formal_figures_hS3/bound_validation_actual_vs_upper.pdf
-results/rule_based_experiments/formal_figures_hS3/experimental_tradeoff_solve_time_gap.pdf
-results/rule_based_experiments/formal_figures_hS3/pp_delay_vs_threshold_density.pdf
-results/rule_based_experiments/formal_figures_hS3/pp_time_and_scheduling_units.pdf
-results/rule_based_experiments/formal_figures_hS3/gurobi_solution_quality_over_time.pdf
-results/rule_based_experiments/formal_figures_hS3/gurobi_solution_quality_over_time_metadata.json
-results/rule_based_experiments/formal_figures_hS3/pp_delay_vs_threshold_density_metadata.json
-results/rule_based_experiments/formal_figures_hS3/pp_time_and_scheduling_units_metadata.json
-```
-
-Paper-facing figure files are:
-
-```text
-paper/figures/Picture1.png
-paper/figures/Picture2.png
-paper/figures/bound_validation_actual_vs_upper.pdf
-paper/figures/experimental_tradeoff_solve_time_gap.pdf
-paper/figures/pp_delay_vs_threshold_density.pdf
-paper/figures/pp_time_and_scheduling_units.pdf
-paper/figures/gurobi_solution_quality_over_time.pdf
-```
-
-## Test Commands
-
-```bash
-python3 -m compileall code
-python3 code/frontier_experiments/tests/run_tests.py
-cd paper && latexmk -pdf -interaction=nonstopmode main.tex
-```
-
-If `latexmk` is unavailable, try:
-
-```bash
-cd paper && pdflatex -interaction=nonstopmode main.tex
-```
-
-## N=60 Command
-
-Do not run this until `N={20,40}` has been reviewed. When approved, run N=60 in checkpoint-only chunks. Example first chunk:
-
-```bash
-cd code/frontier_experiments
-python3 rule_based_formal_hs3.py \
-  --n-values 60 \
-  --approaches 4 \
-  --arrival-rates 0.5,1.0,1.5,2.0,2.5 \
-  --thresholds 2,4,6,8 \
-  --max-platoon-sizes 2,4,6,8 \
-  --reps 20 \
-  --hF 1 \
-  --hS 3 \
-  --time-limit 30 \
-  --threads 12 \
-  --skip-np-recovery \
-  --write-trajectory \
-  --resume \
-  --checkpoint-only \
-  --rep-start 0 \
-  --rep-end-exclusive 5
-```
-
-Launch additional non-overlapping chunks by changing only `--rep-start` and `--rep-end-exclusive`, for example `5..10`, `10..15`, and `15..20`.
-
-## Resume Command
-
-Resume any interrupted chunk with the same chunk command. The runner skips completed local checkpoints.
-
-## Aggregate Command
-
-After all approved N=60 chunks finish, run exactly one aggregate writer:
-
-```bash
-cd code/frontier_experiments
-python3 rule_based_formal_hs3.py \
-  --n-values 20,40,60 \
-  --approaches 4 \
-  --arrival-rates 0.5,1.0,1.5,2.0,2.5 \
-  --thresholds 2,4,6,8 \
-  --max-platoon-sizes 2,4,6,8 \
-  --reps 20 \
-  --hF 1 \
-  --hS 3 \
-  --time-limit 30 \
-  --threads 12 \
-  --skip-np-recovery \
-  --write-trajectory \
-  --resume \
-  --append-existing-outputs
-```
-
-`--append-existing-outputs` seeds the aggregate from the existing `N={20,40}` CSV files before adding resumed checkpoints. This is needed because checkpoint directories are local resume artifacts and are not committed.
-
-## Plotting Command
-
-```bash
-cd code/frontier_experiments
-MPLBACKEND=Agg python3 plot_rule_based_formal_hs3.py
-```
-
-The plotter writes PDFs by default. Use `--write-png` only for optional previews.
+Keep operational commands in the corresponding source document rather than copying them back into this project-level handoff.
 
 ## Known Limitations
 
-- Checkpoints are intentionally ignored and not committed. The pushed safety tag `pre-handoff-cleanup-20260712` preserves the earlier committed checkpoint state if historical recovery is needed.
+- Checkpoints are intentionally ignored and not committed. The pushed safety tag `pre-handoff-cleanup-20260712` preserves the earlier committed checkpoint state if historical-state restoration is needed.
 - The current environment may not have LaTeX installed; manuscript compilation requires `latexmk` or `pdflatex`.
 - Gurobi-backed tests require a reachable Gurobi runtime/token service. In an offline environment, those tests are skipped by the local test runner.
 - Run only one aggregate writer at a time. Parallel experiment execution must use `--checkpoint-only` chunks followed by one aggregation pass.

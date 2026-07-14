@@ -1,0 +1,17 @@
+{
+  "aggregation": "None. Each plotted point is one bound-checkable case row with exact actual G.",
+  "axes": {
+    "x": "solve_time_s",
+    "y": "actual_optimality_gap"
+  },
+  "color": "delta, sampled from the gist_earth colormap in reversed order",
+  "figure_number": 7,
+  "marker": "Pmax",
+  "n_values": [
+    20,
+    40,
+    60,
+    80
+  ],
+  "plot_type": "case-level scatter"
+}

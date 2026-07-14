@@ -35,6 +35,13 @@ from partition_methods import RuleMethod, form_rule_based_platoons  # noqa: E402
 from scheduling_milp import ScheduleResult, solve_downstream_schedule  # noqa: E402
 
 
+NUMERICAL_COMPARISON_TOLERANCE = 1e-6
+
+
+def canonical_average_delay(value: Any, vehicle_count: int) -> float:
+    return round(float(value) * vehicle_count) / vehicle_count
+
+
 @dataclass(frozen=True)
 class FormalHS3Config:
     seed: int
@@ -47,13 +54,10 @@ class FormalHS3Config:
     hF: int
     hS: int
     time_limit: float
-    np_recovery_time_limit: float
-    enable_np_recovery: bool
     threads: int
     formation_repetitions: int
     bound_output_dir: str
     comparison_output_dir: str
-    recovery_output_dir: str
     write_trajectory: bool
     trajectory_output_dir: str
     representative_threshold: int
@@ -270,7 +274,6 @@ def run_replication(
     instance, seed, instance_id_value = build_instance(config, n_value, total_arrival_rate, replication)
     approach_arrival_rate = per_approach_arrival_rate(total_arrival_rate, config.approaches)
     rows: list[dict[str, Any]] = []
-    recovery_rows: list[dict[str, Any]] = []
     trajectory_rows: list[dict[str, Any]] = []
 
     np_row, np_schedule = solve_method_row(
@@ -283,40 +286,18 @@ def run_replication(
         "NP",
         None,
         None,
-        "initial_30s",
+        "uniform_600s",
         config.time_limit,
         collect_trajectory=collect_trajectory,
     )
     rows.append(np_row)
 
     np_optimal_objective = (
-        np_schedule.objective_average_delay
+        canonical_average_delay(np_schedule.objective_average_delay, instance.N)
         if np_schedule.status == "OPTIMAL"
         else None
     )
-    np_optimal_source = "initial_30s" if np_optimal_objective is not None else None
-
-    if config.enable_np_recovery and np_schedule.status != "OPTIMAL":
-        recovery_row, recovery_schedule = solve_method_row(
-            config,
-            instance,
-            seed,
-            instance_id_value,
-            total_arrival_rate,
-            replication,
-            "NP",
-            None,
-            None,
-            "np_recovery_600s",
-            config.np_recovery_time_limit,
-            collect_trajectory=collect_trajectory,
-        )
-        recovery_rows.append(recovery_row)
-        if recovery_schedule.status == "OPTIMAL":
-            np_optimal_objective = recovery_schedule.objective_average_delay
-            np_optimal_source = "np_recovery_600s"
-        if collect_trajectory:
-            trajectory_rows.extend(trajectory_points(recovery_row, recovery_schedule))
+    np_optimal_source = "uniform_600s" if np_optimal_objective is not None else None
 
     if collect_trajectory:
         trajectory_rows.extend(trajectory_points(np_row, np_schedule))
@@ -333,7 +314,7 @@ def run_replication(
             "CHP",
             threshold,
             None,
-            "initial_30s",
+            "uniform_600s",
             config.time_limit,
             collect_trajectory=(
                 collect_trajectory and threshold == config.representative_threshold
@@ -355,7 +336,7 @@ def run_replication(
                 "PP",
                 threshold,
                 max_platoon_size,
-                "initial_30s",
+                "uniform_600s",
                 config.time_limit,
                 collect_trajectory=(
                     collect_trajectory
@@ -364,21 +345,19 @@ def run_replication(
                 ),
             )
             pp_objective = (
-                pp_schedule.objective_average_delay
+                canonical_average_delay(pp_schedule.objective_average_delay, instance.N)
                 if pp_schedule.status == "OPTIMAL"
                 else None
             )
             chp_objective = (
-                chp_schedule.objective_average_delay
+                canonical_average_delay(chp_schedule.objective_average_delay, instance.N)
                 if chp_schedule.status == "OPTIMAL"
                 else None
             )
-            pp_row["np_30s_status"] = np_row["status"]
-            pp_row["np_30s_objective"] = np_row["objective"]
-            pp_row["np_30s_terminal_mip_gap"] = np_row["terminal_mip_gap"]
-            pp_row["np_30s_solve_time_s"] = np_row["solve_time_s"]
-            pp_row["np_recovery_status"] = recovery_rows[0]["status"] if recovery_rows else None
-            pp_row["np_recovery_objective"] = recovery_rows[0]["objective"] if recovery_rows else None
+            pp_row["np_status"] = np_row["status"]
+            pp_row["np_objective"] = np_row["objective"]
+            pp_row["np_terminal_mip_gap"] = np_row["terminal_mip_gap"]
+            pp_row["np_solve_time_s"] = np_row["solve_time_s"]
             pp_row["np_optimal_objective"] = np_optimal_objective
             pp_row["np_optimal_source"] = np_optimal_source
             pp_row["matching_chp_objective"] = chp_objective
@@ -391,7 +370,7 @@ def run_replication(
             pp_row["bound_check_available"] = pp_row["actual_optimality_gap"] is not None
             if pp_row["bound_check_available"]:
                 pp_row["bound_slack"] = pp_row["rule_level_upper_bound"] - pp_row["actual_optimality_gap"]
-                pp_row["bound_valid"] = pp_row["bound_slack"] >= -1e-7
+                pp_row["bound_valid"] = pp_row["bound_slack"] >= -NUMERICAL_COMPARISON_TOLERANCE
             else:
                 pp_row["bound_slack"] = None
                 pp_row["bound_valid"] = None
@@ -401,7 +380,9 @@ def run_replication(
                 and pp_objective is not None
             )
             pp_row["np_pp_chp_delay_order_holds"] = (
-                np_optimal_objective <= pp_objective + 1e-7 <= chp_objective + 1e-7
+                np_optimal_objective
+                <= pp_objective + NUMERICAL_COMPARISON_TOLERANCE
+                <= chp_objective + NUMERICAL_COMPARISON_TOLERANCE
                 if pp_row["delay_order_check_available"]
                 else None
             )
@@ -414,10 +395,10 @@ def run_replication(
                 trajectory_rows.extend(trajectory_points(pp_row, pp_schedule))
 
     for row in rows:
-        row["np_30s_status"] = np_row["status"]
-        row["np_30s_objective"] = np_row["objective"]
-        row["np_recovery_status"] = recovery_rows[0]["status"] if recovery_rows else None
-        row["np_recovery_objective"] = recovery_rows[0]["objective"] if recovery_rows else None
+        row["np_status"] = np_row["status"]
+        row["np_objective"] = np_row["objective"]
+        row["np_terminal_mip_gap"] = np_row["terminal_mip_gap"]
+        row["np_solve_time_s"] = np_row["solve_time_s"]
         row["np_optimal_objective"] = np_optimal_objective
         row["np_optimal_source"] = np_optimal_source
         if row["method"] in ("NP", "CHP"):
@@ -452,7 +433,6 @@ def run_replication(
             "releases": [list(values) for values in instance.releases],
         },
         "rows": rows,
-        "recovery_rows": recovery_rows,
         "trajectory_rows": trajectory_rows,
     }
 
@@ -619,22 +599,62 @@ def aggregate_checks(config: FormalHS3Config, rows: list[dict[str, Any]]) -> dic
     }
 
 
+def optional_float(value: Any) -> float | None:
+    if value in (None, ""):
+        return None
+    return float(value)
+
+
+def refresh_numerical_checks(rows: list[dict[str, Any]]) -> None:
+    for row in rows:
+        if row.get("method") != "PP":
+            continue
+        vehicle_count = int(row["N"])
+        np_value = optional_float(row.get("np_optimal_objective"))
+        pp_value = optional_float(row.get("pp_optimal_objective"))
+        chp_value = optional_float(row.get("matching_chp_objective"))
+        np_optimal = canonical_average_delay(np_value, vehicle_count) if np_value is not None else None
+        pp_optimal = canonical_average_delay(pp_value, vehicle_count) if pp_value is not None else None
+        chp_optimal = canonical_average_delay(chp_value, vehicle_count) if chp_value is not None else None
+        row["np_optimal_objective"] = np_optimal
+        row["pp_optimal_objective"] = pp_optimal
+        row["matching_chp_objective"] = chp_optimal
+        actual_gap = pp_optimal - np_optimal if pp_optimal is not None and np_optimal is not None else None
+        row["actual_optimality_gap"] = actual_gap
+        row["bound_check_available"] = actual_gap is not None
+        if actual_gap is None:
+            row["bound_slack"] = None
+            row["bound_valid"] = None
+        else:
+            bound_slack = float(row["rule_level_upper_bound"]) - actual_gap
+            row["bound_slack"] = bound_slack
+            row["bound_valid"] = bound_slack >= -NUMERICAL_COMPARISON_TOLERANCE
+
+        order_check = np_optimal is not None and pp_optimal is not None and chp_optimal is not None
+        row["delay_order_check_available"] = order_check
+        row["np_pp_chp_delay_order_holds"] = (
+            np_optimal
+            <= pp_optimal + NUMERICAL_COMPARISON_TOLERANCE
+            <= chp_optimal + NUMERICAL_COMPARISON_TOLERANCE
+            if order_check
+            else None
+        )
+
+
 def write_outputs(
     config: FormalHS3Config,
     rows: list[dict[str, Any]],
-    recovery_rows: list[dict[str, Any]],
     trajectory_rows: list[dict[str, Any]],
 ) -> dict[str, Any]:
     comparison_dir = Path(config.comparison_output_dir)
     bound_dir = Path(config.bound_output_dir)
-    recovery_dir = Path(config.recovery_output_dir)
     trajectory_dir = Path(config.trajectory_output_dir)
-    for directory in (comparison_dir, bound_dir, recovery_dir, trajectory_dir):
+    for directory in (comparison_dir, bound_dir, trajectory_dir):
         directory.mkdir(parents=True, exist_ok=True)
         (directory / "config_manifest.json").write_text(json.dumps(asdict(config), indent=2), encoding="utf-8")
 
+    refresh_numerical_checks(rows)
     rows = sorted(rows, key=row_key)
-    recovery_rows = sorted(recovery_rows, key=row_key)
     pp_rows = [row for row in rows if row.get("method") == "PP"]
     bound_summary = summarize_bound(rows)
     comparison_summary = summarize_comparison(rows)
@@ -644,7 +664,6 @@ def write_outputs(
         "checks": checks,
         "bound_statistics": bound_summary,
         "comparison_summary_rows": len(comparison_summary),
-        "recovery_row_count": len(recovery_rows),
         "trajectory_row_count": len(trajectory_rows),
     }
 
@@ -656,30 +675,9 @@ def write_outputs(
     write_csv(bound_dir / "formal_bound_checkable_rows.csv", [row for row in pp_rows if row.get("bound_check_available") is True])
     (bound_dir / "formal_bound_summary.json").write_text(json.dumps(bound_summary | {"checks": checks}, indent=2), encoding="utf-8")
 
-    write_csv(recovery_dir / "formal_np_recovery_rows.csv", recovery_rows)
-    (recovery_dir / "formal_np_recovery_summary.json").write_text(
-        json.dumps(
-            {
-                "recovery_row_count": len(recovery_rows),
-                "optimal_recovery_count": sum(1 for row in recovery_rows if row.get("status") == "OPTIMAL"),
-                "status_counts": status_counts(recovery_rows),
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-
     if trajectory_rows:
         write_csv(trajectory_dir / "gurobi_incumbent_trajectories.csv", trajectory_rows)
     return payload
-
-
-def status_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
-    counts: dict[str, int] = {}
-    for row in rows:
-        status = str(row.get("status"))
-        counts[status] = counts.get(status, 0) + 1
-    return counts
 
 
 def checkpoint_path(config: FormalHS3Config, n_value: int, arrival_rate: float, replication: int) -> Path:
@@ -695,16 +693,14 @@ def completed_from_rows(rows: list[dict[str, Any]]) -> set[tuple[int, float, int
     return completed
 
 
-def load_existing_outputs(config: FormalHS3Config) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], set[tuple[int, float, int]]]:
+def load_existing_outputs(config: FormalHS3Config) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[tuple[int, float, int]]]:
     rows = read_csv(Path(config.comparison_output_dir) / "formal_comparison_rows.csv")
-    recovery_rows = read_csv(Path(config.recovery_output_dir) / "formal_np_recovery_rows.csv")
     trajectory_rows = read_csv(Path(config.trajectory_output_dir) / "gurobi_incumbent_trajectories.csv")
-    return rows, recovery_rows, trajectory_rows, completed_from_rows(rows)
+    return rows, trajectory_rows, completed_from_rows(rows)
 
 
-def load_checkpoints(config: FormalHS3Config) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], set[tuple[int, float, int]]]:
+def load_checkpoints(config: FormalHS3Config) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[tuple[int, float, int]]]:
     rows: list[dict[str, Any]] = []
-    recovery_rows: list[dict[str, Any]] = []
     trajectory_rows: list[dict[str, Any]] = []
     completed: set[tuple[int, float, int]] = set()
     checkpoint_dir = Path(config.comparison_output_dir) / "checkpoints"
@@ -712,13 +708,14 @@ def load_checkpoints(config: FormalHS3Config) -> tuple[list[dict[str, Any]], lis
         payload = json.loads(path.read_text(encoding="utf-8"))
         instance = payload["instance"]
         key = (int(instance["N"]), float(instance["arrival_rate"]), int(instance["replication"]))
+        if key[0] not in config.n_values or key[1] not in config.arrival_rates or not 0 <= key[2] < config.reps:
+            continue
         if key in completed:
             raise RuntimeError(f"duplicate checkpoint for {key}")
         completed.add(key)
         rows.extend(payload.get("rows", []))
-        recovery_rows.extend(payload.get("recovery_rows", []))
         trajectory_rows.extend(payload.get("trajectory_rows", []))
-    return rows, recovery_rows, trajectory_rows, completed
+    return rows, trajectory_rows, completed
 
 
 def write_checkpoint_atomic(path: Path, payload: dict[str, Any]) -> None:
@@ -760,15 +757,13 @@ def run(
 ) -> dict[str, Any]:
     Path(config.comparison_output_dir).mkdir(parents=True, exist_ok=True)
     rows: list[dict[str, Any]] = []
-    recovery_rows: list[dict[str, Any]] = []
     trajectory_rows: list[dict[str, Any]] = []
     completed: set[tuple[int, float, int]] = set()
     if append_existing_outputs and not checkpoint_only:
-        rows, recovery_rows, trajectory_rows, completed = load_existing_outputs(config)
+        rows, trajectory_rows, completed = load_existing_outputs(config)
     if resume:
-        checkpoint_rows, checkpoint_recovery_rows, checkpoint_trajectory_rows, checkpoint_completed = load_checkpoints(config)
+        checkpoint_rows, checkpoint_trajectory_rows, checkpoint_completed = load_checkpoints(config)
         rows = merge_rows_by_key(rows, checkpoint_rows, row_key)
-        recovery_rows = merge_rows_by_key(recovery_rows, checkpoint_recovery_rows, row_key)
         trajectory_rows = merge_rows_by_key(trajectory_rows, checkpoint_trajectory_rows, trajectory_key)
         completed |= checkpoint_completed
     rep_end = config.reps if rep_end_exclusive is None else rep_end_exclusive
@@ -786,12 +781,11 @@ def run(
                 path = checkpoint_path(config, n_value, arrival_rate, replication)
                 write_checkpoint_atomic(path, payload)
                 rows.extend(payload["rows"])
-                recovery_rows.extend(payload["recovery_rows"])
                 trajectory_rows.extend(payload["trajectory_rows"])
                 completed.add(key)
                 newly_completed += 1
                 if not checkpoint_only:
-                    write_outputs(config, rows, recovery_rows, trajectory_rows)
+                    write_outputs(config, rows, trajectory_rows)
     if checkpoint_only:
         return {
             "config": asdict(config),
@@ -801,13 +795,13 @@ def run(
             "newly_completed_replications": newly_completed,
             "completed_checkpoint_count": len(completed),
         }
-    return write_outputs(config, rows, recovery_rows, trajectory_rows)
+    return write_outputs(config, rows, trajectory_rows)
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seed", type=int, default=20260712)
-    parser.add_argument("--reps", type=int, default=20)
+    parser.add_argument("--reps", type=int, default=10)
     parser.add_argument("--n-values", default="20,40,60,80")
     parser.add_argument("--approaches", type=int, default=4)
     parser.add_argument("--arrival-rates", default="0.5,1.0,1.5,2.0,2.5")
@@ -815,16 +809,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-platoon-sizes", default="2,4,6,8")
     parser.add_argument("--hF", type=int, default=1)
     parser.add_argument("--hS", type=int, default=3)
-    parser.add_argument("--time-limit", type=float, default=30.0)
-    parser.add_argument("--np-recovery-time-limit", type=float, default=600.0)
-    parser.add_argument("--skip-np-recovery", action="store_true")
+    parser.add_argument("--time-limit", type=float, default=600.0)
     parser.add_argument("--threads", type=int, default=12)
     parser.add_argument("--formation-repetitions", type=int, default=20)
-    parser.add_argument("--bound-output-dir", default="../../results/rule_based_experiments/formal_bound_hS3")
-    parser.add_argument("--comparison-output-dir", default="../../results/rule_based_experiments/formal_pp_hS3")
-    parser.add_argument("--recovery-output-dir", default="../../results/rule_based_experiments/formal_np_recovery_600s_hS3")
+    parser.add_argument("--bound-output-dir", default="../../results/rule_based_experiments/formal_bound_hS3_600s_r10")
+    parser.add_argument("--comparison-output-dir", default="../../results/rule_based_experiments/formal_pp_hS3_600s_r10")
     parser.add_argument("--write-trajectory", action="store_true")
-    parser.add_argument("--trajectory-output-dir", default="../../results/rule_based_experiments/formal_pp_hS3")
+    parser.add_argument("--trajectory-output-dir", default="../../results/rule_based_experiments/formal_pp_hS3_600s_r10")
     parser.add_argument("--representative-threshold", type=int, default=4)
     parser.add_argument("--representative-max-platoon-size", type=int, default=4)
     parser.add_argument("--resume", action="store_true")
@@ -856,13 +847,10 @@ def main() -> int:
         hF=args.hF,
         hS=args.hS,
         time_limit=args.time_limit,
-        np_recovery_time_limit=args.np_recovery_time_limit,
-        enable_np_recovery=not args.skip_np_recovery,
         threads=args.threads,
         formation_repetitions=args.formation_repetitions,
         bound_output_dir=args.bound_output_dir,
         comparison_output_dir=args.comparison_output_dir,
-        recovery_output_dir=args.recovery_output_dir,
         write_trajectory=args.write_trajectory,
         trajectory_output_dir=args.trajectory_output_dir,
         representative_threshold=args.representative_threshold,

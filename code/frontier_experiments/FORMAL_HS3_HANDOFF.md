@@ -1,20 +1,8 @@
 # Formal hS=3 Experiment Handoff
 
-This document is the operational handoff for the active Chapter 5 experiment pipeline. It should be read with `EXPERIMENT_DESIGN.md`, `../../paper/main.tex`, and `../../paper/sections/experiments.tex`.
+This is the operational source of truth for the paper-facing NP/CHP/PP experiment pipeline. Scientific metric definitions are in `EXPERIMENT_DESIGN.md`; figure definitions are in `CHAPTER5_FIGURE_SPEC.md`.
 
-## Paper-Level Role
-
-The manuscript studies performance-guaranteed platooning as a preprocessing step for vehicle scheduling at a general conflict area. Gurobi remains the downstream MILP optimizer. The formal hS=3 pipeline evaluates whether the implemented rule-level bound is valid on checkable solved cases and how NP, CHP, and PP trade delay against model size.
-
-The theorem being supported computationally is the FIFO-indexed loss bound in `../../paper/sections/theoretical_analysis.tex`:
-
-```text
-0 <= G(Pi) <= Ghat(Pi)
-```
-
-The experiments do not prove the theorem; they check the implementation on solved instances and report computation, delay, and dimension-reduction behavior.
-
-## Frozen Formal Grid
+## Fixed Design
 
 ```text
 L = 4
@@ -25,145 +13,98 @@ hF = 1
 hS = 3
 delta = {2, 4, 6, 8}
 Pmax = {2, 4, 6, 8}
-replications = 20
-Gurobi threads = 12
-initial time limit = 30 seconds
-NP recovery time limit = 600 seconds, only when explicitly launched
+replications = 10
+Gurobi threads per solve = 12
+maximum solve time = 600 seconds for every NP, CHP, and PP model
 ```
 
-Do not change this grid for paper-facing formal runs. Existing old `arrival_rate=0.4` rows are reused as total `lambda=1.5`; old `arrival_rate=0.7` rows are reused as total `lambda=2.5`; old `arrival_rate=1.0` rows are deleted. Missing total rates `0.5`, `1.0`, and `2.0` still need to be generated.
+There is no recovery stage. Gurobi stops immediately when it proves optimality. Rows unresolved after 600 seconds retain their incumbent, best bound, and terminal MIP gap and may later be rerun with a longer limit.
 
-## Active Files
+PP is the one-pass threshold-and-cap rule. The experiment pipeline must not invoke an optimized partition-selection, frontier, or dimension-budget method.
 
-- `rule_based_formal_hs3.py`: formal NP/CHP/PP runner with checkpoint/resume and append aggregation.
-- `plot_rule_based_formal_hs3.py`: paper-facing formal figures A-E.
-- `scheduling_milp.py`: downstream Gurobi scheduling model.
-- `partition_methods.py`: rule-based NP/CHP/PP partition formation.
-- `metrics.py`: ordering-variable and bound utilities.
-- `tests/run_tests.py`: local test entry point for the active pipeline.
+## Approved Legacy Reuse
 
-Archived optimized-frontier, complete-frontier, dimension-budget, and older hS=2 workflows have been removed from the active code path.
+Old per-approach `arrival_rate=0.4` rows are treated as total `lambda=1.5`, and old per-approach `arrival_rate=0.7` rows are treated as total `lambda=2.5`. This is an approved project decision.
 
-## Current Result State
+For the first 10 replications, legacy rows already marked `OPTIMAL` may be migrated without rerunning. Legacy `TIME_LIMIT` rows must be solved again on the stored release-time instance and partition with the uniform 600-second limit. Use `migrate_legacy_uniform_results.py`; do not regenerate those approved traffic instances.
 
-The committed formal aggregate files contain completed initial 30-second runs for `N={20,40}` only. `N=60`, `N=80`, and 600-second NP recovery are not present in the committed formal aggregates.
-
-Expected current aggregate checks:
+## Result Directories
 
 ```text
-formal_comparison_rows.csv: N = {20, 40}
-formal_bound_rows.csv: N = {20, 40}
-active total lambda values: {1.5, 2.5}
-initial instances: 80
-initial rows: 1680
-PP rows: 1280
-bound violations: 0
-delay-order failures among checked rows: 0
+results/rule_based_experiments/formal_pp_hS3_600s_r10
+results/rule_based_experiments/formal_bound_hS3_600s_r10
+results/rule_based_experiments/formal_figures_hS3_600s_r10
 ```
 
-Checkpoint directories are local resume artifacts and are ignored by git. The cleanup tag `pre-handoff-cleanup-20260712` preserves the previous committed checkpoint state if an exact historical recovery point is ever needed.
+Legacy 30-second results remain under the unsuffixed `formal_*_hS3` directories and must not be mixed directly into the new aggregates.
 
-## Formal Result Directories
+## Parallel Execution
+
+The workstation has 128 logical CPUs. Use eight checkpoint-only workers with 12 Gurobi threads each, for a maximum of 96 solver threads. Recommended non-overlapping replication ranges are:
 
 ```text
-../../results/rule_based_experiments/formal_pp_hS3/
-  config_manifest.json
-  formal_comparison_rows.csv
-  formal_comparison_summary.csv
-  formal_comparison_summary.json
-  gurobi_incumbent_trajectories.csv
-
-../../results/rule_based_experiments/formal_bound_hS3/
-  config_manifest.json
-  formal_bound_rows.csv
-  formal_bound_checkable_rows.csv
-  formal_bound_summary.json
-
-../../results/rule_based_experiments/formal_np_recovery_600s_hS3/
-  config_manifest.json
-  formal_np_recovery_rows.csv
-  formal_np_recovery_summary.json
-
-../../results/rule_based_experiments/formal_figures_hS3/
-  bound_validation_actual_vs_upper.pdf
-  experimental_tradeoff_solve_time_gap.pdf
-  pp_delay_vs_threshold_density.pdf
-  pp_time_and_scheduling_units.pdf
-  gurobi_solution_quality_over_time.pdf
-  *_metadata.json
+0..2, 2..4, 4..5, 5..6, 6..7, 7..8, 8..9, 9..10
 ```
 
-Paper-facing copies of the five formal PDFs live in `../../paper/figures/`.
-
-## Running the Next Formal Scale
-
-Do not launch `N=60`, `N=80`, or NP recovery until the current `N={20,40}` aggregate state is reviewed.
-
-When `N=60` is approved, use checkpoint-only chunks so multiple processes do not write the aggregate CSV files at the same time. Example for one chunk:
+Each worker uses the same command except for `--rep-start` and `--rep-end-exclusive`:
 
 ```bash
 cd code/frontier_experiments
 python3 rule_based_formal_hs3.py \
-  --n-values 60 \
-  --approaches 4 \
-  --arrival-rates 0.5,1.0,1.5,2.0,2.5 \
-  --thresholds 2,4,6,8 \
-  --max-platoon-sizes 2,4,6,8 \
-  --reps 20 \
-  --hF 1 \
-  --hS 3 \
-  --time-limit 30 \
+  --n-values 20 \
+  --arrival-rates 0.5,1.0,2.0 \
+  --reps 10 \
+  --time-limit 600 \
   --threads 12 \
-  --skip-np-recovery \
   --write-trajectory \
   --resume \
   --checkpoint-only \
   --rep-start 0 \
-  --rep-end-exclusive 5
+  --rep-end-exclusive 2
 ```
 
-After all approved `N=60` chunks finish, run a single aggregation pass that seeds from the existing `N={20,40}` CSV files and adds the new checkpoints:
+For `N=20` and `N=40`, migrate approved `lambda={1.5,2.5}` legacy instances and run only the missing rates directly. For `N={60,80}`, run all five rates directly.
+
+Only checkpoint-only workers may run in parallel. Never run more than one aggregate writer at the same time.
+
+For a restartable unattended campaign, use `run_formal_hs3_campaign.py`. It adopts already running workers, fills only missing checkpoints, validates each completed scale, and writes live state to `formal_pp_hS3_600s_r10/campaign_status.json`.
+
+The four-scale campaign is complete; no tmux campaign session should remain active.
+
+## Aggregation
+
+After all checkpoints for the requested scales exist, run one writer. Example after completing `N=20`:
 
 ```bash
 cd code/frontier_experiments
 python3 rule_based_formal_hs3.py \
-  --n-values 20,40,60 \
-  --approaches 4 \
+  --n-values 20 \
   --arrival-rates 0.5,1.0,1.5,2.0,2.5 \
-  --thresholds 2,4,6,8 \
-  --max-platoon-sizes 2,4,6,8 \
-  --reps 20 \
-  --hF 1 \
-  --hS 3 \
-  --time-limit 30 \
+  --reps 10 \
+  --time-limit 600 \
   --threads 12 \
-  --skip-np-recovery \
   --write-trajectory \
-  --resume \
-  --append-existing-outputs
+  --resume
 ```
 
-Use the same pattern for `N=80` only after `N=60` has been reviewed.
+When extending an existing aggregate to another `N`, include all completed `N` values and add `--append-existing-outputs`.
 
-## Figure Workflow
-
-Regenerate paper-facing figures with:
-
-```bash
-cd code/frontier_experiments
-MPLBACKEND=Agg python3 plot_rule_based_formal_hs3.py
-```
-
-The plotting script writes PDFs by default. PNG previews are optional and can be produced with `--write-png`.
-
-Figure E selects a representative shared-instance trajectory from the available formal trajectory data. It should prefer an `N>=40` instance where NP has multiple incumbent updates or reaches the time limit and PP has at least two callback points. It should fall back to the older trajectory only if no better instance exists.
-
-## Validation Commands
+## Validation
 
 ```bash
 python3 -m compileall code
 python3 code/frontier_experiments/tests/run_tests.py
-cd paper && latexmk -pdf -interaction=nonstopmode main.tex
+cd paper && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 ```
 
-If `latexmk` is unavailable, try `pdflatex main.tex` from `paper/` and report the tool limitation.
+The Gurobi Academic WLS license is installed at `/home/klong23/gurobi.lic`. The experiment runner must report zero duplicate row keys and zero bound violations before figures are regenerated.
+
+## Figures
+
+```bash
+cd code/frontier_experiments
+MPLBACKEND=Agg python3 plot_rule_based_formal_hs3.py \
+  --comparison-dir ../../results/rule_based_experiments/formal_pp_hS3_600s_r10 \
+  --bound-dir ../../results/rule_based_experiments/formal_bound_hS3_600s_r10 \
+  --output-dir ../../results/rule_based_experiments/formal_figures_hS3_600s_r10
+```

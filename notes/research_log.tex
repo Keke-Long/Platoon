@@ -6,7 +6,7 @@ This file preserves the conceptual decisions reached during the July 2026 proof 
 
 The problem is a multi-queue, single-conflict-resource scheduling problem with sequence-dependent separation times. Each traffic approach is a FIFO queue. Vehicle-level scheduling allows arbitrary interleavings of the queues. Platooning aggregates contiguous vehicles from the same queue into indivisible scheduling units.
 
-The paper studies preprocessing and dimension reduction. It does not propose a new solver for the downstream MILP. Gurobi solves both the partition-selection model and the reduced scheduling model. The research contribution is the analytical loss guarantee that determines how aggressively the original problem may be aggregated.
+The paper studies preprocessing and dimension reduction. It does not propose a new solver for the downstream MILP and does not solve a partition-selection model. The proposed PP method forms platoons by a one-pass threshold-and-cap rule, after which Gurobi solves the reduced scheduling model. The research contribution is to analyze platooning from the downstream scheduling-efficiency perspective and provide an analytical loss guarantee for a fast rule-based preprocessing method.
 
 \subsection*{Problems identified in the previous manuscripts}
 
@@ -28,7 +28,7 @@ The preferred positioning is:
 This study develops a performance-guaranteed preprocessing framework that reduces the vehicle scheduling MILP dimension before optimization, allowing an off-the-shelf solver to obtain schedules under limited computation while controlling the loss relative to the vehicle-level optimum.
 \end{quote}
 
-The two principal contributions are a global loss bound and a budget-aware partition formulation. A specialized optimization algorithm is outside the intended scope.
+The two principal contributions are a global loss bound and a fast theory-guided rule-based platooning method. Optimizing the platoon partition would add preprocessing time and is outside the intended scope; the method is designed to preserve the computational advantage of simple rule-based formation.
 
 \subsection*{Status discipline}
 

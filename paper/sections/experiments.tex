@@ -2,7 +2,7 @@
 \label{sec:experiments}
 % Chapter 5 figure forms are governed by code/frontier_experiments/CHAPTER5_FIGURE_SPEC.md.
 
-This section has two purposes. Section~\ref{sec:bound-validation} evaluates the rule-level upper bound on the platooning-induced optimality gap. Section~\ref{sec:pp-validation} evaluates the proposed platooning method against no platooning and conventional critical-headway platooning. The two studies use the same traffic generator and parameter grid, but they answer different questions and use different solver-time protocols.
+This section has two purposes. Section~\ref{sec:bound-validation} evaluates the rule-level upper bound on the platooning-induced optimality gap. Section~\ref{sec:pp-validation} evaluates the proposed platooning method against no platooning and conventional critical-headway platooning. The two studies use the same traffic generator, parameter grid, and solver-time protocol, but answer different questions.
 
 \subsection{Validation of the Rule-Level Upper Bound}
 \label{sec:bound-validation}
@@ -24,7 +24,8 @@ The minimum following and switching headways are fixed at \(\hF=1\)~s and \(\hS=
 \qquad
 P_{\max}\in\{2,4,6,8\}.
 \end{equation}
-For each combination of \(N\), \(\lambda\), \(\delta\), and \(P_{\max}\), we generate 20 independent traffic instances.
+For each \((N,\lambda)\) pair, we generate 10 independent traffic instances and evaluate every \((\delta,P_{\max})\) combination on the same instances.
+The \(N=80\) cases serve as the largest stress-test scale under the same solver protocol.
 
 For each instance, the no-platooning model is solved to obtain the reference delay \(D_{\mathrm{NP}}\). The proposed platooning rule is then applied and the resulting platoon-level model is solved to obtain \(D_{\mathrm{PP}}\). The realized platooning-induced optimality gap is
 \begin{equation}
@@ -34,7 +35,7 @@ A bound check is performed only when both the NP and PP models are proven optima
 \begin{equation}
 G(\Pi)\le \widehat G(\delta,P_{\max})
 \end{equation}
-only on the subset of cases with an exact NP reference. NP models that do not prove optimality within the initial 30-second run are rerun in a recovery stage with a 600-second limit. All models use 12 Gurobi threads. The recovery results are used only to increase the number of exact gap checks; the 30-second results remain the basis for the fixed-budget computation comparison in Section~\ref{sec:pp-validation}.
+only on the subset of cases with an exact NP reference. Every NP, CHP, and PP model is solved with a common 600-second maximum time limit and 12 Gurobi threads. Gurobi terminates immediately when optimality is proved. Cases that remain unresolved at 600 seconds retain their incumbent objective, best bound, and terminal MIP gap, but are excluded from exact optimality-gap checks. Any remaining unresolved cases may subsequently be rerun with a longer limit.
 
 \begin{table}[t]
   \centering
@@ -52,10 +53,9 @@ only on the subset of cases with an exact NP reference. NP models that do not pr
     Minimum switching headway \(\hS\) & 3 s \\
     Platooning threshold \(\delta\) & \(2,4,6,8\) s \\
     Maximum platoon size \(P_{\max}\) & \(2,4,6,8\) \\
-    Replications & 20 \\
+    Replications & 10 \\
     Gurobi threads & 12 \\
-    Initial time limit & 30 s per model \\
-    NP recovery limit & 600 s per unresolved NP model \\
+    Maximum time limit & 600 s per model \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -64,6 +64,26 @@ only on the subset of cases with an exact NP reference. NP models that do not pr
 \label{sec:bound-results}
 
 Among cases for which both the NP and PP models are proven optimal, all observed optimality gaps satisfy the rule-level upper bound. The realized gaps are much smaller than the corresponding upper bounds, so the bound should be interpreted as a valid worst-case guarantee rather than as a point prediction of the realized loss.
+
+Table~\ref{tab:bound-results} summarizes the exact-check subset. Across 1,168 PP rows from 73 traffic instances, no bound violation is observed. The pooled mean and median realized gaps are 0.473~s and 0.050~s, respectively, whereas the mean rule-level upper bound is 84.004~s. The minimum observed bound slack is 6.950~s. The decreasing number of checked instances at larger \(N\) reflects the NP optimality rate under the 600-second limit and does not count unresolved rows as theorem validations.
+
+\begin{table}[t]
+  \centering
+  \caption{Validation of the rule-level bound on cases with proven-optimal NP and PP solutions.}
+  \label{tab:bound-results}
+  \begin{tabular}{rrrrrrr}
+    \toprule
+    \(N\) & Instances & PP rows & Mean \(G\) & Median \(G\) & Max. \(G\) & Violations \\
+    \midrule
+    20 & 50 & 800 & 0.471 & 0.000 & 6.050 & 0 \\
+    40 & 11 & 176 & 0.494 & 0.100 & 5.475 & 0 \\
+    60 &  8 & 128 & 0.507 & 0.275 & 2.950 & 0 \\
+    80 &  4 &  64 & 0.373 & 0.206 & 1.888 & 0 \\
+    \midrule
+    All & 73 & 1,168 & 0.473 & 0.050 & 6.050 & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \begin{figure}[t]
   \centering
@@ -93,9 +113,9 @@ Among cases for which both the NP and PP models are proven optimal, all observed
 \subsubsection{Experiment Setting}
 \label{sec:pp-setting}
 
-The second study compares three methods on the same instances: NP treats every vehicle as an independent scheduling unit; CHP applies a conventional critical-headway rule using \(\delta\) without a platoon-size cap; and PP applies the proposed rule using both \(\delta\) and \(P_{\max}\). The traffic settings are identical to Table~\ref{tab:bound-setting}, with \(N\in\{20,40,60,80\}\), \(L=4\), total arrival rate \(\lambda\in\{0.5,1.0,1.5,2.0,2.5\}\), \(\hF=1\)~s, \(\hS=3\)~s, \(\delta\in\{2,4,6,8\}\), and \(P_{\max}\in\{2,4,6,8\}\). Each configuration uses 20 independent replications.
+The second study compares three methods on the same instances: NP treats every vehicle as an independent scheduling unit; CHP applies a conventional critical-headway rule using \(\delta\) without a platoon-size cap; and PP applies the proposed rule using both \(\delta\) and \(P_{\max}\). The traffic settings are identical to Table~\ref{tab:bound-setting}, with \(N\in\{20,40,60,80\}\), \(L=4\), total arrival rate \(\lambda\in\{0.5,1.0,1.5,2.0,2.5\}\), \(\hF=1\)~s, \(\hS=3\)~s, \(\delta\in\{2,4,6,8\}\), and \(P_{\max}\in\{2,4,6,8\}\). Each configuration uses 10 independent replications.
 
-All three methods use the same 30-second downstream time limit and 12 Gurobi threads. NP is solved once per instance, CHP once for each \(\delta\), and PP once for each \((\delta,P_{\max})\). The comparison reports average vehicle delay, incumbent objective, optimality rate, terminal MIP gap, number of scheduling units, dimension-reduction ratio, solve time, end-to-end time, and branch-and-bound node count. The delay ordering
+All three methods use the same 600-second maximum downstream time limit and 12 Gurobi threads. NP is solved once per instance, CHP once for each \(\delta\), and PP once for each \((\delta,P_{\max})\). The comparison reports average vehicle delay, incumbent objective, optimality rate, terminal MIP gap, number of scheduling units, dimension-reduction ratio, solve time, end-to-end time, and branch-and-bound node count. The delay ordering
 \begin{equation}
 D_{\mathrm{NP}}\le D_{\mathrm{PP}}\le D_{\mathrm{CHP}}
 \end{equation}
@@ -118,8 +138,8 @@ is checked only when all three corresponding models are proven optimal. For larg
     Minimum switching headway \(\hS\) & 3 s \\
     Platooning threshold \(\delta\) & \(2,4,6,8\) s \\
     Maximum platoon size \(P_{\max}\) & \(2,4,6,8\) \\
-    Replications & 20 \\
-    Time limit & 30 s per downstream model \\
+    Replications & 10 \\
+    Maximum time limit & 600 s per downstream model \\
     Gurobi threads & 12 \\
     \bottomrule
   \end{tabular}
@@ -129,6 +149,26 @@ is checked only when all three corresponding models are proven optimal. For larg
 \label{sec:pp-results}
 
 The comparison confirms the intended trade-off between scheduling flexibility and model size. Increasing \(\delta\) generally forms larger platoons, reducing the number of scheduling units and ordering variables while increasing delay. The cap \(P_{\max}\) limits this aggregation, allowing PP to occupy an intermediate position between NP and CHP. When the corresponding NP, PP, and CHP models are all proven optimal, the checked cases satisfy \(D_{\mathrm{NP}}\le D_{\mathrm{PP}}\le D_{\mathrm{CHP}}\).
+
+Table~\ref{tab:computational-results} quantifies the computational effect. PP reduces the number of ordering variables by 74.4--81.0\% on average. Its mean solve time remains below that of NP at every tested scale, and at \(N=80\) PP proves optimality for 49.1\% of its models compared with 8.0\% for NP. CHP is smaller and faster still, but achieves this through uncapped aggregation and therefore represents the more aggressive delay--complexity endpoint. The PP formation routine itself is negligible, with mean measured preprocessing time below 0.007~ms at every scale. On the 1,168 rows for which NP, PP, and the matching CHP solution are all exact, every checked case satisfies the expected delay ordering.
+
+\begin{table}[t]
+  \centering
+  \caption{Computational performance under the common 600-second limit. Times are means in seconds; PP reduction is the mean reduction in ordering variables relative to NP.}
+  \label{tab:computational-results}
+  \begin{tabular}{rrrrrrrr}
+    \toprule
+    & \multicolumn{3}{c}{Optimality rate (\%)} & \multicolumn{3}{c}{Mean solve time} & PP reduction \\
+    \cmidrule(lr){2-4}\cmidrule(lr){5-7}
+    \(N\) & NP & CHP & PP & NP & CHP & PP & (\%) \\
+    \midrule
+    20 & 100.0 & 100.0 & 100.0 &   3.77 &  0.02 &   0.04 & 74.4 \\
+    40 &  22.0 & 100.0 &  99.1 & 482.88 &  1.65 &  26.54 & 78.8 \\
+    60 &  16.0 &  92.5 &  70.0 & 521.71 & 70.28 & 204.40 & 80.0 \\
+    80 &   8.0 &  80.5 &  49.1 & 566.50 & 133.49 & 338.09 & 81.0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \begin{figure}[t]
   \centering
@@ -159,6 +199,6 @@ The comparison confirms the intended trade-off between scheduling flexibility an
   }{
     \fbox{\parbox[c][0.27\textheight][c]{0.76\textwidth}{\centering Placeholder for the Gurobi incumbent trajectory figure.\\Best-found solution quality versus wall-clock time.}}
   }
-  \caption{Quality of Gurobi solutions as a function of wall-clock solution time for one shared traffic instance, drawn from real callback trajectories. The vertical axis is the best incumbent average vehicle delay. The current available trajectory data include NP and PP at representative \(P_{\max}=4\) and \(\delta=4\); additional PP thresholds will be added after callback trajectories are generated for those settings.}
+  \caption{Quality of Gurobi solutions as a function of wall-clock solution time for one shared traffic instance, drawn from real callback trajectories. The vertical axis is the best incumbent average vehicle delay. The comparison uses NP and the representative PP setting \(\delta=4\), \(P_{\max}=4\).}
   \label{fig:gurobi-quality-time}
 \end{figure}

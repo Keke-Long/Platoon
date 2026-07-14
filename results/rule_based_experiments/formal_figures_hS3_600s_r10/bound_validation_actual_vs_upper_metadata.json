@@ -1,0 +1,20 @@
+{
+  "available_only": "Current figure uses the bound-checkable subset of completed data; this subset currently contains N=20 because larger N rows need exact NP references.",
+  "axes": {
+    "x": "delta",
+    "y": "Pmax",
+    "z": "actual G and rule-level Ghat"
+  },
+  "figure_number": 6,
+  "marker": "total arrival rate lambda for actual G points",
+  "n_values": [
+    20,
+    40,
+    60,
+    80
+  ],
+  "plot_type": "3D surface plus scatter",
+  "quantity_encoding": "Actual G uses filled scatter points; Ghat uses a semi-transparent surface.",
+  "rows": "Ghat surface uses completed formal bound rows. Actual G points use only bound_check_available rows where NP and PP are proven optimal.",
+  "surface": "Rule-level Ghat is shown as one semi-transparent surface aggregated by delta and Pmax across completed rows; N is not visually encoded."
+}
